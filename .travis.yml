@@ -1,0 +1,21 @@
+language: node_js
+node_js:
+  - "10"
+
+git:
+  depth: 1
+
+before_install:
+  - npm install shadow-cljs -g
+install:
+  - npm install
+
+script: npm run release
+
+deploy:
+  provider: pages
+  local-dir: public
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  on:
+    branch: master
