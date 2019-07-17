@@ -1,0 +1,29 @@
+{
+  "name": "cljs-karaoke",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "shadow-cljs watch app",
+    "compile": "shadow-cljs compile app",
+    "release": "shadow-cljs release app",
+    "start": "shadow-cljs watch app"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bulma-extensions": "^6.2.7",
+    "bulma-tooltip": "^2.0.2",
+    "create-react-class": "^15.6.3",
+    "path": "^0.12.7",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-flip-move": "^3.0.3",
+    "react-highlight.js": "^1.0.7"
+  },
+  "devDependencies": {
+    "shadow-cljs": "^2.8.40"
+  }
+}

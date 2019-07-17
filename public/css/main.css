@@ -1,0 +1,84 @@
+html {
+    overflow: hidden;
+}
+
+.current-frame  {
+    position: fixed;
+    width: 90%;
+    text-align: center;
+    font-size: 1.1rem;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    background-color: rgba(0,0,0, 0.7);
+    padding: 1em;
+    border-radius: 0.2em;
+}
+
+@media only screen and (min-width: 1024px ) {
+    .current-frame {
+        font-size: 3em;
+    }
+}
+.song-table {
+    background-color: unset;
+    color: black;
+    text-shadow: 0 0 10px white;
+}
+.app-bg {
+    /* display: inline; */
+    position: fixed;
+    z-index: -100;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: url("../images/Dolphin.jpg") 50% 50%;
+    background-size: cover;
+}
+
+.current-frame .frame-text > span {
+    opacity: 0.6;
+    transition: all 0.2s ease-out;
+    color: black;
+    font-family: 'Press Start 2P', cursive;
+    text-shadow:  -2px -2px 1px white;
+}
+.current-frame .frame-text > span.highlighted {
+    color: red;
+    opacity: 1;
+    /* font-size: 1.1em; */
+    transform: translate(10px, 50px);
+}
+
+.current-frame .frame-text > span.highlighted .icon {
+    color: black;
+}
+.contorl-panel {
+    transition: all 2s ease-out;
+ 
+}
+.control-panel.song-playing {
+    display: none;
+}
+
+.edge-stop-btn {
+    display:none;
+}
+.edge-stop-btn.song-playing {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    /* width: 32px; */
+    /* height: 32px; */
+}
+
+.edge-progress-bar .song-progress {
+    position: fixed;
+    bottom: 0.5em;
+    left: 0;
+    width: 100%;
+    padding: 0.2em 0.6em;
+}
