@@ -13,12 +13,10 @@
      :rules [{:when :seen-all-of?
               :events [::events/handle-set-lyrics-success
                        ::events/generate-bg-css
-                       ::setup-audio-complete
-                       ::events/set-audio
-                       ::events/set-audio-events]
+                       ::setup-audio-complete]
               :dispatch-n [[::events/set-pageloader-active? false]
-                           [::events/set-can-play? true]
-                           [::events/set-player-current-time 0]]
+                           [::events/set-can-play? true]]
+                           ;; [::events/set-player-current-time 0]]
               :halt? true}]})
 
 (defn stop-song-flow []
@@ -67,6 +65,7 @@
                 [::events/set-playing? false]
                 [::setup-audio-events song-name]
                 [::update-song-hash song-name]
+                [::events/set-page-title (str "Karaoke :: " song-name)]
                 [::events/set-current-song song-name]
                 [::events/fetch-lyrics song-name preprocess-frames]
                 [::events/set-current-view :playback]]})) 
@@ -85,7 +84,7 @@
           (aud/process-audio-event e)
           (recur (<! audio-events))))
       ;; (.play audio)
-      (.pause audio)
+      ;; (.pause audio)
       (set! (.-currentTime audio) 0)
       (rf/dispatch [::events/set-audio audio])
       (rf/dispatch [::events/set-player-current-time 0])
@@ -101,3 +100,8 @@
   [db _]
   (. js/console (log "setup audio complete!"))
   db))
+
+(rf/reg-event-db
+ ::set-player-status-id
+ (fn-traced [db [_ id]]
+    (-> db (assoc :player-status-id id))))

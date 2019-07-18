@@ -21,12 +21,11 @@
             :events [::handle-fetch-background-config-complete]
             :dispatch [::init-song-bg-cache]}
            {:when :seen?
-            :events ::handle-fetch-delays-complete
+            :events [::handle-fetch-delays-complete]
             :dispatch [::init-song-delays]}
            {:when :seen?
             :events [::handle-fetch-delays-complete]
-            :dispatch-n '([::save-custom-song-delays-to-localstorage]
-                          [::playlist-events/build-verified-playlist])}
+            :dispatch [::playlist-events/build-verified-playlist]}
            {:when :seen-any-of?
             :events [::handle-fetch-background-config-failure
                      ::handle-fetch-delays-failure]
@@ -102,7 +101,6 @@
   {:db db
    :dispatch-n [[::fetch-custom-delays]
                 [::fetch-song-background-config]
-                ;; [::init-song-bg-cache]
                 [::views-events/init-views-state]
                 [::song-list-events/init-song-list-state]]}))
 
@@ -149,7 +147,13 @@
              (assoc :custom-song-delay r))
      :dispatch [::handle-fetch-delays-complete]})))
 
-(rf/reg-event-db ::handle-fetch-delays-complete (fn [db _] (. js/console (log "fetch delays complete")) db))
+(rf/reg-event-db
+ ::handle-fetch-delays-complete
+ (rf/after
+  (fn [db _]
+    (save-custom-delays-to-localstore (:custom-song-delay db))))
+ (fn [db _] (. js/console (log "fetch delays complete")) db))
+
 (rf/reg-event-fx
  ::fetch-song-background-config
  (fn-traced
@@ -322,16 +326,14 @@
  ::play
  (rf/after
   (fn-traced
-   [_ [_ audio lyrics status]]
-   (.play audio)))
+   [db _]
+   (.play (get db :audio))))
  (fn-traced
-  [{:keys [db]} [_ audio lyrics status]]
-  {:dispatch-n [[::set-lyrics lyrics]
-                [::set-audio audio]]
+  [{:keys [db]} _]
+  {:dispatch-n []
                   ;; [::set-player-status status]]
    :db (-> db
-           (assoc :playing? true)
-           (assoc :player-status status))}))
+           (assoc :playing? true))}))
 
 (defn highlight-if-same-id [id]
   (fn [evt]
@@ -350,19 +352,21 @@
                                (mapv (highlight-if-same-id part-id) evts))))
               db)))
 
-(rf/reg-event-db
- ::save-custom-song-delays-to-localstorage
- (fn-traced [db _]
-            (save-custom-delays-to-localstore (:custom-song-delay db))
-            db))
+;; (rf/reg-event-db
+ ;; ::save-custom-song-delays-to-localstorage
+ ;; (fn-traced [db _]
+            ;; (save-custom-delays-to-localstore (:custom-song-delay db))
+            ;; db))
 
 (rf/reg-event-fx
  ::set-custom-song-delay
+ (rf/after
+  (fn [db [_ song-name delay]]
+    (save-custom-delays-to-localstore (:custom-song-delay db))))
  (fn-traced
   [{:keys [db]} [_ song-name delay]]
   {:db (-> db
-           (assoc-in [:custom-song-delay song-name] delay))
-   :dispatch [::save-custom-song-delays-to-localstorage]}))
+           (assoc-in [:custom-song-delay song-name] delay))}))
 
 (rf/reg-event-fx
  ::modal-push
@@ -458,3 +462,15 @@
   [{:keys [db]} [_ name obj]]
   (save-to-localstore name obj)
   {:db db}))
+
+(defn set-page-title! [title]
+  (set! (.-title js/document) title))
+
+(rf/reg-event-db
+ ::set-page-title
+ (rf/after
+  (fn [_ [_ title]]
+    (set-page-title! title)))
+ (fn-traced
+  [db [_ title]]
+  (-> db (assoc :page-title title))))

@@ -200,3 +200,8 @@
  ::stop-channel
  (fn [db _]
    (:stop-channel db)))
+
+(rf/reg-sub
+ ::player-status-id
+ (fn [db _]
+   (:player-status-id db)))
