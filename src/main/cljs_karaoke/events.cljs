@@ -14,6 +14,7 @@
             [cljs-karaoke.events.song-list :as song-list-events]))
 
 (def fetch-bg-from-web-enabled? false)
+(declare save-custom-delays-to-localstore)
 
 (defn init-flow []
   {:first-dispatch [::init-fetches]

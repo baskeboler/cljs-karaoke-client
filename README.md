@@ -40,3 +40,8 @@ $ shadow-cljs release app
 
 The build will be located in the `/public` directory.
 
+## Future work
+
+- Audio input 
+- Raspberry PI image
+- Lyrics sync editor
