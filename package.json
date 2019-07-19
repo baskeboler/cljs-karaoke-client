@@ -21,7 +21,8 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-flip-move": "^3.0.3",
-    "react-highlight.js": "^1.0.7"
+    "react-highlight.js": "^1.0.7",
+    "shake.js": "^1.2.2"
   },
   "devDependencies": {
     "shadow-cljs": "^2.8.40"

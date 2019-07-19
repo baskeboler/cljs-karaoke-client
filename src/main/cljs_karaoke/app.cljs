@@ -24,10 +24,13 @@
             ["bulma-extensions"]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.views.page-loader :as page-loader]
-            [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]])
+            [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
+            ["shake.js" :as Shake])
   (:import goog.History))
 
 (defonce s (stylefy/init))
+(defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
+(.start shake)
 
 (def wallpapers
   ["wp1.webp"
@@ -586,6 +589,9 @@
    [app]
    (. js/document (getElementById "root"))))
 
+
+(defn on-shake [evt] (trigger-toasty))
+
 (defn init! []
   (println "init!")
   ;; (rf/dispatch [::events/fetch-custom-delays])
@@ -597,8 +603,9 @@
   (mount-components!)
   (rf/dispatch [::events/init-db])
   (init-keybindings!)
-  (init-routing!))
-  ;; (async/go
+  (init-routing!)
+  (. js/window (addEventListener "shake" on-shake false)))
+;; (async/go
   ;;   (loop [ready (rf/subscribe [::s/initialized?])]
   ;;     (when (or (undefined? ready)
   ;;               (not @ready))
