@@ -30,11 +30,11 @@
 (defonce s (stylefy/init))
 
 (def wallpapers
-  ["wp1.jpeg"
-   "Dolphin.jpg"
-   "wp2.jpg"
-   "wp3.jpeg"
-   "wp4.png"])
+  ["wp1.webp"
+   "Dolphin.webp"
+   "wp2.webp"
+   "wp3.webp"
+   "wp4.webp"])
 
 (def parent-style
   {:transition "background-image 1s ease-out"
@@ -495,10 +495,14 @@
                :transition "all 0.5s ease-in-out"}
               (if @toasty {:bottom "0px"
                            :opacity 1})))
-       [:img {:src "images/toasty.png" :alt "toasty"}]])))
+       [:audio {:id "toasty-audio"
+                :src "media/toasty.mp3"
+                :style {:display :none}
+                :preload :auto}]
+       [:img {:src "images/toasty.webp" :alt "toasty"}]])))
 
 (defn trigger-toasty []
-  (let [a (js/Audio. "media/toasty.mp3")]
+  (let [a (.getElementById js/document "toasty-audio")]
     (.play a)
     (rf/dispatch [::events/trigger-toasty])))
 

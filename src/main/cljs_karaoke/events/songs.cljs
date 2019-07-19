@@ -77,12 +77,14 @@
     (. js/console (log "setup audio: " song-name  ", storage: " (get db :base-storage-url "")))
     (let [base-storage-url (get db :base-storage-url "")
           audio-path (str base-storage-url "/mp3/" song-name ".mp3")
-          audio (js/Audio. audio-path)
-          audio-events (aud/setup-audio-listeners audio)]
-      (go-loop [e (<! audio-events)]
+          audio (.  js/document (getElementById "main-audio"))]
+          
+      (set! (.-src audio) audio-path)
+      (go-loop [audio-events (aud/setup-audio-listeners audio)
+                e (<! audio-events)]
         (when-not (nil? e)
           (aud/process-audio-event e)
-          (recur (<! audio-events))))
+          (recur audio-events (<! audio-events))))
       ;; (.play audio)
       ;; (.pause audio)
       (set! (.-currentTime audio) 0)
