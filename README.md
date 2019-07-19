@@ -44,6 +44,19 @@ $ shadow-cljs release app
 
 The build will be located in the `/public` directory.
 
+## Key Bindings
+
+- "esc": stop playback
+- "l r": load song
+- "alt-o": enable optons in playback mode
+- "alt-h": enable control panel mode
+- "left": audio seek backwards 
+- "right" audio seek forward
+- "meta-shift-l": loop mode (now currently working) 
+- "alt-shift-p": play 
+- "shift-right": next song on playlist
+- "t t": toasty!
+
 ## Future work
 
 - Audio input 

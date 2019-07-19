@@ -1,7 +1,6 @@
 (ns cljs-karaoke.subs
   (:require [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.playlists :as pl]))
-             
 
 (rf/reg-sub
  ::display-lyrics?
