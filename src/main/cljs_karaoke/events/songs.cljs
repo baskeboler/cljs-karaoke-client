@@ -16,7 +16,6 @@
                        ::setup-audio-complete]
               :dispatch-n [[::events/set-pageloader-active? false]
                            [::events/set-can-play? true]]
-                           ;; [::events/set-player-current-time 0]]
               :halt? true}]})
 
 (defn stop-song-flow []
