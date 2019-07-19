@@ -324,10 +324,10 @@
 
 (rf/reg-event-fx
  ::play
- (rf/after
-  (fn-traced
-   [db _]
-   (.play (get db :audio))))
+ ;; (rf/after
+  ;; (fn-traced
+   ;; [db _]
+   ;; (.play (get db :audio))
  (fn-traced
   [{:keys [db]} _]
   {:dispatch-n []

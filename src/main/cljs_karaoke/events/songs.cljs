@@ -80,17 +80,17 @@
           audio (.  js/document (getElementById "main-audio"))]
           
       (set! (.-src audio) audio-path)
-      (go-loop [audio-events (aud/setup-audio-listeners audio)
-                e (<! audio-events)]
-        (when-not (nil? e)
-          (aud/process-audio-event e)
-          (recur audio-events (<! audio-events))))
+      (let [audio-events (aud/setup-audio-listeners audio)]
+        (go-loop [e (<! audio-events)]
+          (when-not (nil? e)
+            (aud/process-audio-event e)
+            (recur (<! audio-events))))
       ;; (.play audio)
       ;; (.pause audio)
-      (set! (.-currentTime audio) 0)
-      (rf/dispatch [::events/set-audio audio])
-      (rf/dispatch [::events/set-player-current-time 0])
-      (rf/dispatch [::events/set-audio-events audio-events]))))
+      ;; (set! (.-currentTime audio) 0)
+        (rf/dispatch [::events/set-audio audio])
+        (rf/dispatch [::events/set-player-current-time 0])
+        (rf/dispatch [::events/set-audio-events audio-events])))))
  (fn-traced
   [{:keys [db]} [_ song-name]]
   {:db db

@@ -183,7 +183,7 @@
     ;; (rf/dispatch-sync [::events/set-player-status
                        ;; (play-lyrics-2 @lyrics)])
     (set! (.-currentTime @audio) 0)
-    ;; (.play @audio)))
+    (.play @audio)
     (rf/dispatch [::events/play])))
 (defn stop []
   (let [audio (rf/subscribe [::s/audio])
@@ -497,8 +497,7 @@
                            :opacity 1})))
        [:audio {:id "toasty-audio"
                 :src "media/toasty.mp3"
-                :style {:display :none}
-                :preload :auto}]
+                :style {:display :none}}]
        [:img {:src "images/toasty.webp" :alt "toasty"}]])))
 
 (defn trigger-toasty []
