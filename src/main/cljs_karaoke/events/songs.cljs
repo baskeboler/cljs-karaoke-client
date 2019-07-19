@@ -10,6 +10,7 @@
                                         ; fetch song delay, fetch song background
 (defn load-song-flow [song-name]
     {:first-dispatch [::load-song-start song-name]
+
      :rules [{:when :seen-all-of?
               :events [::events/handle-set-lyrics-success
                        ::events/generate-bg-css
@@ -76,20 +77,20 @@
     (. js/console (log "setup audio: " song-name  ", storage: " (get db :base-storage-url "")))
     (let [base-storage-url (get db :base-storage-url "")
           audio-path (str base-storage-url "/mp3/" song-name ".mp3")
+          ;; audio (:audio db)]
           audio (.  js/document (getElementById "main-audio"))]
-          
       (set! (.-src audio) audio-path)
-      (let [audio-events (aud/setup-audio-listeners audio)]
-        (go-loop [e (<! audio-events)]
-          (when-not (nil? e)
-            (aud/process-audio-event e)
-            (recur (<! audio-events))))
+      ;; (let [audio-events (aud/setup-audio-listeners audio)]
+        ;; (go-loop [e (<! audio-events)]
+          ;; (when-not (nil? e)
+            ;; (aud/process-audio-event e)
+            ;; (recur (<! audio-events))
       ;; (.play audio)
       ;; (.pause audio)
       ;; (set! (.-currentTime audio) 0)
-        (rf/dispatch [::events/set-audio audio])
-        (rf/dispatch [::events/set-player-current-time 0])
-        (rf/dispatch [::events/set-audio-events audio-events])))))
+        ;; (rf/dispatch [::events/set-audio audio])
+      (rf/dispatch [::events/set-player-current-time 0]))))
+        ;; (rf/dispatch [::events/set-audio-events audio-events])))))
  (fn-traced
   [{:keys [db]} [_ song-name]]
   {:db db

@@ -2,7 +2,7 @@
   (:require [re-frame.core :as rf :include-macros true]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [ajax.core :as ajax]
-            [cljs.core.async :as async :refer [chan]]
+            [cljs.core.async :as async :refer [go go-loop <! >! chan]]
             [day8.re-frame.async-flow-fx]
             [cljs.reader :as reader]
             [clojure.string :refer [replace]]
@@ -11,10 +11,37 @@
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            [cljs-karaoke.events.song-list :as song-list-events]))
-
+            [cljs-karaoke.events.song-list :as song-list-events]
+            [cljs-karaoke.audio :as aud]))
 (def fetch-bg-from-web-enabled? false)
 (declare save-custom-delays-to-localstore)
+(defn reg-set-attr [evt-name attr-name]
+  (rf/reg-event-db
+   evt-name
+   (fn-traced [db [_ obj]]
+              (assoc db attr-name obj))))
+
+(defn save-custom-delays-to-localstore [delays]
+  (. js/localStorage (setItem "custom-song-delays" (js/JSON.stringify (clj->js delays)))))
+
+(defn get-custom-delays-from-localstorage []
+  (-> (. js/localStorage (getItem "custom-song-delays"))
+      (js/JSON.parse)
+      (js->clj)))
+
+(defn save-to-localstore [name obj]
+  (. js/localStorage (setItem name (js/JSON.stringify (clj->js obj)))))
+
+(defn get-from-localstorage [name]
+  (-> (. js/localStorage (getItem name))
+      (js/JSON.parse)
+      (js->clj)))
+
+(defn set-location-href [url]
+  (set! (.-href js/location) url))
+
+(defn set-location-hash [path]
+  (set! (.-hash js/location) (str "#" path)))
 
 (defn init-flow []
   {:first-dispatch [::init-fetches]
@@ -35,11 +62,14 @@
             :halt? true}
            {:when :seen?
             :events ::playlist-ready
-            :dispatch-n [[::set-current-view :playback]]}
-                         ;; [::playlist-load]]}
+            :dispatch-n [[::set-current-view :playback]
+                         [::playlist-load]]}
            {:when :seen-all-of?
             :events [::song-bgs-loaded
                      ::song-delays-loaded
+                     ::set-audio
+                     ::set-audio-events
+                     ::initial-audio-setup-complete
                      ::playlist-events/playlist-ready
                      ::views-events/views-state-ready
                      ::song-list-events/song-list-ready]
@@ -103,6 +133,7 @@
    :dispatch-n [[::fetch-custom-delays]
                 [::fetch-song-background-config]
                 [::views-events/init-views-state]
+                [::initial-audio-setup]
                 [::song-list-events/init-song-list-state]]}))
 
 (rf/reg-event-db
@@ -148,12 +179,18 @@
              (assoc :custom-song-delay r))
      :dispatch [::handle-fetch-delays-complete]})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
+ ::save-custom-song-delays-to-localstorage
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db
+   :dispatch [::save-to-localstorage "custom-song-delays" (:custom-song-delay db)]}))          
+
+(rf/reg-event-fx
  ::handle-fetch-delays-complete
- (rf/after
-  (fn [db _]
-    (save-custom-delays-to-localstore (:custom-song-delay db))))
- (fn [db _] (. js/console (log "fetch delays complete")) db))
+ (fn [{:keys [db]} _]
+   {:db db
+    :dispatch [::save-custom-song-delays-to-localstorage]}))
 
 (rf/reg-event-fx
  ::fetch-song-background-config
@@ -185,34 +222,6 @@
 (rf/reg-event-db
  ::handle-fetch-background-config-complete
  (fn-traced [db _] db))
-
-(defn reg-set-attr [evt-name attr-name]
-  (rf/reg-event-db
-   evt-name
-   (fn-traced [db [_ obj]]
-              (assoc db attr-name obj))))
-
-(defn save-custom-delays-to-localstore [delays]
-  (. js/localStorage (setItem "custom-song-delays" (js/JSON.stringify (clj->js delays)))))
-
-(defn get-custom-delays-from-localstorage []
-  (-> (. js/localStorage (getItem "custom-song-delays"))
-      (js/JSON.parse)
-      (js->clj)))
-
-(defn save-to-localstore [name obj]
-  (. js/localStorage (setItem name (js/JSON.stringify (clj->js obj)))))
-
-(defn get-from-localstorage [name]
-  (-> (. js/localStorage (getItem name))
-      (js/JSON.parse)
-      (js->clj)))
-
-(defn set-location-href [url]
-  (set! (.-href js/location) url))
-
-(defn set-location-hash [path]
-  (set! (.-hash js/location) (str "#" path)))
 
 (rf/reg-event-db
  ::set-location-hash
@@ -325,15 +334,9 @@
 
 (rf/reg-event-fx
  ::play
- ;; (rf/after
-  ;; (fn-traced
-   ;; [db _]
-   ;; (.play (get db :audio))
  (fn-traced
   [{:keys [db]} _]
-  {:dispatch-n []
-                  ;; [::set-player-status status]]
-   :db (-> db
+  {:db (-> db
            (assoc :playing? true))}))
 
 (defn highlight-if-same-id [id]
@@ -361,13 +364,11 @@
 
 (rf/reg-event-fx
  ::set-custom-song-delay
- (rf/after
-  (fn [db [_ song-name delay]]
-    (save-custom-delays-to-localstore (:custom-song-delay db))))
  (fn-traced
   [{:keys [db]} [_ song-name delay]]
   {:db (-> db
-           (assoc-in [:custom-song-delay song-name] delay))}))
+           (assoc-in [:custom-song-delay song-name] delay))
+   :dispatch [::save-custom-song-delays-to-localstorage]}))
 
 (rf/reg-event-fx
  ::modal-push
@@ -459,9 +460,11 @@
 
 (rf/reg-event-fx
  ::save-to-localstorage
+ (rf/after
+  (fn [_ [_ name obj]]
+    (save-to-localstore name obj)))
  (fn-traced
   [{:keys [db]} [_ name obj]]
-  (save-to-localstore name obj)
   {:db db}))
 
 (defn set-page-title! [title]
@@ -475,3 +478,28 @@
  (fn-traced
   [db [_ title]]
   (-> db (assoc :page-title title))))
+
+
+(rf/reg-event-fx
+ ::initial-audio-setup
+ (rf/after
+  (fn [db _]
+    (. js/console (log "Initial Audio Setup"))
+    (let [audio (. js/document (getElementById "main-audio"))
+          audio-events (aud/setup-audio-listeners audio)]
+      (go-loop [e (<! audio-events)]
+        (when-not (nil? e)
+          (aud/process-audio-event e)
+          (recur (<! audio-events))))
+      (rf/dispatch [::set-audio audio])
+      (rf/dispatch [::set-audio-events audio-events]))))
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db
+   :dispatch [::initial-audio-setup-complete]}))
+
+(rf/reg-event-db
+ ::initial-audio-setup-complete
+ (fn-traced
+  [db _]
+  (-> db (assoc :initial-audio-setup-complete? true))))
