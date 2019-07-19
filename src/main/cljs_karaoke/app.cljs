@@ -38,11 +38,11 @@
 (defonce my-shake-event (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
 (def wallpapers
-  ["wp1.webp"
-   "Dolphin.webp"
-   "wp2.webp"
-   "wp3.webp"
-   "wp4.webp"])
+  ["wp1.jpg"
+   "Dolphin.jpg"
+   "wp2.jpg"
+   "wp3.jpg"
+   "wp4.jpg"])
 
 (def parent-style
   {:transition "background-image 1s ease-out"
