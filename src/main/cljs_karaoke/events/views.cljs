@@ -1,7 +1,8 @@
 (ns cljs-karaoke.events.views
   ;; {:reader/alias {events cljs-karaoke.events}}
   (:require [re-frame.core :as rf :include-macros true]
-            [day8.re-frame.tracing :refer-macros [fn-traced]]))
+            [day8.re-frame.tracing :refer-macros [fn-traced]]
+            [cljs.core.async :as async]))
 
 (def initial-views-state
   {:home {}
@@ -27,3 +28,21 @@
  (fn-traced [db [_ view-name property-name property-value]]
             (-> db
                 (assoc-in [:views view-name property-name] property-value))))
+
+(rf/reg-event-db
+ ::set-seek-buttons-visible
+ (fn-traced
+  [db [_ visible]]
+  (-> db (assoc :seek-buttons-visible? visible))))
+
+(rf/reg-event-fx
+ ::show-seek-buttons
+ (rf/after
+  (fn [db _]
+    (async/go
+      (async/<! (async/timeout 5000))
+      (rf/dispatch [::set-seek-buttons-visible false]))))
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db
+   :dispatch [::set-seek-buttons-visible true]}))

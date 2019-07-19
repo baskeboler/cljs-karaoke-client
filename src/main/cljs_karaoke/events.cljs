@@ -13,7 +13,7 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]))
 
-(def fetch-bg-from-web-enabled? true)
+(def fetch-bg-from-web-enabled? false)
 
 (defn init-flow []
   {:first-dispatch [::init-fetches]
@@ -422,7 +422,7 @@
        {:dispatch [::generate-bg-css cached]}
        (= true fetch-bg-from-web-enabled?)
        {:dispatch [::search-images title [::handle-fetch-bg]]}
-       :else {:dispatch []})))))
+       :else {})))))
 
 (rf/reg-event-fx
  ::handle-fetch-bg

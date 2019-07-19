@@ -82,3 +82,62 @@ html {
     width: 100%;
     padding: 0.2em 0.6em;
 }
+.right-seek-component-wrapper {
+    position: fixed;
+    height: 100vh;
+    /* width: 50%; */
+    display: block;
+    top:0;
+    right: 0;
+}
+
+.right-seek-btn {
+    position: fixed;
+    display: block;
+    background-color: gray;
+    opacity: 1;
+    font-size: 1.5em;
+    right: 0;
+    top: 50%;
+    z-index:3;
+    padding: 1em 0.1em 1em 0.2em;
+    transform: translateY(-50%);
+    border-top-left-radius: 1em;
+    border-bottom-left-radius: 1em;
+}
+
+.right-seek-hotspot {
+    position: fixed;
+    display: block;
+    opacity: 0;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 3em;
+    z-index: 3;
+}
+.left-seek-btn {
+    position: fixed;
+    display: block;
+    background-color: gray;
+    opacity: 1;
+    font-size: 1.5em;
+    left: 0;
+    top: 50%;
+    z-index:3;
+    padding: 1em 0.2em 1em 0.1em;
+    transform: translateY(-50%);
+    border-top-right-radius: 1em;
+    border-bottom-right-radius: 1em;
+}
+
+.left-seek-hotspot {
+    position: fixed;
+    display: block;
+    opacity: 0;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 3em;
+    z-index: 3;
+}

@@ -205,3 +205,7 @@
  ::player-status-id
  (fn [db _]
    (:player-status-id db)))
+
+(rf/reg-sub
+ ::seek-buttons-visible?
+ (fn [db _] (:seek-buttons-visible? db)))

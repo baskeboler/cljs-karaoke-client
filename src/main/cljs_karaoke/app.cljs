@@ -23,7 +23,8 @@
             [clojure.string :as str]
             ["bulma-extensions"]
             [cljs-karaoke.playlists :as pl]
-            [cljs-karaoke.views.page-loader :as page-loader])
+            [cljs-karaoke.views.page-loader :as page-loader]
+            [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]])
   (:import goog.History))
 
 (defonce s (stylefy/init))
@@ -461,6 +462,7 @@
        :on-click stop}
       [:span.icon
        [:i.fas.fa-stop]]]
+   [seek-buttons/seek-component #(seek 10000) #(seek -10000)]
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.edge-progress-bar
       [song-progress]])])
