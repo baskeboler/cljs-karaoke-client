@@ -13,7 +13,7 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.audio :as aud]))
-(def fetch-bg-from-web-enabled? false)
+(defonce fetch-bg-from-web-enabled? false)
 (declare save-custom-delays-to-localstore)
 (defn reg-set-attr [evt-name attr-name]
   (rf/reg-event-db
@@ -420,11 +420,9 @@
     (merge
      {:db db}
      (cond
-       (not (nil? cached))
-       {:dispatch [::generate-bg-css cached]}
-       (= true fetch-bg-from-web-enabled?)
-       {:dispatch [::search-images title [::handle-fetch-bg]]}
-       :else {})))))
+       (not (nil? cached)) {:dispatch [::generate-bg-css cached]}
+       fetch-bg-from-web-enabled?    {:dispatch [::search-images title [::handle-fetch-bg]]}
+       :else {:dispatch [::handle-bg-complete]})))))
 
 (rf/reg-event-fx
  ::handle-fetch-bg
@@ -438,13 +436,26 @@
      :dispatch-n [[::generate-bg-css (:url candidate-image)]
                   [::cache-song-bg (:current-song db) (:url candidate-image)]]})))
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::generate-bg-css
  (fn-traced
-  [db [_ url]]
-  (-> db
-      (assoc :bg-style {:background-image (str "url(\"" url "\")")
-                        :background-size "cover"}))))
+  [{:keys [db]} [_ url]]
+  {:db (-> db
+         (assoc :bg-style {:background-image (str "url(\"" url "\")")
+                           :background-size "cover"}))
+   :dispatch [::generate-bg-css-complete]}))
+
+(rf/reg-event-fx
+ ::generate-bg-css-complete
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db
+   :dispatch [::handle-bg-complete]}))
+
+(rf/reg-event-db
+ ::handle-bg-complete
+ (fn-traced [db _] db))
+
                         ;; :transition "background-image 5s ease-out"}))))
 
 (rf/reg-event-fx
@@ -502,4 +513,5 @@
  ::initial-audio-setup-complete
  (fn-traced
   [db _]
+  (. js/console (log "Initial Audio Setup Complete!"))
   (-> db (assoc :initial-audio-setup-complete? true))))

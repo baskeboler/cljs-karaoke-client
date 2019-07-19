@@ -9,11 +9,11 @@
 
                                         ; fetch song delay, fetch song background
 (defn load-song-flow [song-name]
-    {:first-dispatch [::load-song-start song-name]
+  {:first-dispatch [::load-song-start song-name]
 
      :rules [{:when :seen-all-of?
               :events [::events/handle-set-lyrics-success
-                       ::events/generate-bg-css
+                       ::events/handle-bg-complete
                        ::setup-audio-complete]
               :dispatch-n [[::events/set-pageloader-active? false]
                            [::events/set-can-play? true]]
@@ -23,7 +23,8 @@
   {:first-dispatch [::stop-song-start]
    :rules [:when :seen-all-of?
            :events [::audio-stopped ::audio-events-closed]
-           :dispatch-n [[::events/set-audio-events nil]
+           :dispatch-n [
+                        ;; [::events/set-audio-events nil]
                         [::events/set-current-frame nil]
                         [::events/set-lyrics nil]
                         [::events/set-lyrics-loaded?false]]]})
@@ -77,25 +78,13 @@
     (. js/console (log "setup audio: " song-name  ", storage: " (get db :base-storage-url "")))
     (let [base-storage-url (get db :base-storage-url "")
           audio-path (str base-storage-url "/mp3/" song-name ".mp3")
-          ;; audio (:audio db)]
           audio (.  js/document (getElementById "main-audio"))]
       (set! (.-src audio) audio-path)
-      ;; (let [audio-events (aud/setup-audio-listeners audio)]
-        ;; (go-loop [e (<! audio-events)]
-          ;; (when-not (nil? e)
-            ;; (aud/process-audio-event e)
-            ;; (recur (<! audio-events))
-      ;; (.play audio)
-      ;; (.pause audio)
-      ;; (set! (.-currentTime audio) 0)
-        ;; (rf/dispatch [::events/set-audio audio])
-      (rf/dispatch [::events/set-player-current-time 0]))))
-        ;; (rf/dispatch [::events/set-audio-events audio-events])))))
+      (rf/dispatch [::events/set-player-current-time 0])
+      (rf/dispatch [::setup-audio-complete]))))
  (fn-traced
   [{:keys [db]} [_ song-name]]
-  {:db db
-   :dispatch-later [{:ms 500
-                     :dispatch [::setup-audio-complete]}]}))
+  {:db db}))
 (rf/reg-event-db
  ::setup-audio-complete
  (fn-traced

@@ -9,11 +9,10 @@
   (let [audio (rf/subscribe [::s/audio])
         lyrics (rf/subscribe [::s/lyrics])]
     (rf/dispatch [::events/set-current-view :playback])
-    ;; (rf/dispatch-sync [::events/set-player-status
-                       ;; (play-lyrics-2 @lyrics)])
     (set! (.-currentTime @audio) 0)
     (.play @audio)
     (rf/dispatch [::events/play])))
+
 (defn stop []
   (let [audio (rf/subscribe [::s/audio])
         current (rf/subscribe [::s/current-song])
@@ -24,11 +23,10 @@
     (when @audio
       (.pause @audio)
       (set! (.-currentTime @audio) 0))
-    (when @stop-channel
-      (async/put!  @stop-channel :stop))
-    (when @audio-events
-      (async/close! @audio-events))
-    ;; (rf/dispatch-sync [::events/set-audio-events nil])
+    ;; (when @stop-channel
+      ;; (async/put!  @stop-channel :stop))
+    ;; (when @audio-events
+      ;; (async/close! @audio-events))
     (rf/dispatch-sync [::events/set-current-frame nil])
     (rf/dispatch-sync [::events/set-lyrics nil])
     (rf/dispatch-sync [::events/set-lyrics-loaded? false])
@@ -39,5 +37,5 @@
         (async/close! c)))
     (rf/dispatch-sync [::events/set-playing? false])
     (rf/dispatch-sync [::events/set-highlight-status nil])
-    (rf/dispatch-sync [::events/set-player-status nil])
-    (songs/load-song @current)))
+    (rf/dispatch-sync [::events/set-player-status nil])))
+    ;; (songs/load-song @current)))

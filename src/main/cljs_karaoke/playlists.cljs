@@ -6,7 +6,7 @@
   (add-song [this song])
   (next-song [this])
   (clear [this])
-  (empty? [this])
+  (is-empty? [this])
   (current [this])
   (has-next? [this]))
 
@@ -26,7 +26,7 @@
   (clear [this] (-> this
                     (assoc :current 0)
                     (assoc :songs [])))
-  (empty? [this]
+  (is-empty? [this]
     (empty-col? (:songs this)))
   (current [this]
     (if (< (:current this) (count (:songs this)))

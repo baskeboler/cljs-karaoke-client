@@ -54,7 +54,6 @@
 
 (defn return-after-timeout [obj delay]
   (let [ret-chan (chan)]
-    ;; (if (pos? delay)
       (go
         (when  (>= delay 0)
           (<! (timeout delay)))
@@ -73,7 +72,6 @@
       (doseq [_ (range (count part-tos))
               :let [[v ch] (async/alts! part-tos)]
               :while (and v (= player-id @current-status-id))]
-        ;; (println "highlight-2" (:id v))
         (when (= player-id @current-status-id)
           (rf/dispatch-sync [::events/highlight-frame-part (:id frame) (:id v)]))))))
 
@@ -146,17 +144,13 @@
         highlight-status (rf/subscribe [::s/highlight-status])
         frames (rf/subscribe [::s/lyrics])
         pos (rf/subscribe [::s/player-current-time])]
-    ;; (.pause @audio)
     (when-not (nil? @player-status)
       (async/close! @player-status))
     (doseq [c @highlight-status]
       (async/close! c))
-    ;; (rf/dispatch-sync [::events/set-highlight-status nil])
-    ;; (rf/dispatch-sync [::events/set-current-frame (select-current-frame @frames (+ (* 1000 @pos) offset))])
     (rf/dispatch-sync [::events/set-player-status
                          (play-lyrics-2 @frames (+ (* 1000 @pos) offset))])
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
-    ;; (.play @audio)))
 (def centered {:position :fixed
                :display :block
                :top "50%"
@@ -339,17 +333,16 @@
   (defroute "/" []
     (println "home path")
     (rf/dispatch-sync [::playlist-events/playlist-load]))
-    ;; (songs/load-song @(rf/subscribe [::r/playlist-current])))
   (defroute "/songs/:song"
     [song query-params]
     (println "song: " song)
     (println "query params: " query-params)
-    ;; (songs/load-song song)
+    (songs/load-song song)
     (when-some [offset (:offset query-params)]
-      (rf/dispatch [::events/set-lyrics-delay (long offset)])
-      (rf/dispatch [::events/set-custom-song-delay song (long offset)]))
+      (rf/dispatch-sync [::events/set-lyrics-delay (long offset)])
+      (rf/dispatch-sync [::events/set-custom-song-delay song (long offset)]))
     (when-some [show-opts? (:show-opts query-params)]
-      (rf/dispatch [::views-events/set-view-property :playback :options-enabled? true])))
+      (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
 
   ;; Quick and dirty history configuration.
   (defroute "/party-mode" []
@@ -396,7 +389,7 @@
   (key/bind! "alt-shift-p" ::alt-meta-play #(play))
   (key/bind! "shift-right" ::shift-right #(do
                                             (stop)
-                                            (rf/dispatch [::playlist-events/playlist-next])))
+                                            (rf/dispatch-sync [::playlist-events/playlist-next])))
   (key/bind! "t t" ::double-t #(trigger-toasty)))
 (defn mount-components! []
   (reagent/render

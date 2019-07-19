@@ -74,7 +74,6 @@
 (defn delay-select []
   (let [delay (rf/subscribe [::s/lyrics-delay])]
     [:div.field
-     ;; [:label "Text delay (ms)"]
      [:div.control
       [:div.select.is-primary.is-fullwidth.delay-select
        [:select {:value @delay
