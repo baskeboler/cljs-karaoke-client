@@ -659,25 +659,6 @@
 (defn load-song
   ([name]
    (rf/dispatch-sync [::song-events/trigger-load-song-flow name]))
-   ;; (rf/dispatch-sync [::events/set-can-play? false])
-   ;; (let [audio-path (str "mp3/" name ".mp3")
-         ;; lyrics-path (str "lyrics/" name ".edn")
-         ;; audio (js/Audio. audio-path)
-         ;; audio-events (aud/setup-audio-listeners audio)]
-     ;; (rf/dispatch-sync [::events/set-audio-events audio-events])
-     ;; (go-loop [e (<! audio-events)]
-       ;; (when-not (nil? e)
-         ;; (aud/process-audio-event e)
-         ;; (recur (<! audio-events))))
-
-     ;; (.play audio)
-     ;; (.pause audio)
-     ;; (set! (.-volume audio) 0)
-     ;; (rf/dispatch [::events/set-current-view :playback])
-     ;; (rf/dispatch-sync [::events/set-current-song name])
-     ;; (rf/dispatch-sync [::events/set-audio audio])
-     ;; (rf/dispatch-sync [::events/fetch-lyrics name preprocess-frames])
-     ;; (rf/dispatch-sync [::song-list-events/toggle-song-list-visible])))
   ([]
    (when-let [song @(rf/subscribe [::s/playlist-current])]
      (load-song song))))

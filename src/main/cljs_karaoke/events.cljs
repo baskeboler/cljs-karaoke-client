@@ -176,7 +176,7 @@
   (let [r (-> delays-resp
               (reader/read-string))]
     {:db (-> db
-             (assoc :custom-song-delay r))
+             (update :custom-song-delay merge r))
      :dispatch [::handle-fetch-delays-complete]})))
 
 (rf/reg-event-fx

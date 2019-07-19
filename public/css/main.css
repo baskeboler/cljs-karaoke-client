@@ -6,19 +6,19 @@ html {
     position: fixed;
     width: 90%;
     text-align: center;
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 100;
-    background-color: rgba(0,0,0, 0.7);
-    padding: 1em;
-    border-radius: 0.2em;
+    background-color: rgba(255,255,255, 0.3);
+    padding: 0.3em;
+    border-radius: 1em;
 }
 
 @media only screen and (min-width: 1024px ) {
     .current-frame {
-        font-size: 3em;
+        font-size: 4em;
     }
 }
 .song-table {
@@ -42,8 +42,8 @@ html {
     opacity: 0.6;
     transition: all 0.2s ease-out;
     color: black;
-    font-family: 'Press Start 2P', cursive;
-    text-shadow:  -2px -2px 1px white;
+    font-family: 'Montserrat', sans-serif;
+    text-shadow:  -2px -2px 1px #eee;
 }
 .current-frame .frame-text > span.highlighted {
     color: red;
