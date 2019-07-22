@@ -33,8 +33,9 @@
   (:import goog.History))
 
 (stylefy/init)
-;; (defonce s (stylefy/init))
+
 (defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
+
 (.start shake)
 
 (defonce my-shake-event (Shake. (clj->js {:threshold 15 :timeout 1000})))
