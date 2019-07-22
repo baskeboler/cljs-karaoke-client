@@ -208,3 +208,7 @@
 (rf/reg-sub
  ::seek-buttons-visible?
  (fn [db _] (:seek-buttons-visible? db)))
+
+(rf/reg-sub
+ ::display-home-button?
+ (fn [db _] (:display-home-button? db)))

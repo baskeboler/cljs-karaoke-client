@@ -9,42 +9,19 @@
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
             [cljs-karaoke.search :as search]
             [cljs-karaoke.playlists :as pl]
+            [cljs-karaoke.events.common :as common-events
+             :refer [reg-set-attr save-to-localstore get-from-localstorage
+                     get-custom-delays-from-localstorage set-location-hash]]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.audio :as aud]))
-(defonce fetch-bg-from-web-enabled? false)
+(defonce fetch-bg-from-web-enabled? true)
 (declare save-custom-delays-to-localstore)
-(defn reg-set-attr [evt-name attr-name]
-  (rf/reg-event-db
-   evt-name
-   (fn-traced [db [_ obj]]
-              (assoc db attr-name obj))))
-
-(defn save-custom-delays-to-localstore [delays]
-  (. js/localStorage (setItem "custom-song-delays" (js/JSON.stringify (clj->js delays)))))
-
-(defn get-custom-delays-from-localstorage []
-  (-> (. js/localStorage (getItem "custom-song-delays"))
-      (js/JSON.parse)
-      (js->clj)))
-
-(defn save-to-localstore [name obj]
-  (. js/localStorage (setItem name (js/JSON.stringify (clj->js obj)))))
-
-(defn get-from-localstorage [name]
-  (-> (. js/localStorage (getItem name))
-      (js/JSON.parse)
-      (js->clj)))
-
-(defn set-location-href [url]
-  (set! (.-href js/location) url))
-
-(defn set-location-hash [path]
-  (set! (.-hash js/location) (str "#" path)))
 
 (defn init-flow []
-  {:first-dispatch [::init-fetches]
+  {
+   ;; :first-dispatch [::init-fetches]
    :rules [{:when :seen?
             :events [::handle-fetch-background-config-complete]
             :dispatch [::init-song-bg-cache]}
@@ -93,6 +70,7 @@
 
 (rf/reg-event-fx
  ::init-db
+ ;; ::init-fetches
  (fn-traced [_ _]
             {:db {:current-frame nil
                   :lyrics nil
@@ -118,23 +96,30 @@
                   :base-storage-url "https://karaoke-files.uyuyuy.xyz"
                   :current-view :home
                   :pageloader-active? true
+                  :display-home-button? true
          ;; :playlist (pl/build-playlist)
                   :modals []}
     ;; :dispatch-n [[::fetch-custom-delays]
                  ;; [::fetch-song-background-config]}
                  ;; [::init-song-bg-cache]]}))
-             :async-flow (init-flow)}))
+             :async-flow (init-flow)
 
-(rf/reg-event-fx
- ::init-fetches
- (fn-traced
-  [{:keys [db]} _]
-  {:db db
-   :dispatch-n [[::fetch-custom-delays]
-                [::fetch-song-background-config]
-                [::views-events/init-views-state]
-                [::initial-audio-setup]
-                [::song-list-events/init-song-list-state]]}))
+             :dispatch-n [[::fetch-custom-delays]
+                          [::fetch-song-background-config]
+                          [::views-events/init-views-state]
+                          [::initial-audio-setup]
+                          [::song-list-events/init-song-list-state]]}))
+
+;; (rf/reg-event-fx
+;;  ::init-fetches
+;;  (fn-traced
+;;   [{:keys [db]} _]
+;;   {:db db
+;;    :dispatch-n [[::fetch-custom-delays]
+;;                 [::fetch-song-background-config]
+;;                 [::views-events/init-views-state]
+;;                 [::initial-audio-setup]
+;;                 [::song-list-events/init-song-list-state]]}))
 
 (rf/reg-event-db
  ::toggle-toasty?
@@ -184,7 +169,7 @@
  (fn-traced
   [{:keys [db]} _]
   {:db db
-   :dispatch [::save-to-localstorage "custom-song-delays" (:custom-song-delay db)]}))          
+   :dispatch [::common-events/save-to-localstorage "custom-song-delays" (:custom-song-delay db) nil]}))          
 
 (rf/reg-event-fx
  ::handle-fetch-delays-complete
@@ -210,7 +195,7 @@
   (let [c (-> a
               (reader/read-string))]
     {:db (-> db
-             (assoc :song-backgrounds c))
+             (update :song-backgrounds merge c))
      :dispatch [::handle-fetch-background-config-complete]})))
 (rf/reg-event-fx
  ::handle-fetch-background-config-failure
@@ -302,7 +287,8 @@
   [{:keys [db]} [_ song-name]]
   {:db (-> db
            (assoc :current-song song-name))
-   :dispatch-n [[::fetch-bg song-name]
+   :dispatch-n [
+                ;; [::fetch-bg song-name]
                 [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
 
 (reg-set-attr ::set-player-status :player-status)
@@ -464,31 +450,10 @@
   [{:keys [db]} [_ song-name bg-url]]
   {:db (-> db
            (assoc-in [:song-backgrounds song-name] bg-url))
-   :dispatch [::save-to-localstorage "song-bg-cache"
+   :dispatch [::common-events/save-to-localstorage "song-bg-cache"
               (-> db
                   (assoc-in [:song-backgrounds song-name] bg-url)
                   :song-backgrounds)]}))
-
-(rf/reg-event-fx
- ::save-to-localstorage
- (rf/after
-  (fn [_ [_ name obj]]
-    (save-to-localstore name obj)))
- (fn-traced
-  [{:keys [db]} [_ name obj]]
-  {:db db}))
-
-(defn set-page-title! [title]
-  (set! (.-title js/document) title))
-
-(rf/reg-event-db
- ::set-page-title
- (rf/after
-  (fn [_ [_ title]]
-    (set-page-title! title)))
- (fn-traced
-  [db [_ title]]
-  (-> db (assoc :page-title title))))
 
 
 (rf/reg-event-fx

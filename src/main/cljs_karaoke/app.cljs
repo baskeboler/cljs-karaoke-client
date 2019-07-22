@@ -6,6 +6,7 @@
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.backgrounds :as bg-events :refer [wallpapers]]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.views :as views-events]
@@ -31,18 +32,13 @@
             ["shake.js" :as Shake])
   (:import goog.History))
 
-(defonce s (stylefy/init))
+(stylefy/init)
+;; (defonce s (stylefy/init))
 (defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
 (.start shake)
 
 (defonce my-shake-event (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
-(def wallpapers
-  ["wp1.jpg"
-   "Dolphin.jpg"
-   "wp2.jpg"
-   "wp3.jpg"
-   "wp4.jpg"])
 
 (def parent-style
   {:transition "background-image 1s ease-out"
@@ -227,6 +223,8 @@
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
    (stylefy/use-style top-right)
+   (when @(rf/subscribe [::s/display-home-button?])
+     [icon-button "home" "default" #(rf/dispatch [::events/set-current-view :home])])
    (when-not @(rf/subscribe [::s/song-paused?])
      [icon-button "stop" "danger" stop])
    [icon-button "forward" "info" #(do
