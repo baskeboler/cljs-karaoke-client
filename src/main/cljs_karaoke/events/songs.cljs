@@ -74,6 +74,7 @@
                 [::events/set-playing? false]
                 [::setup-audio-events song-name]
                 [::update-song-hash song-name]
+                [::set-first-playback-position-updated? false]
                 [::common-events/set-page-title (str "Karaoke :: " song-name)]
                 [::events/set-current-song song-name]
                 [::bg-events/init-update-bg-image-flow song-name]
@@ -105,3 +106,10 @@
  ::set-player-status-id
  (fn-traced [db [_ id]]
     (-> db (assoc :player-status-id id))))
+
+(rf/reg-event-db
+ ::set-first-playback-position-updated?
+ (fn-traced
+  [db [_ updated?]]
+  (. js/console (log "Setting first position updated to " updated?))
+  (-> db (assoc :first-playback-position-updated? updated?))))

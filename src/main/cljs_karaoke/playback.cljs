@@ -3,6 +3,7 @@
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.songs :as songs]))
 
 (defn play []
@@ -37,5 +38,6 @@
         (async/close! c)))
     (rf/dispatch-sync [::events/set-playing? false])
     (rf/dispatch-sync [::events/set-highlight-status nil])
-    (rf/dispatch-sync [::events/set-player-status nil])))
+    (rf/dispatch-sync [::events/set-player-status nil])
+    (rf/dispatch [::song-events/set-first-playback-position-updated? false])))
     ;; (songs/load-song @current)))

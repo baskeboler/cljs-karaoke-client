@@ -212,3 +212,7 @@
 (rf/reg-sub
  ::display-home-button?
  (fn [db _] (:display-home-button? db)))
+
+(rf/reg-sub
+ ::first-playback-position-updated?
+ (fn [db _] (:first-playback-position-updated? db)))

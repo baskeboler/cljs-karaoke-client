@@ -424,11 +424,15 @@
 (defmethod aud/process-audio-event :timeupdate
   [event]
   (when-let [a @(rf/subscribe [::s/audio])]
-    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])))
+    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])
+    (when-not @(rf/subscribe [::s/first-playback-position-updated?])
+      (rf/dispatch [::song-events/set-first-playback-position-updated? true])
+      (update-karaoke-player-status))))
+      
 (defmethod aud/process-audio-event :play
   [event]
-  (println "play event")
-  (update-karaoke-player-status))
+  (println "play event"))
+  ;; (update-karaoke-player-status))
   
 (defmethod aud/process-audio-event :playing
   [event]
