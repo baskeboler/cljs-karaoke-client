@@ -1,6 +1,6 @@
 # cljs-karaoke-client
 
-[![Build Status](https://travis-ci.org/baskeboler/cljs-karaoke-client.svg?branch=master)](https://travis-ci.org/baskeboler/cljs-karaoke-client)
+[![Netlify Status](https://api.netlify.com/api/v1/badges/8cdcf70f-1a6c-40bb-a3f0-02cb24eda852/deploy-status)](https://app.netlify.com/sites/karaoke-player/deploys)
 
 A web karaoke player implemented in clojurescript
 
