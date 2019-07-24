@@ -425,7 +425,9 @@
   [event]
   (when-let [a @(rf/subscribe [::s/audio])]
     (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])
-    (when-not @(rf/subscribe [::s/first-playback-position-updated?])
+    (when (and
+           (not @(rf/subscribe [::s/first-playback-position-updated?]))
+           (> (.-currentTime a) 0))
       (rf/dispatch [::song-events/set-first-playback-position-updated? true])
       (update-karaoke-player-status))))
       
