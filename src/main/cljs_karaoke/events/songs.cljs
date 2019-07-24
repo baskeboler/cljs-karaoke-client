@@ -5,6 +5,7 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.common :as common-events]
             [cljs-karaoke.events.backgrounds :as bg-events]
+            [cljs-karaoke.events.lyrics :as lyrics-events]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]))
@@ -15,8 +16,8 @@
    ;; :first-dispatch [::load-song-start song-name]
 
      :rules [{:when :seen-all-of?
-              :events [::events/handle-set-lyrics-success
-                       ;; ::events/handle-bg-complete
+              :events [
+                       ::lyrics-events/fetch-lyrics-complete
                        ::bg-events/update-bg-image-flow-complete
                        ::setup-audio-complete]
               :dispatch-n [[::events/set-pageloader-active? false]
@@ -76,7 +77,7 @@
                 [::common-events/set-page-title (str "Karaoke :: " song-name)]
                 [::events/set-current-song song-name]
                 [::bg-events/init-update-bg-image-flow song-name]
-                [::events/fetch-lyrics song-name preprocess-frames]
+                [::lyrics-events/fetch-lyrics song-name preprocess-frames]
                 [::events/set-current-view :playback]]})) 
 
 (rf/reg-event-fx

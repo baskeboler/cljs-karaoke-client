@@ -295,30 +295,6 @@
 (reg-set-attr ::set-highlight-status :highlight-status)
 
 (rf/reg-event-fx
- ::fetch-lyrics
- (fn-traced [{:keys [db]} [_ name process]]
-            {:db (-> db
-                     (assoc :lyrics-loaded? false)
-                     (assoc :lyrics-fetching? true))
-             :http-xhrio {:method :get
-                          :uri (str (get db :base-storage-url "") "/lyrics/" name ".edn")
-                          :timeout 8000
-                          :response-format (ajax/text-response-format)
-                          :on-success [::handle-set-lyrics-success]}}))
-
-(rf/reg-event-db
- ::handle-set-lyrics-success
- (fn-traced
-  [db [_ lyrics]]
-  (let [l (-> lyrics
-              (reader/read-string))]
-              ;; (preprocess-frames))]
-    (-> db
-        (assoc :lyrics l)
-        (assoc :lyrics-fetching? false)
-        (assoc :lyrics-loaded? true)))))
-
-(rf/reg-event-fx
  ::play
  (fn-traced
   [{:keys [db]} _]
@@ -342,11 +318,6 @@
                                (mapv (highlight-if-same-id part-id) evts))))
               db)))
 
-;; (rf/reg-event-db
- ;; ::save-custom-song-delays-to-localstorage
- ;; (fn-traced [db _]
-            ;; (save-custom-delays-to-localstore (:custom-song-delay db))
-            ;; db))
 
 (rf/reg-event-fx
  ::set-custom-song-delay
@@ -376,20 +347,6 @@
   (-> db
       (update :modals pop))))
 
-(rf/reg-event-fx
- ::search-images
- (fn-traced
-  [{:keys [db]} [_ q callback-event]]
-  {:db db
-   :http-xhrio {:method :get
-                :timeout 8000
-                :uri (str search/base-url
-                          "?cx="  search/ctx-id
-                          "&key=" search/api-key
-                          "&q=" q)
-                :response-format (ajax/json-response-format {:keywords? true})
-                :on-success callback-event
-                :on-failure [::print-arg]}}))
 
 (rf/reg-event-fx
  ::print-arg
@@ -397,63 +354,6 @@
   [{:keys [db]} [_ & opts]]
   (cljs.pprint/pprint opts)
   {:db db}))
-
-(rf/reg-event-fx
- ::fetch-bg
- (fn-traced
-  [{:keys [db]} [_ title]]
-  (let [cached (get-in db [:song-backgrounds title] nil)]
-    (merge
-     {:db db}
-     (cond
-       (not (nil? cached)) {:dispatch [::generate-bg-css cached]}
-       fetch-bg-from-web-enabled?    {:dispatch [::search-images title [::handle-fetch-bg]]}
-       :else {:dispatch [::handle-bg-complete]})))))
-
-(rf/reg-event-fx
- ::handle-fetch-bg
- (fn-traced
-  [{:keys [db]} [_ res]]
-  (let [candidate-image (search/extract-candidate-image res)]
-    {:db (if-not (nil? candidate-image)
-           (-> db
-               (assoc :bg-image (:url candidate-image)))
-           db)
-     :dispatch-n [[::generate-bg-css (:url candidate-image)]
-                  [::cache-song-bg (:current-song db) (:url candidate-image)]]})))
-
-(rf/reg-event-fx
- ::generate-bg-css
- (fn-traced
-  [{:keys [db]} [_ url]]
-  {:db (-> db
-         (assoc :bg-style {:background-image (str "url(\"" url "\")")
-                           :background-size "cover"}))
-   :dispatch [::generate-bg-css-complete]}))
-
-(rf/reg-event-fx
- ::generate-bg-css-complete
- (fn-traced
-  [{:keys [db]} _]
-  {:db db
-   :dispatch [::handle-bg-complete]}))
-
-(rf/reg-event-db
- ::handle-bg-complete
- (fn-traced [db _] db))
-
-                        ;; :transition "background-image 5s ease-out"}))))
-
-(rf/reg-event-fx
- ::cache-song-bg
- (fn-traced
-  [{:keys [db]} [_ song-name bg-url]]
-  {:db (-> db
-           (assoc-in [:song-backgrounds song-name] bg-url))
-   :dispatch [::common-events/save-to-localstorage "song-bg-cache"
-              (-> db
-                  (assoc-in [:song-backgrounds song-name] bg-url)
-                  :song-backgrounds)]}))
 
 
 (rf/reg-event-fx
