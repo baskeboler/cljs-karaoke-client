@@ -6,6 +6,7 @@
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.backgrounds :as bg-events :refer [wallpapers]]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.views :as views-events]
@@ -31,18 +32,14 @@
             ["shake.js" :as Shake])
   (:import goog.History))
 
-(defonce s (stylefy/init))
+(stylefy/init)
+
 (defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
+
 (.start shake)
 
 (defonce my-shake-event (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
-(def wallpapers
-  ["wp1.jpg"
-   "Dolphin.jpg"
-   "wp2.jpg"
-   "wp3.jpg"
-   "wp4.jpg"])
 
 (def parent-style
   {:transition "background-image 1s ease-out"
@@ -227,6 +224,8 @@
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
    (stylefy/use-style top-right)
+   (when @(rf/subscribe [::s/display-home-button?])
+     [icon-button "home" "default" #(rf/dispatch [::events/set-current-view :home])])
    (when-not @(rf/subscribe [::s/song-paused?])
      [icon-button "stop" "danger" stop])
    [icon-button "forward" "info" #(do
@@ -266,13 +265,6 @@
       [:span.icon
        [:i.fas.fa-sync.fa-5x]]])
    ^{:class "edge-stop-btn"} [playback-controls]
-   #_[:button.button.is-danger.edge-stop-btn
-      {:class (if @(rf/subscribe [::s/song-paused?])
-                []
-                ["song-playing"])
-       :on-click stop}
-      [:span.icon
-       [:i.fas.fa-stop]]]
    [seek-buttons/seek-component #(seek 10000) #(seek -10000)]
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.edge-progress-bar
@@ -309,7 +301,7 @@
        [:audio {:id "toasty-audio"
                 :src "media/toasty.mp3"
                 :style {:display :none}}]
-       [:img {:src "images/toasty.webp" :alt "toasty"}]])))
+       [:img {:src "images/toasty.png" :alt "toasty"}]])))
 
 (defn trigger-toasty []
   (let [a (.getElementById js/document "toasty-audio")]
@@ -401,25 +393,11 @@
 
 (defn init! []
   (println "init!")
-  ;; (rf/dispatch [::events/fetch-custom-delays])
-  ;; (rf/dispatch [::events/fetch-song-background-config])
-  ;; (rf/dispatch [::song-list-events/init-song-list-state])
-  ;; (rf/dispatch [::views-events/init-views-state])
-  ;; (rf/dispatch-sync [::events/build-verified-playlist])
-  ;; (rf/dispatch [::events/init-song-bg-cache])
   (mount-components!)
   (rf/dispatch-sync [::events/init-db])
   (init-keybindings!)
   (init-routing!)
   (. js/window (addEventListener "shake" on-shake false)))
-;; (async/go
-  ;;   (loop [ready (rf/subscribe [::s/initialized?])]
-  ;;     (when (or (undefined? ready)
-  ;;               (not @ready))
-  ;;       (println "waiting for init")
-  ;;       (async/<!
-  ;;        (async/timeout 100))
-  ;;       (recur (rf/subscribe [::s/initialized?]))))))
 
 
 (defmethod aud/process-audio-event :canplaythrough
@@ -428,10 +406,6 @@
   (rf/dispatch-sync [::events/set-can-play? true])
   (let [audio @(rf/subscribe [::s/audio])
         song-paused? @(rf/subscribe [::s/song-paused?])])
-    ;; (when song-paused?
-      ;; (.play audio)
-      ;; (.pause audio)
-      ;; (rf/dispatch-sync [::events/set-player-current-time 0]))
   #_(when-let [_ (and)
                @(rf/subscribe [::s/loop?])
                @(rf/subscribe [::s/song-paused?])]
@@ -450,13 +424,17 @@
 (defmethod aud/process-audio-event :timeupdate
   [event]
   (when-let [a @(rf/subscribe [::s/audio])]
-    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])))
+    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])
+    (when (and
+           (not @(rf/subscribe [::s/first-playback-position-updated?]))
+           (> (.-currentTime a) 0))
+      (rf/dispatch [::song-events/set-first-playback-position-updated? true])
+      (update-karaoke-player-status))))
+      
 (defmethod aud/process-audio-event :play
   [event]
-  (println "play event")
-  ;; (rf/dispatch-sync [::events/set-player-current-time 0])
-  (update-karaoke-player-status))
-  ;; (rf/dispatch-sync [::events/set-player-status (play-lyrics-2 @(rf/subscribe [::s/lyrics]))]))
+  (println "play event"))
+  ;; (update-karaoke-player-status))
   
 (defmethod aud/process-audio-event :playing
   [event]
@@ -473,5 +451,4 @@
   (println "processing ended event: " event)
   (rf/dispatch-sync [::events/set-playing? false])
   (when-let [_ @(rf/subscribe [::s/loop?])]
-;; (songs/load-song)))
     (rf/dispatch [::playlist-events/playlist-next])))

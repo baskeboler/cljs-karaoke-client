@@ -3,17 +3,22 @@
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [day8.re-frame.async-flow-fx]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.common :as common-events]
+            [cljs-karaoke.events.backgrounds :as bg-events]
+            [cljs-karaoke.events.lyrics :as lyrics-events]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]))
 
                                         ; fetch song delay, fetch song background
-(defn load-song-flow [song-name]
-  {:first-dispatch [::load-song-start song-name]
+(defn load-song-flow []
+  {
+   ;; :first-dispatch [::load-song-start song-name]
 
      :rules [{:when :seen-all-of?
-              :events [::events/handle-set-lyrics-success
-                       ::events/handle-bg-complete
+              :events [
+                       ::lyrics-events/fetch-lyrics-complete
+                       ::bg-events/update-bg-image-flow-complete
                        ::setup-audio-complete]
               :dispatch-n [[::events/set-pageloader-active? false]
                            [::events/set-can-play? true]]
@@ -41,12 +46,12 @@
   (rf/dispatch [::audio-events-closed])
   {:db db}))
 
-(rf/reg-event-fx
- ::trigger-load-song-flow
- (fn-traced
-  [{:keys [db]} [_ song-name]]
-  {:db db
-   :async-flow (load-song-flow song-name)}))
+;; (rf/reg-event-fx
+;;  ::trigger-load-song-flow
+;;  (fn-traced
+;;   [{:keys [db]} [_ song-name]]
+;;   {:db db
+;;    :async-flow (load-song-flow song-name)}))
 
 (rf/reg-event-fx
  ::update-song-hash
@@ -57,18 +62,23 @@
      :dispatch [::events/set-location-hash (str "/songs/" song-name "?offset=" offset)]})))
 
 (rf/reg-event-fx
- ::load-song-start
+ ::trigger-load-song-flow
+ 
+ ;; ::load-song-start
  (fn-traced
   [{:keys [db]} [_ song-name]]
   {:db db
+   :async-flow (load-song-flow)
    :dispatch-n [[::events/set-pageloader-active? true]
                 [::events/set-can-play? false]
                 [::events/set-playing? false]
                 [::setup-audio-events song-name]
                 [::update-song-hash song-name]
-                [::events/set-page-title (str "Karaoke :: " song-name)]
+                [::set-first-playback-position-updated? false]
+                [::common-events/set-page-title (str "Karaoke :: " song-name)]
                 [::events/set-current-song song-name]
-                [::events/fetch-lyrics song-name preprocess-frames]
+                [::bg-events/init-update-bg-image-flow song-name]
+                [::lyrics-events/fetch-lyrics song-name preprocess-frames]
                 [::events/set-current-view :playback]]})) 
 
 (rf/reg-event-fx
@@ -96,3 +106,10 @@
  ::set-player-status-id
  (fn-traced [db [_ id]]
     (-> db (assoc :player-status-id id))))
+
+(rf/reg-event-db
+ ::set-first-playback-position-updated?
+ (fn-traced
+  [db [_ updated?]]
+  (. js/console (log "Setting first position updated to " updated?))
+  (-> db (assoc :first-playback-position-updated? updated?))))

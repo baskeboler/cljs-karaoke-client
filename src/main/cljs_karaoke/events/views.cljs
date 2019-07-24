@@ -46,3 +46,9 @@
   [{:keys [db]} _]
   {:db db
    :dispatch [::set-seek-buttons-visible true]}))
+
+(rf/reg-event-db
+ ::set-display-home-button
+ (fn-traced
+  [db [_ display-button?]]
+  (-> db (assoc :display-home-button? display-button?))))
