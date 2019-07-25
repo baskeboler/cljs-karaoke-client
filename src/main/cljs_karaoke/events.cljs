@@ -15,7 +15,7 @@
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
-            [cljs-karaoke.events.http-relay :as http-relay-events]
+            ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.audio :as aud]))
 (defonce fetch-bg-from-web-enabled? true)
 (def base-storage-url "https://karaoke-files.uyuyuy.xyz")
@@ -49,7 +49,7 @@
             :events [::song-bgs-loaded
                      ::song-delays-loaded
                      ::set-audio
-                     ::http-relay-events/init-http-relay-listener
+                     ;; ::http-relay-events/init-http-relay-listener
                      ::set-audio-events
                      ::initial-audio-setup-complete
                      ::playlist-events/playlist-ready
@@ -114,7 +114,7 @@
                           [::fetch-song-background-config]
                           [::initial-audio-setup]
                           [::views-events/init-views-state]
-                          [::http-relay-events/init-http-relay-listener]
+                          ;; [::http-relay-events/init-http-relay-listener]
                           [::song-list-events/init-song-list-state]]}))
 
 ;; (rf/reg-event-fx
@@ -335,25 +335,6 @@
            (assoc-in [:custom-song-delay song-name] delay))
    :dispatch [::save-custom-song-delays-to-localstorage]}))
 
-(rf/reg-event-fx
- ::modal-push
- (fn-traced
-  [{:keys [db]} [_ modal]]
-  {:db (-> db
-           (update :modals conj modal))
-   :dispatch [::modal-activate]}))
-
-(rf/reg-event-db
- ::modal-activate
- (fn-traced
-  [db _] db))
-
-(rf/reg-event-db
- ::modal-pop
- (fn-traced
-  [db _]
-  (-> db
-      (update :modals pop))))
 
 
 (rf/reg-event-fx

@@ -1,13 +1,16 @@
 (ns cljs-karaoke.views.control-panel
   (:require [reagent.core :as reagent :refer [atom]]
-            [re-frame.core :as rf]
+            [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.playback :refer [play stop]]
             [cljs-karaoke.utils :as utils]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
+            [cljs-karaoke.events.http-relay :as relay-events]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
+            [cljs-karaoke.remote-control :as remote-control]
+            [cljs-karaoke.subs.http-relay :as relay-subs]
             [stylefy.core :as stylefy]))
 
 
@@ -49,6 +52,23 @@
     [:i.fas.fa-file-export]]])
     ;; "export sync data"]])
 
+(defn enable-remote-control-btn []
+  [:button.button.is-info.tooltip
+   {:on-click (fn [_]
+                (if-not @(rf/subscribe [::relay-subs/http-relay-listener-id])
+                  (rf/dispatch-sync [::relay-events/init-http-relay-listener]))
+                (remote-control/show-remote-control-id))
+    :data-tooltip "Remote Control information"}
+   [:span.icon
+    [:i.fas.fa-wifi]]])
+
+(defn remote-control-btn []
+  [:button.button.is-info.tooltip
+   {:on-click (fn [_]
+                (remote-control/show-remote-control-settings))
+    :data-tooltip "Control Remote Karaoke"}
+   [:span.icon
+    [:i.fas.fa-satellite-dish]]])
 (defn info-table []
   (let [current-song (rf/subscribe [::s/current-song])
         lyrics-loaded? (rf/subscribe [::s/lyrics-loaded?])]
@@ -132,7 +152,11 @@
         [:div.control
          [export-sync-data-btn]]
         [:div.control
-         [toggle-song-list-btn]]]
+         [toggle-song-list-btn]]
+        [:div.control
+         [enable-remote-control-btn]]
+        [:div.control
+         [remote-control-btn]]]
        [:div.field
         [:div.control
          [save-custom-delay-btn]]]]]

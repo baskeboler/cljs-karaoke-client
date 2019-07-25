@@ -10,3 +10,9 @@
  ::remote-control-id
  (fn [db _]
    (:remote-control-id db)))
+
+(rf/reg-sub
+ ::remote-control-enabled?
+ :<- [::remote-control-id]
+ (fn [remote-id _]
+   (not (clojure.string/blank? remote-id))))

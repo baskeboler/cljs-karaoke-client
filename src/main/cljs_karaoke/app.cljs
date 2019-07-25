@@ -5,6 +5,7 @@
             [ajax.core :as ajax]
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
+            [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.backgrounds :as bg-events :refer [wallpapers]]
             [cljs-karaoke.events.songs :as song-events]
@@ -26,6 +27,7 @@
             ["bulma-extensions"]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.playback :as playback :refer [play stop]]
+            [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.views.page-loader :as page-loader]
             [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
             [cljs-karaoke.views.control-panel :refer [control-panel]]
@@ -386,7 +388,8 @@
                                             (stop)
                                             (rf/dispatch-sync [::playlist-events/playlist-next])))
   (key/bind! "t t" ::double-t #(trigger-toasty))
-  (key/bind! "alt-x" ::alt-x utils/show-remote-control-id))
+  (key/bind! "alt-x" ::alt-x #(remote-control/show-remote-control-id))
+  (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings)))
 (defn mount-components! []
   (reagent/render
    [app]
@@ -456,17 +459,4 @@
   (rf/dispatch-sync [::events/set-playing? false])
   (when-let [_ @(rf/subscribe [::s/loop?])]
     (rf/dispatch [::playlist-events/playlist-next])))
-
-(defmethod http-relay-events/execute-command :play-song
-  [cmd]
-  (songs/load-song (:song cmd)))
-
-(defmethod http-relay-events/execute-command :stop
-  [cmd]
-  (stop))
-
-(defmethod http-relay-events/execute-command :playlist-next
-  [cmd]
-  (stop)
-  (rf/dispatch [::playlist-events/playlist-next]))
 
