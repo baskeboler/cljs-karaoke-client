@@ -11,6 +11,7 @@
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
+            [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.utils :as utils :refer [show-export-sync-info-modal]]
             [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
@@ -315,7 +316,9 @@
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))]
 
-   (when-let [_ @(rf/subscribe [::s/initialized?])]
+   (when-let [_ (and
+                 @(rf/subscribe [::s/initialized?])
+                 @(rf/subscribe [::s/current-view]))]
      (condp = @(rf/subscribe [::s/current-view])
        :home [default-view]
        :playback [playback-view]))])
@@ -382,7 +385,8 @@
   (key/bind! "shift-right" ::shift-right #(do
                                             (stop)
                                             (rf/dispatch-sync [::playlist-events/playlist-next])))
-  (key/bind! "t t" ::double-t #(trigger-toasty)))
+  (key/bind! "t t" ::double-t #(trigger-toasty))
+  (key/bind! "alt-x" ::alt-x utils/show-remote-control-id))
 (defn mount-components! []
   (reagent/render
    [app]
@@ -395,8 +399,8 @@
   (println "init!")
   (mount-components!)
   (rf/dispatch-sync [::events/init-db])
-  (init-keybindings!)
   (init-routing!)
+  (init-keybindings!)
   (. js/window (addEventListener "shake" on-shake false)))
 
 
@@ -452,3 +456,17 @@
   (rf/dispatch-sync [::events/set-playing? false])
   (when-let [_ @(rf/subscribe [::s/loop?])]
     (rf/dispatch [::playlist-events/playlist-next])))
+
+(defmethod http-relay-events/execute-command :play-song
+  [cmd]
+  (songs/load-song (:song cmd)))
+
+(defmethod http-relay-events/execute-command :stop
+  [cmd]
+  (stop))
+
+(defmethod http-relay-events/execute-command :playlist-next
+  [cmd]
+  (stop)
+  (rf/dispatch [::playlist-events/playlist-next]))
+

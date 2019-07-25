@@ -1,9 +1,10 @@
 (ns cljs-karaoke.utils
-  (:require [reagent.core :as reagent]
+  (:require [reagent.core :as reagent :refer [atom] :include-macros true]
             [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.events :as events]
-            [cljs-karaoke.subs :as s]))
-
+            [cljs-karaoke.events.http-relay :as relay-events]
+            [cljs-karaoke.subs :as s]
+            [cljs-karaoke.subs.http-relay :as hr]))
 (defn modal-card-dialog [{:keys [title content footer]}]
   [:div.modal.is-active
    [:div.modal-background]
@@ -43,6 +44,37 @@
                             {:id "sync-info-textarea"
                              :value data}]]]
                            
+                :footer nil})]
+    (rf/dispatch [::events/modal-push modal])))
+
+(defn show-remote-control-id []
+  (let [listener-id @(rf/subscribe [::hr/http-relay-listener-id])
+        modal (modal-card-dialog
+               {:title "Remote control info"
+                :content [:div.remote-control-info-content
+                          [:div.field>div.control
+                           [:textarea.textarea.is-primary
+                            {:id "remote-control-id"
+                             :value listener-id}]]]
+                :footer nil})]
+    (rf/dispatch [::events/modal-push modal])))
+
+(defn remote-control-settings []
+  (let [value (reagent/atom  "")]
+    [:div.remote-control-settings-content
+     [:div.field>div.control
+      [:input.input.is-primary
+       {:id "remote-control-id"
+        :type :text
+        :placeholder "Enter the connection code for the remote karaoke"
+        :value @(rf/subscribe [::hr/remote-control-id])
+        :on-change #(do
+                      (rf/dispatch  [::relay-events/set-remote-control-id (-> % .-target .-value)]))}]]]))
+
+(defn show-remote-control-settings []
+  (let [modal (modal-card-dialog
+               {:title "Set the remote screen id"
+                :content [remote-control-settings]
                 :footer nil})]
     (rf/dispatch [::events/modal-push modal])))
 
