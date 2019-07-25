@@ -71,7 +71,11 @@
 
 (defmethod execute-command :play-song
   [cmd]
-  (cljs-karaoke.songs/load-song (:song cmd)))
+  (cljs-karaoke.songs/load-song (:song cmd))
+  (go-loop [_ (<! (async/timeout 2500))]
+    (if @(rf/subscribe [:cljs-karaoke.subs/can-play?])
+      (cljs-karaoke.playback/play)
+      (recur (<! (timeout 500))))))
 
 (defmethod execute-command :stop
   [cmd]
@@ -84,7 +88,8 @@
 
 (defmethod execute-command "play-song"
   [cmd]
-  (cljs-karaoke.songs/load-song (:song cmd)))
+  (cljs-karaoke.songs/load-song (:song cmd))
+  (play))
 
 (defmethod execute-command "stop"
   [cmd]
