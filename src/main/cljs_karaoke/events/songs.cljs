@@ -87,7 +87,7 @@
   (fn [db [_ song-name]]
     (. js/console (log "setup audio: " song-name  ", storage: " (get db :base-storage-url "")))
     (let [base-storage-url (get db :base-storage-url "")
-          audio-path (str base-storage-url "/mp3/" song-name ".mp3")
+          audio-path (str events/base-storage-url "/mp3/" song-name ".mp3")
           audio (.  js/document (getElementById "main-audio"))]
       (set! (.-src audio) audio-path)
       (rf/dispatch [::events/set-player-current-time 0])

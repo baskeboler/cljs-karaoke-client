@@ -5,12 +5,14 @@
             [ajax.core :as ajax]
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
+            [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.backgrounds :as bg-events :refer [wallpapers]]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
+            [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.utils :as utils :refer [show-export-sync-info-modal]]
             [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
@@ -25,6 +27,7 @@
             ["bulma-extensions"]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.playback :as playback :refer [play stop]]
+            [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.views.page-loader :as page-loader]
             [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
             [cljs-karaoke.views.control-panel :refer [control-panel]]
@@ -315,7 +318,9 @@
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))]
 
-   (when-let [_ @(rf/subscribe [::s/initialized?])]
+   (when-let [_ (and
+                 @(rf/subscribe [::s/initialized?])
+                 @(rf/subscribe [::s/current-view]))]
      (condp = @(rf/subscribe [::s/current-view])
        :home [default-view]
        :playback [playback-view]))])
@@ -382,7 +387,9 @@
   (key/bind! "shift-right" ::shift-right #(do
                                             (stop)
                                             (rf/dispatch-sync [::playlist-events/playlist-next])))
-  (key/bind! "t t" ::double-t #(trigger-toasty)))
+  (key/bind! "t t" ::double-t #(trigger-toasty))
+  (key/bind! "alt-x" ::alt-x #(remote-control/show-remote-control-id))
+  (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings)))
 (defn mount-components! []
   (reagent/render
    [app]
@@ -395,8 +402,8 @@
   (println "init!")
   (mount-components!)
   (rf/dispatch-sync [::events/init-db])
-  (init-keybindings!)
   (init-routing!)
+  (init-keybindings!)
   (. js/window (addEventListener "shake" on-shake false)))
 
 
@@ -452,3 +459,4 @@
   (rf/dispatch-sync [::events/set-playing? false])
   (when-let [_ @(rf/subscribe [::s/loop?])]
     (rf/dispatch [::playlist-events/playlist-next])))
+

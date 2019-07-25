@@ -1,9 +1,9 @@
 (ns cljs-karaoke.utils
-  (:require [reagent.core :as reagent]
+  (:require [reagent.core :as reagent :refer [atom] :include-macros true]
             [re-frame.core :as rf :include-macros true]
-            [cljs-karaoke.events :as events]
-            [cljs-karaoke.subs :as s]))
-
+            [cljs-karaoke.events.modals :as modal-events]
+            [cljs-karaoke.subs :as s]
+            [cljs-karaoke.subs.http-relay :as hr]))
 (defn modal-card-dialog [{:keys [title content footer]}]
   [:div.modal.is-active
    [:div.modal-background]
@@ -12,7 +12,7 @@
      [:p.modal-card-title title]
      [:button.delete
       {:aria-label "close"
-       :on-click #(rf/dispatch [::events/modal-pop])}]]
+       :on-click #(rf/dispatch [::modal-events/modal-pop])}]]
     [:section.modal-card-body
      content]
     (when-not (nil? footer)
@@ -32,7 +32,6 @@
     (-> selection (.removeAllRanges))
     (-> selection (.addRange text-range))))
 
-
 (defn show-export-sync-info-modal []
   (let [data @(rf/subscribe [::s/custom-song-delay-for-export])
         modal (modal-card-dialog
@@ -42,9 +41,8 @@
                            [:textarea.textarea.is-primary
                             {:id "sync-info-textarea"
                              :value data}]]]
-                           
                 :footer nil})]
-    (rf/dispatch [::events/modal-push modal])))
+    (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn ratings-input []
   [:div.control

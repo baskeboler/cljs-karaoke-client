@@ -3,6 +3,7 @@
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [day8.re-frame.async-flow-fx]
             [ajax.core :as ajax]
+            [cljs-karaoke.events :as events]
             [cljs-karaoke.events.common :as common-events]
             [cljs.tools.reader.edn :as reader]))
 
@@ -22,7 +23,7 @@
            (assoc :lyrics-loaded? false)
            (assoc :lyrics-fetching? true))
    :http-xhrio {:method :get
-                :uri (str (get db :base-storage-url "") "/lyrics/" name ".edn")
+                :uri (str events/base-storage-url "/lyrics/" name ".edn")
                 :timeout 8000
                 :response-format (ajax/text-response-format)
                 :on-success [::handle-fetch-lyrics-success]

@@ -15,8 +15,12 @@
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
+            ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.audio :as aud]))
 (defonce fetch-bg-from-web-enabled? true)
+(def base-storage-url "https://karaoke-files.uyuyuy.xyz")
+
+
 (declare save-custom-delays-to-localstore)
 
 (defn init-flow []
@@ -45,6 +49,7 @@
             :events [::song-bgs-loaded
                      ::song-delays-loaded
                      ::set-audio
+                     ;; ::http-relay-events/init-http-relay-listener
                      ::set-audio-events
                      ::initial-audio-setup-complete
                      ::playlist-events/playlist-ready
@@ -78,6 +83,7 @@
                   :lyrics-fetching? false
                   :lyrics-delay -1000
                   :audio nil
+                  :remote-control-id ""
                   :audio-events nil
                   :display-lyrics? false
                   :current-song nil
@@ -106,8 +112,9 @@
 
              :dispatch-n [[::fetch-custom-delays]
                           [::fetch-song-background-config]
-                          [::views-events/init-views-state]
                           [::initial-audio-setup]
+                          [::views-events/init-views-state]
+                          ;; [::http-relay-events/init-http-relay-listener]
                           [::song-list-events/init-song-list-state]]}))
 
 ;; (rf/reg-event-fx
@@ -149,7 +156,7 @@
   [{:keys [db]} _]
   {:db db
    :http-xhrio {:method :get
-                :uri (str (get db :base-storage-url "") "/lyrics/delays.edn")
+                :uri (str base-storage-url "/lyrics/delays.edn")
                 :timeout 8000
                 :response-format (ajax/text-response-format)
                 :on-success [::handle-fetch-delays-success]
@@ -169,7 +176,7 @@
  (fn-traced
   [{:keys [db]} _]
   {:db db
-   :dispatch [::common-events/save-to-localstorage "custom-song-delays" (:custom-song-delay db) nil]}))          
+   :dispatch [::common-events/save-to-localstorage "custom-song-delays" (:custom-song-delay db) nil]}))
 
 (rf/reg-event-fx
  ::handle-fetch-delays-complete
@@ -183,7 +190,7 @@
   [{:keys [db]} _]
   {:db db
    :http-xhrio {:method :get
-                :uri (str (get db :base-storage-url "") "/backgrounds.edn")
+                :uri (str base-storage-url "/backgrounds.edn")
                 :timeout 8000
                 :response-format (ajax/text-response-format)
                 :on-success [::handle-fetch-background-config-success]
@@ -197,6 +204,7 @@
     {:db (-> db
              (update :song-backgrounds merge c))
      :dispatch [::handle-fetch-background-config-complete]})))
+
 (rf/reg-event-fx
  ::handle-fetch-background-config-failure
  (fn-traced
@@ -327,25 +335,6 @@
            (assoc-in [:custom-song-delay song-name] delay))
    :dispatch [::save-custom-song-delays-to-localstorage]}))
 
-(rf/reg-event-fx
- ::modal-push
- (fn-traced
-  [{:keys [db]} [_ modal]]
-  {:db (-> db
-           (update :modals conj modal))
-   :dispatch [::modal-activate]}))
-
-(rf/reg-event-db
- ::modal-activate
- (fn-traced
-  [db _] db))
-
-(rf/reg-event-db
- ::modal-pop
- (fn-traced
-  [db _]
-  (-> db
-      (update :modals pop))))
 
 
 (rf/reg-event-fx

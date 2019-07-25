@@ -5,6 +5,8 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.songs :as song-events]
+            [cljs-karaoke.remote-control :as remote]
+            [cljs-karaoke.events.http-relay :as remote-events]
             [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
@@ -628,7 +630,8 @@
         current-page (rf/subscribe [::s/song-list-current-page])
         page-size (rf/subscribe [::s/song-list-page-size])
         filter-text (rf/subscribe [::s/song-list-filter])
-        page-offset (rf/subscribe [::s/song-list-offset])]
+        page-offset (rf/subscribe [::s/song-list-offset])
+        remote-control-enabled? (rf/subscribe [:cljs-karaoke.subs.http-relay/remote-control-enabled?])]
     [:div.card.song-table-component
      [:div.card-header]
      [:div.card-content
@@ -638,7 +641,9 @@
        [:thead
         [:tr
          [:th "Song"]
-         [:th]]]
+         [:th]
+         (when @remote-control-enabled?
+           [:th])]]
        [:tbody
         (for [name (->> (keys song-map)
                         (filter #(clojure.string/includes?
@@ -654,7 +659,14 @@
            [:td [:a
                  {:href (str "#/songs/" name)}
                    ;; :on-click #(select-fn name)}
-                 "Load song"]]])]]]]))
+                 "Load song"]]
+           (when @remote-control-enabled?
+             [:td
+              [:a
+               {:on-click (fn []
+                            (let [cmd (remote/play-song-command name)]
+                              (rf/dispatch [::remote-events/remote-control-command cmd])))}
+               "Play remotely"]])])]]]]))
 
 (defn load-song
   ([name]
