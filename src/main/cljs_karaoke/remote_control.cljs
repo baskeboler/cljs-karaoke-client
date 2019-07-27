@@ -37,17 +37,24 @@
   [cmd]
   (println "Unknown remote control command: " cmd))
 
+(defn close-modal-button []
+  [:button.button.is-danger
+   {:on-click #(rf/dispatch [::modal-events/modal-pop])}
+   "Close"])
+
 (defn show-remote-control-id []
   (let [listener-id @(rf/subscribe [::relay-subs/http-relay-listener-id])
         modal (modal-card-dialog
-               {:title "Remote control info"
+               {:title "Local remote control ID"
                 :content [:div.remote-control-info-content
-                          [:div.field>div.control
-                           [:textarea.textarea.is-primary
-                            {:id "remote-control-id"
-                             :value listener-id
-                             :read-only true}]]]
-                :footer nil})]
+                          [:div.field
+                           [:div.control
+                            [:input.input.is-static.is-large.is-danger
+                             {:id "remote-control-id"
+                              :value listener-id
+                              :read-only true}]]
+                           [:span.help "Use this code to control this screen remotely from another browser window."]]]
+                :footer [close-modal-button]})]
     (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn remote-control-settings []
@@ -66,7 +73,7 @@
   (let [modal (modal-card-dialog
                {:title "Set the remote screen id"
                 :content [remote-control-settings]
-                :footer nil})]
+                :footer [close-modal-button]})]
     (rf/dispatch [::modal-events/modal-push modal])))
 
 (defmethod execute-command :play-song
