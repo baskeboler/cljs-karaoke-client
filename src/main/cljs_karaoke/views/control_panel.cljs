@@ -120,7 +120,8 @@
         current-song (rf/subscribe [::s/current-song])
         lyrics-loaded? (rf/subscribe [::s/lyrics-loaded?])
         song-list-visible? (rf/subscribe [::s/song-list-visible?])
-        can-play? (rf/subscribe [::s/can-play?])]
+        can-play? (rf/subscribe [::s/can-play?])
+        remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])]
     [:div.control-panel.columns
      {:class (if @(rf/subscribe [::s/song-paused?])
                ["song-paused"]
@@ -159,7 +160,9 @@
          [remote-control-btn]]]
        [:div.field
         [:div.control
-         [save-custom-delay-btn]]]]]
+         [save-custom-delay-btn]]]
+       (when @remote-control-enabled?
+         [remote-control/remote-control-component])]]
      (when @display-lyrics?
        [:div.column (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
         [lyrics-view @lyrics]])

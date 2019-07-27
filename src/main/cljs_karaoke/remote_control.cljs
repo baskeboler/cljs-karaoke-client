@@ -8,7 +8,8 @@
             [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.subs.http-relay :as relay-subs]
             [cljs-karaoke.remote-control.commands :as cmds]
-            [cljs-karaoke.remote-control.execute]))
+            [cljs-karaoke.remote-control.execute]
+            [cljs-karaoke.remote-control.queue]))
 (def play-song-command cmds/play-song-command)
 (def stop-command cmds/stop-command)
 (def playlist-next-command cmds/playlist-next-command)
@@ -54,16 +55,17 @@
 
 (defn remote-playlist-next-button []
   [:button.button.is-primary
-   {:on-click #(rf/dispatch [::remote-events/remote-control-commmand (playlist-next-command)])}
+   {:on-click #(rf/dispatch [::remote-events/remote-control-command (playlist-next-command)])}
    [:span.icon
-    [:i.fas.fa-next]]])
+    [:i.fa.fa-step-forward]]])
 
 (defn remote-stop-button []
   [:button.button.is-danger
-   {:on-click #(rf/dispatch [::remote-events/remote-control-commmand (stop-command)])}])
-
+   {:on-click #(rf/dispatch [::remote-events/remote-control-command (stop-command)])}
+   [:span.icon>i.fa.fa-stop]])
 (defn remote-control-component []
   [:div.columns>div.column.is-12
+   [:p.title "remote control"]
    [:div.field.has-addons
     [:div.control
      [remote-stop-button]]

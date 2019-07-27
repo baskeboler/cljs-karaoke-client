@@ -2,7 +2,7 @@
   (:require [cljs.core.async :as async :refer [<! >! go go-loop]]
             [re-frame.core :as rf]
             [cljs-karaoke.events.playlists :as playlist-events]
-            [cljs-karaoke.notifications :refer [add-notification]]))
+            [cljs-karaoke.notifications :refer [add-notification notification]]))
 
 (defmulti execute-command
   "execute remote control commands"
@@ -27,11 +27,13 @@
 
 (defmethod execute-command :stop
   [cmd]
-  (cljs-karaoke.playback/stop))
+  (cljs-karaoke.playback/stop)
+  (add-notification (notification :warning "Stopped by remote control")))
 
 (defmethod execute-command :playlist-next
   [cmd]
   (cljs-karaoke.playback/stop)
-  (rf/dispatch [::playlist-events/playlist-next]))
+  (rf/dispatch [::playlist-events/playlist-next])
+  (add-notification (notification :warning "Skipped to next in playlist by remote control")))
 
 
