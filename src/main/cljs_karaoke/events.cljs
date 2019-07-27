@@ -15,6 +15,7 @@
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
+            [cljs-karaoke.events.notifications]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.audio :as aud]))
 (defonce fetch-bg-from-web-enabled? true)
@@ -104,7 +105,8 @@
                   :pageloader-active? true
                   :display-home-button? true
          ;; :playlist (pl/build-playlist)
-                  :modals []}
+                  :modals []
+                  :notifications []}
     ;; :dispatch-n [[::fetch-custom-delays]
                  ;; [::fetch-song-background-config]}
                  ;; [::init-song-bg-cache]]}))

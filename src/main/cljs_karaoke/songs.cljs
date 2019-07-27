@@ -5,7 +5,7 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.remote-control :as remote]
+            [cljs-karaoke.remote-control.commands :as cmds]
             [cljs-karaoke.events.http-relay :as remote-events]
             [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.audio :as aud]
@@ -664,7 +664,7 @@
              [:td
               [:a
                {:on-click (fn []
-                            (let [cmd (remote/play-song-command name)]
+                            (let [cmd (cmds/play-song-command name)]
                               (rf/dispatch [::remote-events/remote-control-command cmd])))}
                "Play remotely"]])])]]]]))
 

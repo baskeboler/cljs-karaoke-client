@@ -3,8 +3,15 @@
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [ajax.core :as ajax]
             [cljs.reader :as reader]
-            [cljs-karaoke.remote-control :as remote-control :refer [generate-remote-control-id]]))
+            [cljs-karaoke.remote-control.commands :as cmds]
+            [cljs-karaoke.remote-control.queue :as remote-queue]))
 (def base-http-relay-url "https://httprelay.io/link/")
+
+(defn ^export generate-remote-control-id []
+  (->> (random-uuid)
+       str
+       (take 8)
+       (apply str)))
 
 (rf/reg-event-fx
  ::init-http-relay-listener
@@ -35,7 +42,7 @@
  ::handle-http-relay-response
  (rf/after
   (fn [db [_ cmd]]
-    (remote-control/queue-remote-command cmd)))
+    (remote-queue/queue-remote-command cmd)))
  (fn-traced
   [{:keys [db]} [_ response]]
   (. js/console (log "got response " response))

@@ -13,11 +13,6 @@
     border-radius: 1em;
 }
 
-@media only screen and (min-width: 1024px ) {
-    .current-frame {
-        font-size: 4em;
-    }
-}
 .song-table {
     background-color: unset;
     color: black;
@@ -137,4 +132,34 @@
     height: 100vh;
     width: 3em;
     z-index: 3;
+}
+
+.notifications-container {
+    position: fixed;
+    width: calc(100vw - 3em);
+    top: 1em;
+    right: 1em;
+    z-index: 3;
+    overflow:hidden;
+}
+
+.notification {
+    opacity: 0.8;
+    margin-bottom: 0.5em !important;
+}
+
+.notification:hover {
+    opacity: 1;
+} ;
+
+@media only screen and (min-width: 1024px) {
+    .notifications-container {
+        position: fixed;
+        top: 1em;
+        right: 1em;
+        width: 25vw;
+    }
+    .current-frame {
+        font-size: 4em;
+    }
 }

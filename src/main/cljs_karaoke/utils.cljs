@@ -6,6 +6,7 @@
             [cljs-karaoke.subs.http-relay :as hr]))
 (defn modal-card-dialog [{:keys [title content footer]}]
   [:div.modal.is-active
+   {:key (random-uuid)}
    [:div.modal-background]
    [:div.modal-card
     [:header.modal-card-head

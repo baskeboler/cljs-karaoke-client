@@ -32,6 +32,7 @@
             [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
             [cljs-karaoke.views.control-panel :refer [control-panel]]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
+            [cljs-karaoke.notifications :as notifications]
             ["shake.js" :as Shake])
   (:import goog.History))
 
@@ -314,6 +315,7 @@
 (defn app []
   [:div.container.app
    [toasty]
+   [notifications/notifications-container-component]
    [utils/modals-component]
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))]

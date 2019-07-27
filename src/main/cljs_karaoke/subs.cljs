@@ -216,3 +216,8 @@
 (rf/reg-sub
  ::first-playback-position-updated?
  (fn [db _] (:first-playback-position-updated? db)))
+
+(rf/reg-sub
+ ::notifications
+ (fn [db _]
+   (:notifications db)))
