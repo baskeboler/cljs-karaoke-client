@@ -65,7 +65,7 @@
 
 (defn enable-audio-input-button []
   [:button.button.is-danger
-   {:on-click #(audio-input/init-audio-input)}
+   {:on-click #(audio-input/init-audio-input!)}
    [:span.icon>i.fa.fa-microphone-alt]])
 
 
@@ -171,7 +171,8 @@
         [:div.control
          [save-custom-delay-btn]]]
        (when @remote-control-enabled?
-         [remote-control/remote-control-component])]]
+         [remote-control/remote-control-component])
+       [audio-input/audio-viz]]]
      (when @display-lyrics?
        [:div.column (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
         [lyrics-view @lyrics]])

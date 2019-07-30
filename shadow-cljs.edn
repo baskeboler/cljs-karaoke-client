@@ -25,9 +25,12 @@
 
  :builds
  {:app {:target :browser
+        :asset-path "js/."
         :build-options {:cache-level :off}
         :modules {:main {:init-fn cljs-karaoke.app/init!}}
-        :devtools {:http-port 8089
+        :dev-http {8089 "public/"}
+        :devtools {
+                   :http-port 8089
                    :http-root "public"
                    :preloads [devtools.preload day8.re-frame-10x.preload]
                    :after-load cljs-karaoke.app/init!}
