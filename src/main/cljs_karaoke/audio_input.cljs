@@ -1,6 +1,7 @@
 (ns cljs-karaoke.audio-input
   (:require [re-frame.core :as rf]
-            [reagent.core :as reagent :refer [atom]]))
+            [reagent.core :as reagent :refer [atom]]
+            [cljs-karaoke.notifications :refer [add-notification notification]]))
 
 (def deferred-inits (atom []))
 
@@ -114,7 +115,8 @@
     ;; (.connect audio-filter analyser)
     ;; (reset! analyser analyser)
     ;; audio-filter))
-    (println "Audio input init complete.")))
+    (println "Audio input init complete.")
+    (add-notification (notification :success "Audio input initialized!"))))
 
 (defn on-stream-error [e]
   (println e))
