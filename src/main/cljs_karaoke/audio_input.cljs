@@ -106,6 +106,7 @@
     (reset! reverb-analyser analyser2)
 
     (cross-fade 1.0)
+    (create-reverb)
     ;; (set! (.-value (.-frequency audio-filter)) 60.0)
     ;; (set! (.-type audio-filter) "notch")
     ;; (set! (.-Q audio-filter) 10.0)

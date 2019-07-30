@@ -11,7 +11,8 @@
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.subs.http-relay :as relay-subs]
-            [stylefy.core :as stylefy]))
+            [stylefy.core :as stylefy]
+            [cljs-karaoke.audio-input :as audio-input]))
 
 
 (defn lyrics-view [lyrics]
@@ -61,6 +62,12 @@
     :data-tooltip "Remote Control information"}
    [:span.icon
     [:i.fas.fa-wifi]]])
+
+(defn enable-audio-input-button []
+  [:button.button.is-danger
+   {:on-click #(audio-input/init-audio-input)}
+   [:span.icon>i.fa.fa-microphone-alt]])
+
 
 (defn remote-control-btn []
   [:button.button.is-info.tooltip
@@ -157,7 +164,9 @@
         [:div.control
          [enable-remote-control-btn]]
         [:div.control
-         [remote-control-btn]]]
+         [remote-control-btn]]
+        [:div.control
+         [enable-audio-input-button]]]
        [:div.field
         [:div.control
          [save-custom-delay-btn]]]
