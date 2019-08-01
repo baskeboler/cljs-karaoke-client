@@ -74,27 +74,11 @@
     (. dry-gain1 (connect output-mix1))
     (. wet-gain1 (connect output-mix1))
 
-    ;; (when feedback-reduction?
-      ;; (. audio-input (connect (create-lp-input-filter)))
-    ;; (set! audio-input @lp-input-filter))
     (. output-mix1 (connect analyser2))
     (. output-mix1 (connect (.-destination audio-context)))
-    ;; (reset! audio-input-atom audio-input)
-    ;; (reset! dry-gain dry-gain1)
-    ;; (reset! wet-gain wet-gain1)
-    ;; (reset! effect-input effect-input1)
-    ;; (reset! output-mix output-mix1)
-    ;; (reset! clean-analyser analyser1)
-    ;; (reset! reverb-analyser analyser2)
 
     (cross-fade 1.0 dry-gain1 wet-gain1)
     (create-reverb! audio-context reverb-buffer wet-gain1)
-
-
-    ;; (go-loop [_ (<! (timeout 200))]
-      ;; (reset! freq-data (get-freq-data @reverb-analyser))
-      ;; (recur (<! (timeout 50))))
-
 
 
     ;; (set! (.-value (.-frequency audio-filter)) 60.0)
@@ -133,7 +117,6 @@
    :reverb-analyser     nil
    :freq-data           nil
    :audio-context       nil
-   :deferred-init-fns   []
    :constraints         {:audio {:optional [{:echoCancellation false}]}}})
 
 (rf/reg-event-db

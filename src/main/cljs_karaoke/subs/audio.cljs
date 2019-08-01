@@ -1,6 +1,5 @@
 (ns cljs-karaoke.subs.audio
   (:require [re-frame.core :as rf]))
-            
 
 (rf/reg-sub
  ::audio-data
