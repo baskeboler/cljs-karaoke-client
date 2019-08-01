@@ -15,8 +15,6 @@
           ^{:key (str "bar-" i)}
           [:span.freq-bar
            {:style {:height (str (* 100 v) "%")}}]))])))
-                 
-      
 
 (defn test-viz []
   [:div.audio-spectrum
@@ -32,3 +30,14 @@
     (when @(rf/subscribe [::audio-subs/microphone-enabled?])
       {:disabled true}))
    [:span.icon>i.fa.fa-microphone-alt]])
+
+(defn spectro-overlay []
+  (when-let  [freq-data (rf/subscribe [::audio-subs/freq-data])]
+    (when-not (empty? @freq-data)
+      [:div.audio-spectrum-overlay
+       (doall
+        (for [[i v] (mapv (fn [a b] [b a])  @freq-data (map inc (range)))]
+          ^{:key (str "bar-" i)}
+          [:span.freq-bar
+           {:style {:height (str (* 100 v) "%")}}]))])))
+
