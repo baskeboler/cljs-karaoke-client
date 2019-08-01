@@ -8,9 +8,11 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.http-relay :as relay-events]
+            [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.subs.http-relay :as relay-subs]
+            [cljs-karaoke.subs.audio :as audio-subs]
             [stylefy.core :as stylefy]
             [cljs-karaoke.audio-input :as audio-input]))
 
@@ -65,7 +67,7 @@
 
 (defn enable-audio-input-button []
   [:button.button.is-danger
-   {:on-click #(audio-input/init-audio-input!)}
+   {:on-click #(rf/dispatch [::audio-events/init-audio-input])}
    [:span.icon>i.fa.fa-microphone-alt]])
 
 

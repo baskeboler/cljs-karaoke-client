@@ -16,6 +16,7 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.notifications]
+            [cljs-karaoke.events.audio :as audio-events]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.audio :as aud]))
 (defonce fetch-bg-from-web-enabled? true)
@@ -83,7 +84,7 @@
                   :lyrics-loaded? false
                   :lyrics-fetching? false
                   :lyrics-delay -1000
-                  :audio nil
+                  ;; :audio nil
                   :remote-control-id ""
                   :audio-events nil
                   :display-lyrics? false
@@ -115,6 +116,7 @@
              :dispatch-n [[::fetch-custom-delays]
                           [::fetch-song-background-config]
                           [::initial-audio-setup]
+                          [::audio-events/init-audio-data]
                           [::views-events/init-views-state]
                           ;; [::http-relay-events/init-http-relay-listener]
                           [::song-list-events/init-song-list-state]]}))
