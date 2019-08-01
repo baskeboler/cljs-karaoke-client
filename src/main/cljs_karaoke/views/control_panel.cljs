@@ -171,6 +171,7 @@
        (when @remote-control-enabled?
          [remote-control/remote-control-component])
        [audio-input/audio-viz]]]
+       ;; [audio-input/test-viz]]]
      (when @display-lyrics?
        [:div.column (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
         [lyrics-view @lyrics]])

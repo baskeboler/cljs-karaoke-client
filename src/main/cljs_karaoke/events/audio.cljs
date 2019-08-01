@@ -81,6 +81,7 @@
     (create-reverb! audio-context reverb-buffer wet-gain1)
 
 
+
     ;; (set! (.-value (.-frequency audio-filter)) 60.0)
     ;; (set! (.-type audio-filter) "notch")
     ;; (set! (.-Q audio-filter) 10.0)
@@ -215,7 +216,7 @@
          (mapv (comp
                 identity
                 ;; dec
-                ;; (div-by (* 99 part-size))
+                #(/ % 205)
                 avg)))))
 
 (rf/reg-event-fx
@@ -235,7 +236,7 @@
   {:db db
    :interval {:action :start
               :id :start-input-spectrograph
-              :frequency 100
+              :frequency 70
               :event [::refresh-audio-input-spectrograph]}}))
 
 (rf/reg-event-fx

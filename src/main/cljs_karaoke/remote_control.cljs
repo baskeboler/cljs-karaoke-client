@@ -9,7 +9,8 @@
             [cljs-karaoke.subs.http-relay :as relay-subs]
             [cljs-karaoke.remote-control.commands :as cmds]
             [cljs-karaoke.remote-control.execute]
-            [cljs-karaoke.remote-control.queue]))
+            [cljs-karaoke.remote-control.queue]
+            [cljs-karaoke.remote-control.queue-processor]))
 (def play-song-command cmds/play-song-command)
 (def stop-command cmds/stop-command)
 (def playlist-next-command cmds/playlist-next-command)
