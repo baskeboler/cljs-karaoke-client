@@ -13,6 +13,7 @@
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.http-relay :as http-relay-events]
+            [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.utils :as utils :refer [show-export-sync-info-modal]]
             [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
@@ -373,10 +374,13 @@
              ::esc-kb
              (fn []
                (println "esc pressed!")
-               (when-let [_ @(rf/subscribe [::s/loop?])]
-                 (rf/dispatch-sync [::events/set-loop? false]))
-               (when-not (nil? @(rf/subscribe [::s/player-status]))
-                 (stop))))
+               (cond
+                 (not (empty? @(rf/subscribe [::s/modals]))) (rf/dispatch [::modal-events/modal-pop])
+                 :else (do
+                        (when-let [_ @(rf/subscribe [::s/loop?])]
+                          (rf/dispatch-sync [::events/set-loop? false]))
+                        (when-not (nil? @(rf/subscribe [::s/player-status]))
+                          (stop))))))
   (key/bind! "l r" ::l-r-kb #(songs/load-song))
   (key/bind! "alt-o" ::alt-o #(rf/dispatch [::views-events/set-view-property :playback :options-enabled? true]))
   (key/bind! "alt-h" ::alt-h #(rf/dispatch [::events/set-current-view :home]))
