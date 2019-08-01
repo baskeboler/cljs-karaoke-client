@@ -168,11 +168,13 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-    background-color: white;
+    height: 200px;
+    /* background-color: white; */
+    align-items: flex-end;
 }
 .audio-spectrum>.freq-bar {
     flex: 1 0 auto;
     height: 0;
-
+    border-top: solid 2px white;
     background-color: red;
 }

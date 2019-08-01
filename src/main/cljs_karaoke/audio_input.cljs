@@ -14,7 +14,13 @@
         (for [[i v] (mapv (fn [a b] [b a])  @freq-data (map inc (range)))]
           ^{:key (str "bar-" i)}
           [:span.freq-bar
-           {:style {:height v}}]))])))
+           {:style {:height (str (* 100 v) "%")}}]))])))
                  
       
 
+(defn test-viz []
+  [:div.audio-spectrum
+   (for [i (take 60 (range))]
+     ^{:key (str "k" i)}
+     [:span.freq-bar
+      {:style {:height (* 5 i)}}])])
