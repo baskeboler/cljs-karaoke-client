@@ -26,6 +26,7 @@
             [clojure.string :as str]
             ["bulma-extensions"]
             [cljs-karaoke.playlists :as pl]
+            [cljs-karaoke.audio-input :refer [enable-audio-input-button spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
             [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.views.page-loader :as page-loader]
@@ -228,6 +229,7 @@
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
    (stylefy/use-style top-right)
+   [enable-audio-input-button]
    (when @(rf/subscribe [::s/display-home-button?])
      [icon-button "home" "default" #(rf/dispatch [::events/set-current-view :home])])
    (when-not @(rf/subscribe [::s/song-paused?])
@@ -238,6 +240,7 @@
 
 (defn playback-view []
   [:div.playback-view
+   [spectro-overlay]
    [current-frame-display]
    [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
    (when (and
@@ -350,7 +353,7 @@
     (rf/dispatch [::playlist-events/playlist-load]))
 
   (let [h (History.)]
-    (goog.events/listen h EventType/NAVIGATE #(secretary/dispatch! (.-token %)))
+    (gevents/listen h ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
     (doto h (.setEnabled true))))
 
 (defn get-sharing-url []

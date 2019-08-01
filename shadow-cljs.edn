@@ -20,22 +20,27 @@
   [stylefy "1.10.1"]
   [com.rpl/specter "1.1.2"]]
 
- :nrepl {:port 9999
+ :nrepl {:port       9999
          :middleware []}
 
  :builds
- {:app {:target :browser
-        :asset-path "js/."
-        :build-options {:cache-level :off}
-        :modules {:main {:init-fn cljs-karaoke.app/init!}}
-        :dev-http {8089 "public/"}
-        :devtools {
-                   :http-port 8089
-                   :http-root "public"
-                   :preloads [devtools.preload day8.re-frame-10x.preload]
-                   :after-load cljs-karaoke.app/init!}
-        :dev {:compiler-options
-              {:closure-defines
-               {"re_frame.trace.trace_enabled_QMARK_" true
-                "day8.re_frame.tracing.trace_enabled_QMARK_" true
-                "goog.DEBUG" true}}}}}}
+ {:app {:target           :browser
+        :asset-path       "js/."
+        :build-options    {:cache-level :off}
+        :compiler-options {:static-fns         true
+                           :infer-externs      :auto
+                           :optimize-constants true
+                           :pretty-print       false
+                           :optimization       :advanced}
+        :modules          {:main {:init-fn cljs-karaoke.app/init!}}
+        :dev-http         {8089 "public/"}
+        :devtools         {
+                           :http-port  8089
+                           :http-root  "public"
+                           :preloads   [devtools.preload day8.re-frame-10x.preload]
+                           :after-load cljs-karaoke.app/init!}
+        :dev              {:compiler-options
+                           {:closure-defines
+                            {"re_frame.trace.trace_enabled_QMARK_"        true
+                             "day8.re_frame.tracing.trace_enabled_QMARK_" true
+                             "goog.DEBUG"                                 true}}}}}}
