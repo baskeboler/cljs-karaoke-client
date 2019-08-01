@@ -19,10 +19,10 @@
 (defmethod execute-command :play-song
   [cmd]
   (cljs-karaoke.songs/load-song (:song cmd))
-  (go-loop [_ (<! (async/timeout 2500))]
+  (go-loop [_ (<! (async/timeout 500))]
     (if @(rf/subscribe [:cljs-karaoke.subs/can-play?])
       (play)
-      (recur (<! (timeout 500)))))
+      (recur (<! (async/timeout 500)))))
   (add-notification (str "Remote control play song: " (:song cmd))))
 
 (defmethod execute-command :stop
