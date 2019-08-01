@@ -1,7 +1,8 @@
 (ns cljs-karaoke.audio
   (:require [re-frame.core :as rf]
-            [cljs.core.async :as async :refer [chan <! >! go go-loop] :include-macros true]))
-
+            [reagent.core :as reagent :refer [atom]]
+            [cljs.core.async :as async :refer [chan <! >! go go-loop] :include-macros true]
+            [cljs-karaoke.audio-input]))
 (defmulti process-audio-event (fn [event] (:type event)))
 (defmethod process-audio-event :default [event]
   (println "event ignored: " event))
@@ -49,24 +50,11 @@
 ;; (def audio-context (js/AudioContext.))
 ;; (def analyser (atom nil))
 
-;; (defn on-stream [stream]
-;;   (let [input (.createMediaStreamSource audio-context stream)
-;;         audio-filter (.createBiquadFilter audio-context)
-;;         analyser (.createAnalyser audio-context)]
-;;     (set! (.-value (.-frequency audio-filter)) 60.0)
-;;     (set! (.-type audio-filter) "notch")
-;;     (set! (.-Q audio-filter) 10.0)
-;;     (.connect input audio-filter)
-;;     (.connect audio-filter analyser)
-;;     (reset! cljs-karaoke.audio/analyser analyser)
-;;     audio-filter))
 
-;; (defn on-stream-error [e]
-;;   (println e))
+;; var constraints = 
+;; {
+;;  audio: {
+;;          optional: [{ echoCancellation: false}]}}
+         
+;;  ;
 
-;; (defn get-microphone-input []
-;;   (let [args (clj->js
-;;               {:audio true})]
-;;     (-> js/navigator
-;;         (.getUserMedia args on-stream on-stream-error))))
-    

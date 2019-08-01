@@ -1,57 +1,41 @@
 (ns cljs-karaoke.remote-control
   (:require [re-frame.core :as rf :include-macros true]
-            [reagent.core :as reagent]
+            [cljs.core.async :as async :refer [go go-loop >! <! chan]]
+            [reagent.core :as reagent :refer [atom]]
             [cljs-karaoke.utils :as utils :refer [modal-card-dialog]]
             [cljs-karaoke.events.playlists :as playlist-events]
-            ;; [cljs-karaoke.songs :as songs]
+            [cljs-karaoke.events.http-relay :as remote-events]
             [cljs-karaoke.events.modals :as modal-events]
-            ;; [cljs-karaoke.playback :as playback]
             [cljs-karaoke.subs.http-relay :as relay-subs]
-            [cljs.core.async :as async :refer [go go-loop >! <! chan]]))
+            [cljs-karaoke.remote-control.commands :as cmds]
+            [cljs-karaoke.remote-control.execute]
+            [cljs-karaoke.remote-control.queue]))
+(def play-song-command cmds/play-song-command)
+(def stop-command cmds/stop-command)
+(def playlist-next-command cmds/playlist-next-command)
 
-(defn ^export generate-remote-control-id []
-  (->> (random-uuid)
-       str
-       (take 8)
-       (apply str)))
-
-(defn ^export play-song-command [song]
-  {:command :play-song
-   :song song})
-
-(defn ^export stop-command []
-  {:command :stop})
-
-(defn ^export playlist-next-command []
-  {:command :playlist-next})
-
-(defmulti execute-command
-  "execute remote control commands"
-  (fn [cmd]
-    (let [cmd-type (:command cmd)]
-      (if (string? cmd-type)
-        (keyword cmd-type)
-        cmd-type))))
-
-(defmethod execute-command :default
-  [cmd]
-  (println "Unknown remote control command: " cmd))
+(defn close-modal-button []
+  [:button.button.is-danger
+   {:on-click #(rf/dispatch [::modal-events/modal-pop])}
+   "Close"])
 
 (defn show-remote-control-id []
   (let [listener-id @(rf/subscribe [::relay-subs/http-relay-listener-id])
         modal (modal-card-dialog
-               {:title "Remote control info"
+               {:title "Local remote control ID"
                 :content [:div.remote-control-info-content
-                          [:div.field>div.control
-                           [:textarea.textarea.is-primary
-                            {:id "remote-control-id"
-                             :value listener-id
-                             :read-only true}]]]
-                :footer nil})]
+                          [:div.field
+                           [:div.control
+                            [:input.input.is-static.is-large.is-danger
+                             {:id "remote-control-id"
+                              :value listener-id
+                              :read-only true}]]
+                           [:span.help "Use this code to control this screen remotely from another browser window."]]]
+                :footer [close-modal-button]})]
     (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn remote-control-settings []
-  (let [value (reagent/atom  "")]
+  (let [value (atom  "")]
     [:div.remote-control-settings-content
      [:div.field>div.control
       [:input.input.is-primary
@@ -66,48 +50,26 @@
   (let [modal (modal-card-dialog
                {:title "Set the remote screen id"
                 :content [remote-control-settings]
-                :footer nil})]
+                :footer [close-modal-button]})]
     (rf/dispatch [::modal-events/modal-push modal])))
 
-(defmethod execute-command :play-song
-  [cmd]
-  (cljs-karaoke.songs/load-song (:song cmd))
-  (go-loop [_ (<! (async/timeout 2500))]
-    (if @(rf/subscribe [:cljs-karaoke.subs/can-play?])
-      (cljs-karaoke.playback/play)
-      (recur (<! (timeout 500))))))
+(defn remote-playlist-next-button []
+  [:button.button.is-primary
+   {:on-click #(rf/dispatch [::remote-events/remote-control-command (playlist-next-command)])}
+   [:span.icon
+    [:i.fa.fa-step-forward]]])
 
-(defmethod execute-command :stop
-  [cmd]
-  (cljs-karaoke.playback/stop))
+(defn remote-stop-button []
+  [:button.button.is-danger
+   {:on-click #(rf/dispatch [::remote-events/remote-control-command (stop-command)])}
+   [:span.icon>i.fa.fa-stop]])
+(defn remote-control-component []
+  [:div.columns>div.column.is-12
+   [:p.title "remote control"]
+   [:div.field.has-addons
+    [:div.control
+     [remote-stop-button]]
+    [:div.control
+     [remote-playlist-next-button]]]])
 
-(defmethod execute-command :playlist-next
-  [cmd]
-  (cljs-karaoke.playback/stop)
-  (rf/dispatch [::playlist-events/playlist-next]))
-
-(defmethod execute-command "play-song"
-  [cmd]
-  (cljs-karaoke.songs/load-song (:song cmd))
-  (play))
-
-(defmethod execute-command "stop"
-  [cmd]
-  (cljs-karaoke.playback/stop))
-
-(defmethod execute-command "playlist-next"
-  [cmd]
-  (cljs-karaoke.playback/stop)
-  (rf/dispatch [::playlist-events/playlist-next]))
-
-(defonce remote-commands-queue (chan))
-
-(go-loop [next-command (<! remote-commands-queue)]
-  (execute-command next-command)
-  (recur (<! remote-commands-queue)))
-
-(defn queue-remote-command [cmd]
-  (go
-    (>! remote-commands-queue cmd)))
-
-(println "Remote control queue initiated.")
+    

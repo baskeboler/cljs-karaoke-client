@@ -8,10 +8,13 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.http-relay :as relay-events]
+            [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.subs.http-relay :as relay-subs]
-            [stylefy.core :as stylefy]))
+            [cljs-karaoke.subs.audio :as audio-subs]
+            [stylefy.core :as stylefy]
+            [cljs-karaoke.audio-input :as audio-input]))
 
 
 (defn lyrics-view [lyrics]
@@ -61,6 +64,12 @@
     :data-tooltip "Remote Control information"}
    [:span.icon
     [:i.fas.fa-wifi]]])
+
+(defn enable-audio-input-button []
+  [:button.button.is-danger
+   {:on-click #(rf/dispatch [::audio-events/init-audio-input])}
+   [:span.icon>i.fa.fa-microphone-alt]])
+
 
 (defn remote-control-btn []
   [:button.button.is-info.tooltip
@@ -120,7 +129,8 @@
         current-song (rf/subscribe [::s/current-song])
         lyrics-loaded? (rf/subscribe [::s/lyrics-loaded?])
         song-list-visible? (rf/subscribe [::s/song-list-visible?])
-        can-play? (rf/subscribe [::s/can-play?])]
+        can-play? (rf/subscribe [::s/can-play?])
+        remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])]
     [:div.control-panel.columns
      {:class (if @(rf/subscribe [::s/song-paused?])
                ["song-paused"]
@@ -156,10 +166,15 @@
         [:div.control
          [enable-remote-control-btn]]
         [:div.control
-         [remote-control-btn]]]
+         [remote-control-btn]]
+        [:div.control
+         [enable-audio-input-button]]]
        [:div.field
         [:div.control
-         [save-custom-delay-btn]]]]]
+         [save-custom-delay-btn]]]
+       (when @remote-control-enabled?
+         [remote-control/remote-control-component])
+       [audio-input/audio-viz]]]
      (when @display-lyrics?
        [:div.column (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
         [lyrics-view @lyrics]])

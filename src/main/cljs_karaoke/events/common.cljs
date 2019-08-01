@@ -1,12 +1,22 @@
 (ns cljs-karaoke.events.common
   (:require [re-frame.core :as rf :include-macros true]
-            [day8.re-frame.tracing :refer-macros [fn-traced]]))
-
+            [day8.re-frame.tracing :refer-macros [fn-traced]]
+            [reagent.core :as reagent :refer [atom]]))
 (defn reg-set-attr [evt-name attr-name]
-  (rf/reg-event-db
-   evt-name
-   (fn-traced [db [_ obj]]
-              (assoc db attr-name obj))))
+  (cond
+    (keyword? attr-name)
+    (rf/reg-event-db
+     evt-name
+     (fn-traced
+      [db [_ obj]]
+      (assoc db attr-name obj)))
+    (vector? attr-name)
+    (rf/reg-event-db
+     evt-name
+     (fn-traced
+      [db [_ obj]]
+      (-> db
+          (assoc-in attr-name obj))))))
 
 (defn save-custom-delays-to-localstore [delays]
   (. js/localStorage (setItem "custom-song-delays" (js/JSON.stringify (clj->js delays)))))
@@ -56,3 +66,21 @@
   [db [_ title]]
   (-> db (assoc :page-title title))))
 
+(defonce interval-handler                ;; notice the use of defonce
+  (let [live-intervals (atom {})]        ;; storage for live intervals
+    (fn handler [{:keys [action id frequency event]}]     ;; the effect handler
+      (condp = action
+        :clean (doseq [interval-id (keys @live-intervals)]                ;; <--- new. clean up all existing 
+                (handler {:action :end :id interval-id}))
+                 
+        :start (swap! live-intervals assoc id (js/setInterval #(rf/dispatch event) frequency))
+        :end     (do
+                   (js/clearInterval (get @live-intervals id))
+                   (swap! live-intervals dissoc id))))))
+
+;; when this code is reloaded `:clean` existing intervals
+(interval-handler {:action :clean})
+
+(re-frame.core/reg-fx        ;; the re-frame API for registering effect handlers
+ :interval                  ;; the effect id
+ interval-handler)
