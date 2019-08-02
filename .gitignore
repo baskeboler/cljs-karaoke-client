@@ -1,1 +1,6 @@
 node_modules
+.shadow-cljs/
+public/js/cljs-runtime
+public/js/main.js
+.nrepl-port
+public/js/manifest.edn
