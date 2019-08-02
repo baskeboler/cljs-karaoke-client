@@ -177,6 +177,7 @@
     height: 0;
     border-top: solid 2px white;
     background-color: red;
+    transition: height 0.1s ease;
 }
 
 .audio-spectrum-overlay {
@@ -199,5 +200,6 @@
     margin: 0 2px;
     border-top: solid 2px white;
     background-color: red;
+    transition: height 0.1s ease;
 }
 
