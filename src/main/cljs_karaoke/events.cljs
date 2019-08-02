@@ -353,7 +353,9 @@
   [{:keys [db]} [_ song-name delay]]
   {:db (-> db
            (update :custom-song-delay merge {song-name delay}))
-   :dispatch [::save-custom-song-delays-to-localstorage]}))
+   :dispatch-n [
+                [::playlist-events/add-song song-name]
+                [::save-custom-song-delays-to-localstorage]]}))
 
 
 
