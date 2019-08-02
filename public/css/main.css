@@ -3,7 +3,7 @@
     position: fixed;
     width: 90%;
     text-align: center;
-    font-size: 2rem;
+    font-size: 1.5rem;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
@@ -152,17 +152,6 @@
     opacity: 1;
 } ;
 
-@media only screen and (min-width: 1024px) {
-    .notifications-container {
-        position: fixed;
-        top: 1em;
-        right: 1em;
-        width: 25vw;
-    }
-    .current-frame {
-        font-size: 4em;
-    }
-}
 
 .audio-spectrum {
     display: flex;
@@ -203,3 +192,17 @@
     transition: height 0.1s ease;
 }
 
+
+
+
+@media screen and (min-width: 1024px) {
+    .notifications-container {
+        position: fixed;
+        top: 1em;
+        right: 1em;
+        width: 25vw;
+    }
+    .current-frame {
+        font-size: 2rem;
+    }
+}
