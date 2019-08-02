@@ -17,22 +17,28 @@
       [db [_ obj]]
       (-> db
           (assoc-in attr-name obj))))))
-
-(defn save-custom-delays-to-localstore [delays]
-  (. js/localStorage (setItem "custom-song-delays" (js/JSON.stringify (clj->js delays)))))
-
-(defn get-custom-delays-from-localstorage []
-  (-> (. js/localStorage (getItem "custom-song-delays"))
-      (js/JSON.parse)
-      (js->clj)))
-
-(defn save-to-localstore [name obj]
-  (. js/localStorage (setItem name (js/JSON.stringify (clj->js obj)))))
+(defn save-to-localstorage [name obj]
+  (when-not (or
+             (nil? name)
+             (empty? name)
+             (nil? obj))
+    (. js/localStorage (setItem name (js/JSON.stringify (clj->js obj))))))
 
 (defn get-from-localstorage [name]
   (-> (. js/localStorage (getItem name))
       (js/JSON.parse)
       (js->clj)))
+
+(defn save-custom-delays-to-localstore [delays]
+  ;; (. js/localStorage (setItem "custom-song-delays" (js/JSON.stringify (clj->js delays)))))
+  (save-to-localstorage "custom-song-delays" delays))
+
+(defn get-custom-delays-from-localstorage []
+  ;; (-> (. js/localStorage (getItem "custom-song-delays"))
+      ;; (js/JSON.parse)
+      ;; (js->clj))
+   (get-from-localstorage "custom-song-delays"))
+
 
 (defn set-location-href [url]
   (set! (.-href js/location) url))
@@ -45,7 +51,7 @@
  (rf/after
   (fn [_ [_ name obj cbevent]]
     (. js/console (log "Saving to localstorage: " name " - " (clj->js obj)))
-    (save-to-localstore name obj)))
+    (save-to-localstorage name obj)))
  (fn-traced
   [{:keys [db]} [_ name obj callback-event]]
   (merge

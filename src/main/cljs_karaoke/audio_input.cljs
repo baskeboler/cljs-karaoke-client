@@ -41,3 +41,8 @@
           [:span.freq-bar
            {:style {:height (str (* 100 v) "%")}}]))])))
 
+
+(defn enable-audio-input-confirmation-modal-content []
+  [:div.enable-audio-input-confirmation-content])
+   
+  

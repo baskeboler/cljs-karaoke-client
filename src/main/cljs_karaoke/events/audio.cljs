@@ -4,7 +4,8 @@
             [cljs-karaoke.events.common :as common :refer [reg-set-attr]]
             [ajax.core :as ajax]
             [day8.re-frame.async-flow-fx]
-            [cljs-karaoke.notifications :refer [notification add-notification]]))
+            [cljs-karaoke.notifications :refer [notification add-notification]]
+            [bardo.interpolate :as interpolate]))
 (defn init-audio-input-flow []
   {:rules [{:when :seen?
             :events ::set-audio-context

@@ -342,8 +342,8 @@
     (println "query params: " query-params)
     (songs/load-song song)
     (when-some [offset (:offset query-params)]
-      (rf/dispatch-sync [::events/set-lyrics-delay (long offset)])
-      (rf/dispatch-sync [::events/set-custom-song-delay song (long offset)]))
+      (rf/dispatch-sync [::events/set-lyrics-delay (long offset)]))
+      ;; (rf/dispatch-sync [::events/set-custom-song-delay song (long offset)]))
     (when-some [show-opts? (:show-opts query-params)]
       (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
 

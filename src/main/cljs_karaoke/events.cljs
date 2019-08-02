@@ -10,7 +10,8 @@
             [cljs-karaoke.search :as search]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.events.common :as common-events
-             :refer [reg-set-attr save-to-localstore get-from-localstorage
+             :refer [reg-set-attr
+                     save-to-localstorage get-from-localstorage
                      get-custom-delays-from-localstorage set-location-hash]]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
@@ -31,9 +32,9 @@
    :rules [{:when :seen?
             :events [::handle-fetch-background-config-complete]
             :dispatch [::init-song-bg-cache]}
-           {:when :seen?
-            :events [::handle-fetch-delays-complete]
-            :dispatch [::init-song-delays]}
+           ;; {:when :seen?
+            ;; :events [::handle-fetch-delays-complete]
+            ;; :dispatch [::init-song-delays]}
            {:when :seen?
             :events [::handle-fetch-delays-complete]
             :dispatch [::playlist-events/build-verified-playlist]}
@@ -171,8 +172,20 @@
   [{:keys [db]} [_ delays-resp]]
   (let [r (-> delays-resp
               (reader/read-string))]
+    {:db db
+     :dispatch [::merge-remote-delays-with-local r]})))
+(rf/reg-event-fx
+ ::merge-remote-delays-with-local
+ (fn-traced
+  [{:keys [db]} [_ remote-delays]]
+  (let [local-delays (common-events/get-custom-delays-from-localstorage)
+        delays (merge
+                (if-not (nil? local-delays)
+                  local-delays
+                  {})
+                remote-delays)]
     {:db (-> db
-             (update :custom-song-delay merge r))
+             (assoc :custom-song-delay (merge delays)))
      :dispatch [::handle-fetch-delays-complete]})))
 
 (rf/reg-event-fx
@@ -180,13 +193,18 @@
  (fn-traced
   [{:keys [db]} _]
   {:db db
-   :dispatch [::common-events/save-to-localstorage "custom-song-delays" (:custom-song-delay db) nil]}))
+   :dispatch [::common-events/save-to-localstorage
+              "custom-song-delays"
+              (:custom-song-delay db) nil]}))
 
 (rf/reg-event-fx
  ::handle-fetch-delays-complete
  (fn [{:keys [db]} _]
    {:db db
-    :dispatch [::save-custom-song-delays-to-localstorage]}))
+    :dispatch-n [[::song-delays-loaded]
+                 [::common-events/save-to-localstorage
+                  "custom-song-delays"
+                  (:custom-song-delay db {})]]}))
 
 (rf/reg-event-fx
  ::fetch-song-background-config
@@ -237,9 +255,7 @@
   (let [delays (get-custom-delays-from-localstorage)]
     {:db (if-not (nil? delays)
            (-> db
-               (update :custom-song-delay
-                       (fn [v]
-                         (merge {} v delays))))
+               (update :custom-song-delay merge delays {}))
            db)
      :dispatch [::song-delays-loaded]})))
 
@@ -336,7 +352,7 @@
  (fn-traced
   [{:keys [db]} [_ song-name delay]]
   {:db (-> db
-           (assoc-in [:custom-song-delay song-name] delay))
+           (update :custom-song-delay merge {song-name delay}))
    :dispatch [::save-custom-song-delays-to-localstorage]}))
 
 
