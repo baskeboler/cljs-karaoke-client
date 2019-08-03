@@ -1,13 +1,15 @@
 
 .current-frame  {
     position: fixed;
-    width: 90%;
-    text-align: center;
-    font-size: 1.5rem;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     z-index: 100;
+    transition: all 0.5s ease;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    font-size: 1.5rem;
     background-color: rgba(255,255,255, 0.8);
     padding: 0.3em;
     border-radius: 1em;
@@ -32,15 +34,16 @@
 
 .current-frame .frame-text > span {
     opacity: 0.6;
-    transition: all 0.2s ease-out;
+    /* transition: all 0.2s ease-out; */
     color: black;
+    transition: all 0.5s ease-out;
     font-family: 'Montserrat', sans-serif;
     text-shadow:  -2px -2px 1px #eee;
 }
 .current-frame .frame-text > span.highlighted {
     color: red;
     opacity: 1;
-    /* font-size: 1.1em; */
+    font-size: 1.05em;
     transform: translate(10px, 50px);
 }
 
