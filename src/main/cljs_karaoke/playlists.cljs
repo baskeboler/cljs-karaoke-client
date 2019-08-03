@@ -9,14 +9,15 @@
   (is-empty? [this])
   (current [this])
   (has-next? [this])
-  (contains-song? [this song-name]))
-
+  (contains-song? [this song-name])
+  (songs [this]))
 (defprotocol ^:export Storable
   (to-json [this])
   (from-json [this json]))
 
 (defrecord ^:export KaraokePlaylist [id created current songs]
   Playlist
+  (songs [this] songs)
   (add-song [this song] (-> this (update :songs conj song)))
   (next-song [this]
     (if (has-next? this)

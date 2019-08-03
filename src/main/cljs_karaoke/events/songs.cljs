@@ -6,6 +6,7 @@
             [cljs-karaoke.events.common :as common-events]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.lyrics :as lyrics-events]
+            [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]))
@@ -79,7 +80,7 @@
                 [::events/set-current-song song-name]
                 [::bg-events/init-update-bg-image-flow song-name]
                 [::lyrics-events/fetch-lyrics song-name preprocess-frames]
-                [::events/set-current-view :playback]]})) 
+                [::views-events/view-action-transition :load-song]]})) 
 
 (rf/reg-event-fx
  ::setup-audio-events

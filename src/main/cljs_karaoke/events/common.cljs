@@ -2,6 +2,7 @@
   (:require [re-frame.core :as rf :include-macros true]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [reagent.core :as reagent :refer [atom]]))
+
 (defn reg-set-attr [evt-name attr-name]
   (cond
     (keyword? attr-name)

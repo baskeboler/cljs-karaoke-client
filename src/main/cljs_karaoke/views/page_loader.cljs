@@ -19,5 +19,5 @@
              [])}
    [:img (stylefy/use-style
           loader-logo
-          {:src "/images/logo.svg"
+          {:src "/images/logo-2.svg"
            :alt ""})]])

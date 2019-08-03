@@ -1,8 +1,30 @@
 (ns cljs-karaoke.events.views
-  ;; {:reader/alias {events cljs-karaoke.events}}
   (:require [re-frame.core :as rf :include-macros true]
-            [day8.re-frame.tracing :refer-macros [fn-traced]]
-            [cljs.core.async :as async]))
+            [reagent.core :as reagent :refer [atom]]
+            [cljs.core.async :as async]
+            [cljs-karaoke.events.common :as common-events :refer [reg-set-attr]]
+            [day8.re-frame.tracing :refer-macros [fn-traced]]))
+
+(def view-states
+  {:home     {:go-to-playback :playback
+              :go-to-home     :home
+              :load-song      :playback
+              :play           :home
+              :go-to-playlist :playlist}
+   :playback {:play           :playback
+              :stop           :playback
+              :load-song      :playback
+              :go-to-home     :home
+              :go-to-playback :playback
+              :go-to-playlist :playlist}
+   :playlist {:go-to-playback :playback
+              :go-to-home     :home
+              :play           :playlist
+              :stop           :playlist
+              :load-song      :playlist}
+   :admin {}})
+
+(def transition  (partial  view-states))
 
 (def initial-views-state
   {:home {}
@@ -25,9 +47,10 @@
       (assoc :views-state-ready? true))))
 (rf/reg-event-db
  ::set-view-property
- (fn-traced [db [_ view-name property-name property-value]]
-            (-> db
-                (assoc-in [:views view-name property-name] property-value))))
+ (fn-traced
+  [db [_ view-name property-name property-value]]
+  (-> db
+      (assoc-in [:views view-name property-name] property-value))))
 
 (rf/reg-event-db
  ::set-seek-buttons-visible
@@ -52,3 +75,14 @@
  (fn-traced
   [db [_ display-button?]]
   (-> db (assoc :display-home-button? display-button?))))
+
+(reg-set-attr ::set-current-view :current-view)
+
+(rf/reg-event-fx
+ ::view-action-transition
+ (fn-traced
+  [{:keys [db]} [_ action]]
+  (let [current (:current-view db)
+        next-view (get (transition current) action :error)]
+    {:db db
+     :dispatch [::set-current-view next-view]})))
