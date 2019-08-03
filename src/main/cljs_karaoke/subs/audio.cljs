@@ -25,3 +25,9 @@
 (reg-audio-data-sub ::reverb-analyser :reverb-analyser)
 (reg-audio-data-sub ::freq-data :freq-data)
 (reg-audio-data-sub ::audio-context :audio-context)
+
+(rf/reg-sub
+ ::microphone-enabled?
+ :<- [::output-mix]
+ (fn [mix _]
+   (not (nil? mix))))

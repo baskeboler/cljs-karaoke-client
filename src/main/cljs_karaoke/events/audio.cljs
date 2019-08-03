@@ -4,7 +4,8 @@
             [cljs-karaoke.events.common :as common :refer [reg-set-attr]]
             [ajax.core :as ajax]
             [day8.re-frame.async-flow-fx]
-            [cljs-karaoke.notifications :refer [notification add-notification]]))
+            [cljs-karaoke.notifications :refer [notification add-notification]]
+            [bardo.interpolate :as interpolate]))
 (defn init-audio-input-flow []
   {:rules [{:when :seen?
             :events ::set-audio-context
@@ -184,14 +185,20 @@
   db))
 
 
+(defn get-user-media [args on-success on-failure]
+  (cond
+    (.-getUserMedia js/navigator) (-> js/navigator (.getUserMedia args on-success on-failure))
+    (.-mozGetUserMedia js/navigator) (-> js/navigator (.mozGetUserMedia args on-success on-failure))
+    :else (do
+            (println "Could not find GetUserMedia function")
+            nil)))
 
 (defn get-microphone-input [{:keys [db]} _]
   (let [args (clj->js
               (get-in db [:audio-data :constraints]))]
-    (-> js/navigator
-        (.getUserMedia args
-                       #(rf/dispatch [::on-stream %])
-                       #(println "Failed to setup audio input" %)))
+    (get-user-media args
+                    #(rf/dispatch [::on-stream %])
+                    #(println "Failed to setup audio input" %))
     {:db db}))
 
 (rf/reg-event-fx

@@ -8,7 +8,8 @@
   (clear [this])
   (is-empty? [this])
   (current [this])
-  (has-next? [this]))
+  (has-next? [this])
+  (contains-song? [this song-name]))
 
 (defprotocol ^:export Storable
   (to-json [this])
@@ -36,6 +37,8 @@
       nil))
   (has-next? [this]
     (< (inc (:current this)) (count songs)))
+  (contains-song? [this song-name]
+    (contains? songs song-name))
   Storable
   (to-json [this]
     (let [o           {:id (:id this)

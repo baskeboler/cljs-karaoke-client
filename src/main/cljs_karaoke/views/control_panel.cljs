@@ -14,7 +14,7 @@
             [cljs-karaoke.subs.http-relay :as relay-subs]
             [cljs-karaoke.subs.audio :as audio-subs]
             [stylefy.core :as stylefy]
-            [cljs-karaoke.audio-input :as audio-input]))
+            [cljs-karaoke.audio-input :as audio-input :refer [enable-audio-input-button]]))
 
 
 (defn lyrics-view [lyrics]
@@ -65,10 +65,6 @@
    [:span.icon
     [:i.fas.fa-wifi]]])
 
-(defn enable-audio-input-button []
-  [:button.button.is-danger
-   {:on-click #(rf/dispatch [::audio-events/init-audio-input])}
-   [:span.icon>i.fa.fa-microphone-alt]])
 
 
 (defn remote-control-btn []

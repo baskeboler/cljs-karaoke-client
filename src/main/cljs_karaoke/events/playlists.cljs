@@ -21,6 +21,18 @@
                [:cljs-karaoke.events/set-current-song (pl/current (:playlist db))]
                [::playlist-load])}))
 
+(rf/reg-event-fx
+ ::add-song
+ (fn-traced
+  [{:keys [db]} [_ song-name]]
+  {:db (if-not (pl/contains-song? (:playlist db) song-name)
+         (do
+           (println "song not in playlist, adding.")
+           (-> db
+               (update :playlist pl/add-song song-name)))
+         (do
+           (println "song already in playlist, skipping")
+           db))}))
 
 (rf/reg-event-fx
  ::build-verified-playlist
