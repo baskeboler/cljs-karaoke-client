@@ -6,6 +6,8 @@
 
  :dependencies
  [[reagent "0.8.1"]
+  [org.clojure/data.xml "0.0.8"]
+  [clj-tagsoup/clj-tagsoup "0.3.0"]
   [keybind "2.2.0"]
   [cljs-ajax "0.8.0"]
   [re-frame "0.10.8"]
@@ -15,7 +17,7 @@
   [day8.re-frame/async-flow-fx "0.0.11"]
   [binaryage/devtools "0.9.10"]
   [day8.re-frame/http-fx "0.1.6"]
-  [cider/cider-nrepl "0.21.2-SNAPSHOT"]
+  [cider/cider-nrepl "0.22.0-beta8"]
   [day8.re-frame/tracing "0.5.1"]
   [stylefy "1.10.1"]
   [com.rpl/specter "1.1.2"]
@@ -27,7 +29,7 @@
  :builds
  {:app {:target           :browser
         :asset-path       "js/."
-        :build-options    {:cache-level :off}
+        :build-options    {:cache-level :on}
         :compiler-options {:static-fns         true
                            :infer-externs      :auto
                            :optimize-constants true

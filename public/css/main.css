@@ -208,4 +208,8 @@
     .current-frame {
         font-size: 2rem;
     }
+
+    .app {
+        margin-top: 2em;
+    }
 }

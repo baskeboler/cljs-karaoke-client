@@ -34,8 +34,11 @@
             [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
             [cljs-karaoke.views.control-panel :refer [control-panel]]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
+            [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
+            [cljs-karaoke.views.navbar :as navbar]
             [cljs-karaoke.notifications :as notifications]
             ["shake.js" :as Shake])
+  (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
   (:import goog.History))
 
 (stylefy/init)
@@ -279,7 +282,7 @@
       [song-progress]])])
 
 (defn default-view []
-  [:div.default-view
+  [:div.default-view.container
    [control-panel]
    [:button.button.is-danger.edge-stop-btn
     {:class (if @(rf/subscribe [::s/song-paused?])
@@ -316,26 +319,39 @@
     (.play a)
     (rf/dispatch [::events/trigger-toasty])))
 
+(def logo-bg-style
+  {:position :fixed
+   :top "50%"
+   :left "50%"
+   :max-width "80vw"
+   :max-height "80vh"
+   :transform "translate(-50%,-50%)"
+   :opacity 0.5})
 (defn app []
-  [:div.container.app
+  [:div.app
+   (when @(rf/subscribe [::s/navbar-visible?])
+     [navbar/navbar-component])
    [toasty]
    [notifications/notifications-container-component]
    [utils/modals-component]
    [page-loader/page-loader-component]
-   [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))]
+   [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))
+    [:object (stylefy/use-style logo-bg-style  {:data "images/logo-2.svg" :type "image/svg+xml"})]]
 
    (when-let [_ (and
                  @(rf/subscribe [::s/initialized?])
                  @(rf/subscribe [::s/current-view]))]
      (condp = @(rf/subscribe [::s/current-view])
        :home [default-view]
-       :playback [playback-view]))])
+       :playback [playback-view]
+       :playlist [playlist-view-component]))])
 
 (defn init-routing! []
   (secretary/set-config! :prefix "#")
   (defroute "/" []
     (println "home path")
-    (rf/dispatch-sync [::playlist-events/playlist-load]))
+    (rf/dispatch-sync [::playlist-events/playlist-load])
+    (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
   (defroute "/songs/:song"
     [song query-params]
     (println "song: " song)
@@ -352,7 +368,8 @@
     (println "fuck yea! party mode ON")
     (rf/dispatch [::playlist-events/set-loop? true])
     (rf/dispatch [::playlist-events/playlist-load]))
-
+  (defroute "/playlist" []
+    (rf/dispatch-sync [::views-events/set-current-view :playlist]))
   (let [h (History.)]
     (gevents/listen h ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
     (doto h (.setEnabled true))))

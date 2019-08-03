@@ -169,7 +169,11 @@
  (fn [playlist _]
    (some-> playlist
            (pl/current))))
-
+(rf/reg-sub
+ ::navbar-visible?
+ :<- [::current-view]
+ (fn [view _]
+   (#{:playlist :home} view)))
 ;; (rf/reg-sub
  ;; ::initialized?
  ;; :<- [::views]
