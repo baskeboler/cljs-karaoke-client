@@ -185,14 +185,20 @@
   db))
 
 
+(defn get-user-media [args on-success on-failure]
+  (cond
+    (.-getUserMedia js/navigator) (-> js/navigator (.getUserMedia args on-success on-failure))
+    (.-mozGetUserMedia js/navigator) (-> js/navigator (.mozGetUserMedia args on-success on-failure))
+    :else (do
+            (println "Could not find GetUserMedia function")
+            nil)))
 
 (defn get-microphone-input [{:keys [db]} _]
   (let [args (clj->js
               (get-in db [:audio-data :constraints]))]
-    (-> js/navigator
-        (.getUserMedia args
-                       #(rf/dispatch [::on-stream %])
-                       #(println "Failed to setup audio input" %)))
+    (get-user-media args
+                    #(rf/dispatch [::on-stream %])
+                    #(println "Failed to setup audio input" %))
     {:db db}))
 
 (rf/reg-event-fx
