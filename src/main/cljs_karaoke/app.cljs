@@ -204,17 +204,6 @@
      [:span.seconds secs] "."
      [:span.milis (-> ms (mod 1000) long)]]))
 
-(def view-states
-  {:home {:go-to-playback :playback
-          :go-to-home :home
-          :play :home}
-   :playback {:play :playback
-              :stop :playback
-              :go-to-home :home
-              :go-to-playback :playback}
-   :admin {}})
-
-(def transition  (partial  view-states))
 
 (defn icon-button [icon button-type callback]
   [:div.control
@@ -235,7 +224,7 @@
    (stylefy/use-style top-right)
    [enable-audio-input-button]
    (when @(rf/subscribe [::s/display-home-button?])
-     [icon-button "home" "default" #(rf/dispatch [::events/set-current-view :home])])
+     [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])])
    (when-not @(rf/subscribe [::s/song-paused?])
      [icon-button "stop" "danger" stop])
    [icon-button "forward" "info" #(do
@@ -256,7 +245,7 @@
         [:a
          (stylefy/use-style
           top-left
-          {:on-click #(rf/dispatch [::events/set-current-view :home])})
+          {:on-click #(rf/dispatch [::views-events/set-current-view :home])})
          [:span.icon
           [:i.fas.fa-cog.fa-3x]]])
       [:a
@@ -403,7 +392,7 @@
                           (stop))))))
   (key/bind! "l r" ::l-r-kb #(songs/load-song))
   (key/bind! "alt-o" ::alt-o #(rf/dispatch [::views-events/set-view-property :playback :options-enabled? true]))
-  (key/bind! "alt-h" ::alt-h #(rf/dispatch [::events/set-current-view :home]))
+  (key/bind! "alt-h" ::alt-h #(rf/dispatch [::views-events/view-action-transition :go-to-home]))
   (key/bind! "left" ::left #(seek -10000.0))
   (key/bind! "right" ::right #(seek 10000.0))
   (key/bind! "meta-shift-l" ::loop-mode #(do

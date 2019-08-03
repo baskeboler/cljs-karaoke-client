@@ -46,7 +46,7 @@
             :halt? true}
            {:when :seen?
             :events ::playlist-ready
-            :dispatch-n [[::set-current-view :playback]
+            :dispatch-n [[::views-events/set-current-view :playback]
                          [::playlist-load]]}
            {:when :seen-all-of?
             :events [::song-bgs-loaded
@@ -297,7 +297,6 @@
 (reg-set-attr ::set-lyrics-loaded? :lyrics-loaded?)
 (reg-set-attr ::set-display-lyrics? :display-lyrics?)
 (reg-set-attr ::set-can-play? :can-play?)
-(reg-set-attr ::set-current-view :current-view)
 (reg-set-attr ::set-player-current-time :player-current-time)
 (reg-set-attr ::set-playing? :playing?)
 (reg-set-attr ::set-pageloader-active? :pageloader-active?)
