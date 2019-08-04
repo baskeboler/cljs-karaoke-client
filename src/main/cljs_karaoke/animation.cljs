@@ -17,11 +17,20 @@
    :left "50%"
    :transform "translate(-50%, -50%)"})
 
+(defn attribute-setter
+  ([attr-name value]
+   (fn [obj]
+     (. obj (setAttribute attr-name value))))
+  ([attr-name]
+   (fn [obj value]
+     (. obj (setAttribute attr-name value)))))
 
+(def trasform-setter (attribute-setter "transform"))
 (defn- set-opacity [obj opacity]
   (. obj (setAttribute "opacity" opacity))
   obj)
 (defn- set-scale [obj scale]
+  (. obj (setAttribute "transformOrigin" 0.5))
   (. obj (setAttribute "transform" (str "scale(" scale ")")))
   obj)
 
@@ -29,38 +38,35 @@
   (->> (for [c (mapv #(str "char" %) (range 1 8))]
          (. svg (querySelector (str "#" c))))
        (into [])))
-   
+
+(defn- ping-pong [values]
+  (cycle (concat values (reverse values))))
 (defn perform-animation [svg]
-  (let [the-chars (get-logo-chars svg)]
-    ;; (doseq [c the-chars]
-      ;; (. c (setAttribute "opacity" 0.0))
-    (let [intpl (interpolate/interpolate
-                   {:opacity 0.5
-                    :scale   1.2}
-                   {:opacity 1.0
-                    :scale   1.0})
-          times (concat (range 0.0 1.0 0.01) [1])
-          values (-> intpl
-                     (ease/wrap (ease/ease :cubic-in-out))
-                     (map times))
-          ch   (transition/transition
-                {:opacity 0.0
-                 :scale   3.0}
-                {:opacity 1.0
-                 :scale   1.0}
-                {:duration 1500
-                 :easing :cubic})]
-      (go-loop [the-values (cycle (concat values (reverse values)))]
-        (let [{:keys [opacity scale] :as v} (first the-values)]
-          ;; (println opacity " - " scale)
-          ;; (. c1 (setAttribute "opacity" opacity))
-          (doseq [c the-chars]
-            (-> c
-                (set-opacity opacity)
-                (set-scale scale)))
-          (<! (async/timeout 50))
-          (recur (rest the-values)))))))
-     
+  (let [the-chars (get-logo-chars svg)
+        intpl (interpolate/interpolate
+               {:opacity 0.5
+                :scale   1.2
+                :fillColor [255 255 255]
+                :stroke [0 0 0]}
+               {:opacity 1.0
+                :scale   1.0
+                :fillColor [0 0 0]
+                :stroke [255 255 255]})
+        times (concat (range 0.0 1.0 0.01) [1])
+        values (-> intpl
+                   (ease/wrap (ease/ease :cubic-in-out))
+                   (map times))]
+    (go-loop [the-values (ping-pong values)]
+      (let [{:keys [opacity scale] :as v} (first the-values)]
+        ;; (println opacity " - " scale)
+        ;; (. c1 (setAttribute "opacity" opacity))
+        (doseq [c the-chars]
+          (-> c
+              (set-opacity opacity)
+              (set-scale scale)))
+        (<! (async/timeout 50))
+        (recur (rest the-values))))))
+
     
 (defn logo-animation []
   (let [l (reagent/atom nil)]

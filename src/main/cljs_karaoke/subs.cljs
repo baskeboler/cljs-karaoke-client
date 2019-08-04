@@ -225,3 +225,8 @@
  ::notifications
  (fn [db _]
    (:notifications db)))
+
+(rf/reg-sub
+ ::navbar-menu-active?
+ (fn [db _]
+   (:navbar-menu-active? db)))

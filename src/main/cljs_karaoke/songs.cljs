@@ -666,7 +666,8 @@
                {:on-click (fn []
                             (let [cmd (cmds/play-song-command name)]
                               (rf/dispatch [::remote-events/remote-control-command cmd])))}
-               "Play remotely"]])])]]]]))
+               "Play remotely"]])])]]
+      [song-table-pagination]]]))
 
 (defn load-song
   ([name]

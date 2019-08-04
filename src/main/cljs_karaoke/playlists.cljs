@@ -10,7 +10,9 @@
   (current [this])
   (has-next? [this])
   (contains-song? [this song-name])
-  (songs [this]))
+  (songs [this])
+  (update-song-position [this pos dpos]))
+
 (defprotocol ^:export Storable
   (to-json [this])
   (from-json [this json]))

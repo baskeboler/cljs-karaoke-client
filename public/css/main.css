@@ -216,3 +216,7 @@
         margin-top: 2em;
     }
 }
+
+nav.navbar>div.navbar-brand>a.navbar-item>object.header-logo {
+    height: 2em;
+}
