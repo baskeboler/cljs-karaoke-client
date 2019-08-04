@@ -37,6 +37,7 @@
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
             [cljs-karaoke.views.navbar :as navbar]
             [cljs-karaoke.notifications :as notifications]
+            [cljs-karaoke.animation :refer [logo-animation]]
             ["shake.js" :as Shake])
   (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
   (:import goog.History))
@@ -316,6 +317,8 @@
    :max-height "80vh"
    :transform "translate(-50%,-50%)"
    :opacity 0.5})
+
+
 (defn app []
   [:div.app
    (when @(rf/subscribe [::s/navbar-visible?])
@@ -324,9 +327,9 @@
    [notifications/notifications-container-component]
    [utils/modals-component]
    [page-loader/page-loader-component]
-   [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))
-    [:object (stylefy/use-style logo-bg-style  {:data "images/logo-2.svg" :type "image/svg+xml"})]]
-
+   [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))]
+    ;; [:object (stylefy/use-style logo-bg-style  {:data "images/logo-2.svg" :type "image/svg+xml"})]
+   [logo-animation]
    (when-let [_ (and
                  @(rf/subscribe [::s/initialized?])
                  @(rf/subscribe [::s/current-view]))]

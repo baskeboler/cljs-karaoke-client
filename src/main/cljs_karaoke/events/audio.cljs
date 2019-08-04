@@ -49,6 +49,16 @@
     (. convolver (connect wet-gain))
     convolver))
 
+(defn create-delay! [audio-context dtime dregen wet-gain]
+  (let [delay-node (. audio-context (createDelay))
+        gain-node (. audio-context (createGain))]
+    (set! (.. delay-node -delayTime -value) dtime)
+    (set! (.. gain-node -gain -value) dregen)
+    (. gain-node (connect delay-node))
+    (. delay-node (connect gain-node))
+    (. delay-node (connect wet-gain))
+    delay-node))
+
 (defn on-stream [{:keys [db]} [_ stream]]
   (let [audio-context (get-in db [:audio-data :audio-context])
         feedback-reduction? (get-in db [:audio-data :feedback-reduction?])
