@@ -5,7 +5,26 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.subs :as subs]
             [cljs-karaoke.views.navbar :refer [navbar-component]]
-            [cljs-karaoke.subs :as subs]))
+            [cljs-karaoke.subs :as subs]
+            [cljs-karaoke.utils :as utils :refer [icon-button]]))
+(defn playlist-controls [i song]
+  [:div.playlist-controls.field.has-addons])
+
+
+(defn load-song-btn []
+  [:button.button
+   [:span.icon>i.fa.fa-stream]])
+
+(defn move-song-up-btn [pos]
+  [:button.button
+   {:on-click #(rf/dispatch [::playlist-events/move-song-up pos])}
+   [:span.icon>i.fa.fa-arrow-up]])
+
+
+(defn move-song-down-btn [pos]
+  [:button.button
+   {:on-click #(rf/dispatch [::playlist-events/move-song-down pos])}
+   [:span.icon>i.fa.fa-arrow-down]])
 
 (defn playlist-component []
   (let [pl (rf/subscribe  [::subs/playlist])
@@ -22,7 +41,15 @@
             {:class (if (= @current s) "is-selected" "")}
             [:td i]
             [:td s]
-            [:td]]))]]
+            [:td
+             [:div.playlist-controls.field.has-addons
+              [:div.control
+               [load-song-btn]]
+              [:div.control
+               [move-song-up-btn (dec i)]]
+              [:div.control
+               [move-song-down-btn (dec i)]]]]]))]]
+              
       [:div.playlist-unavailable.is-fullwidth
        [:h3 "Playlist is unavailable"]])))
 

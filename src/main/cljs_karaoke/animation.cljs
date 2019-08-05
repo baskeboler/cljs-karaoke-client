@@ -45,13 +45,13 @@
   (let [the-chars (get-logo-chars svg)
         intpl (interpolate/interpolate
                {:opacity 0.5
-                :scale   1.2
-                :fillColor [255 255 255]
-                :stroke [0 0 0]}
+                :scale   1.2}
+                ;; :fillColor [255 255 255]
+                ;; :stroke [0 0 0]}
                {:opacity 1.0
-                :scale   1.0
-                :fillColor [0 0 0]
-                :stroke [255 255 255]})
+                :scale   1.0})
+                ;; :fillColor [0 0 0]
+                ;; :stroke [255 255 255]})
         times (concat (range 0.0 1.0 0.01) [1])
         values (-> intpl
                    (ease/wrap (ease/ease :cubic-in-out))
@@ -69,7 +69,8 @@
 
     
 (defn logo-animation []
-  (let [l (reagent/atom nil)]
+  (let [l (reagent/atom nil)
+        element-id (str (random-uuid))]
     (reagent/create-class
      {:component-will-unmount
       (fn [this]
@@ -79,7 +80,7 @@
       :initial-state {:listener-key nil}
       :component-did-mount
       (fn [this]
-        (let [s (dom/getElement  "logo-obj")
+        (let [s (dom/getElement  element-id)
               l2 (gevents/listen ^js s ^js (. gevents/EventType -LOAD)
                                  (fn []
                                    (let [svg (.-contentDocument s)
@@ -98,7 +99,7 @@
                  [:object
                   (stylefy/use-style
                    loader-logo
-                   {:id "logo-obj"
+                   {:id element-id
                     :data "images/logo-2.svg"
                     :type "image/svg+xml"})]])})))
 

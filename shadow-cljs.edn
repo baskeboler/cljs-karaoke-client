@@ -39,6 +39,7 @@
         :dev-http         {8089 "public/"}
         :devtools         {
                            :http-port  8089
+                           :http-handler shadow.http.push-state/handle
                            :http-root  "public"
                            :preloads   [devtools.preload day8.re-frame-10x.preload]
                            :after-load cljs-karaoke.app/init!}

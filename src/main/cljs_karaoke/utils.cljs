@@ -53,3 +53,12 @@
         [:input {:type :radio
                  :name :answer}
          r]]))])
+(defn icon-button [icon button-type callback]
+  [:div.control
+   [:p.control
+    [:a.button
+     {:class ["button" (str "is-" button-type)]
+      :on-click callback}
+     [:span.icon.is-small
+      [:i
+       {:class ["fa" (str "fa-" icon)]}]]]]])

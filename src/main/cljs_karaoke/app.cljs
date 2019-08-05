@@ -15,7 +15,7 @@
             [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.subs :as s]
-            [cljs-karaoke.utils :as utils :refer [show-export-sync-info-modal]]
+            [cljs-karaoke.utils :as utils :refer [icon-button show-export-sync-info-modal]]
             [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
             [cljs.reader :as reader]
             [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
@@ -206,15 +206,6 @@
      [:span.milis (-> ms (mod 1000) long)]]))
 
 
-(defn icon-button [icon button-type callback]
-  [:div.control
-   [:p.control
-    [:a.button
-     {:class ["button" (str "is-" button-type)]
-      :on-click callback}
-     [:span.icon.is-small
-      [:i
-       {:class ["fa" (str "fa-" icon)]}]]]]])
 (def top-right
   {:position :absolute
    :top "0.5em"

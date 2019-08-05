@@ -14,15 +14,12 @@
 
 
 (defn page-loader-component []
-  (reagent.core/create-class
-   {:render
-    (fn []
       [:div.pageloader
        {:class (if @(rf/subscribe [::subscriptions/pageloader-active?])
                  ["is-active"]
-                 [])}])}))
+                 [])}
        ;; [:img ;(stylefy/use-style)
        ;; loader-logo
-       ;; [logo-animation]])}))
+       [logo-animation]])
         ;; {:src "/images/logo-2.svg"
          ;; :alt ""}])})))

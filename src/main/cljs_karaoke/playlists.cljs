@@ -4,6 +4,7 @@
 
 (defprotocol ^:export Playlist
   (add-song [this song])
+  (remove-song [this pos])
   (next-song [this])
   (clear [this])
   (is-empty? [this])
@@ -42,6 +43,32 @@
     (< (inc (:current this)) (count songs)))
   (contains-song? [this song-name]
     (contains? songs song-name))
+  (update-song-position [this pos d]
+    (-> this
+        (update :songs (fn [song-list]
+                         (let [new-pos (+ pos d)
+                               new-pos (cond
+                                         (< new-pos 0) 0
+                                         (> new-pos (count song-list)) (count song-list)
+                                         :else new-pos)
+                               moved (nth song-list pos)
+                               song-list (->> (map vector (range) song-list)
+                                              (filter
+                                               (fn [[i song]]
+                                                 (not= i pos)))
+                                              (map second))]
+                           (->> (concat (take new-pos song-list)
+                                        [moved]
+                                        (drop new-pos song-list))
+                                (into [])))))))
+  (remove-song [this pos]
+    (-> this
+        (update :songs (fn [song-list]
+                         (->> (map vector (range) song-list)
+                              (filter (fn [[i song]]
+                                        (not= i pos)))
+                              (mapv second))))))
+  
   Storable
   (to-json [this]
     (let [o           {:id (:id this)
