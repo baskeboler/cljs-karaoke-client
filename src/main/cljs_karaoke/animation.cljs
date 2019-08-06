@@ -122,16 +122,23 @@
         logo-rot-chan (transition/transition -30
                                              30
                                              {:duration 500})]
-    (go-loop [from -30
-              to 30
-              c logo-rot-chan]
-      (let [v       (<! c)
-            closed? (nil? v)]
-        (when-not closed?
-          (. (get-logo-path svg) (setAttribute "transform" (str "rotate(" v ")"))))
-        (recur (if closed? to from)
-               (if closed? from to)
-               (if closed? (transition/transition to from) c))))
+    ;; (go-loop [from -30
+              ;; to 30
+              ;; c logo-rot-chan]
+      ;; (let [v       (<! c)
+            ;; closed? (nil? v)
+        ;; (when-not closed?
+          ;; (. (get-logo-path svg) (setAttribute "transform" (str "rotate(" v ")")))
+        ;; (recur (if closed? to from)
+               ;; (if closed? from to)
+               ;; (if closed? (transition/transition to from) c)]
+    (transition-fn 0.2 1.0 {:duration 3000
+                            :easing :bounce}
+                   (fn [s]
+                     (set-scale (get-logo-path svg) s))
+                   1000
+                   false)
+                 
     (doseq [[i c] (map vector (range) the-chars)]
       (transition-fn from to {:duration duration}
                      (fn [{:keys [opacity scale]}]
