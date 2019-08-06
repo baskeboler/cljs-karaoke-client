@@ -159,7 +159,9 @@
                        ;; (. l (setAttribute "stroke-width" stroke-width))))
                    4000
                    false)
-                   
+    (transition-fn 1 0 {:duration 3000}
+                   (fn [o]
+                     (set! (.. (get-logo-path svg) -style -opacity) o)) 8000 false)
     (doseq [[i c] (map vector (range) the-chars)]
       (transition-fn from to {:duration duration}
                      (fn [{:keys [opacity scale]}]
