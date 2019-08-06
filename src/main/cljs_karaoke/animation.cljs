@@ -65,42 +65,119 @@
 (defn- get-logo-path [svg]
   (. svg (querySelector "#logo")))
 
+(defn generic-tween
+  ([svg from to element-id ms delay-ms yoyo?]
+   (let [intpl (interpolate/interpolate from to)
+         times (concat (range 0 1 0.01) [1])
+         values (-> intpl
+                    (ease/wrap (ease/ease :cubic))
+                    (map times))
+         element (. svg (querySelector (str "#" element-id)))
+         cancel (atom false)
+         cancel-chan (async/chan)]
+     (go
+       (<! cancel-chan)
+       (reset! cancel true))
+     (go-loop [the-values (if yoyo? (ping-pong values) values)
+               d delay-ms]
+       (<! (async/timeout d))
+       (let [obj-keys (keys (first the-values))]
+         (doseq [k obj-keys]
+           (. element (setAttribute (str k) (get (first the-values) k ""))))
+         (<! (async/timeout 50))
+         (when-not  @cancel
+           (recur (rest the-values) 0))))
+     cancel-chan))
+  ([svg from to element-id]
+   (generic-tween svg from to element-id 0 true)))
+
 (defn- ping-pong [values]
   (cycle (concat values (reverse values))))
+
+(defn transition-fn [from to opts update-fn delay yoyo?]
+  (let [vs (transition/transition from to opts)]
+    (go-loop [from from
+              to to
+              vs vs
+              d delay]
+      (when (> delay 0)
+        (<! (async/timeout delay)))
+      (let [v         (<! vs)
+            closed?   (nil? v)
+            finished? (and closed? (not yoyo?))]
+        (when-not closed?
+          (update-fn v))
+        (when-not finished?
+          (recur (if closed? to from)
+                 (if closed? from to)
+                 (if closed? (transition/transition to from opts) vs)
+                 (if closed? delay 0)))))))
 (defn perform-animation [svg]
   (let [the-chars (get-logo-chars svg)
-        intpl (interpolate/interpolate
-               {:opacity 0.5
-                :scale   1.2
-                :fillColor '(255 255 255)
-                :stroke '(0 0 0)
-                :logo-rotation -30}
-                
-               {:opacity 1.0
-                :scale   1.0
-                :fillColor '(0 0 0)
-                :stroke '(255 255 255)
-                :logo-rotation 30})
-        times (concat (range 0.0 1.0 0.01) [1])
-        values (-> intpl
-                   (ease/wrap (ease/ease :cubic))
-                   (map times))]
-    (go-loop [the-values (ping-pong values)]
-      (let [{:keys [opacity scale fillColor stroke logo-rotation] :as v} (first the-values)]
+        from      {:opacity 0.5
+                   :scale   1.2}
+        to        {:opacity 1.0
+                   :scale   1.0}
+        duration 1000
+        ;; char-trans (map (fn [ch]
+        ;;                   (transition/transition
+        ;;                    {:opacity 0.5
+        ;;                     :scale   1.2}
+        ;;                    {:opacity 1.0
+        ;;                     :scale   1.0}
+        ;;                    {:duration 1000})))
+        ;; values     (transition/transition
+        ;;             {:opacity   0.5
+        ;;              :scale     1.2
+        ;;              :fillColor '(255 255 255)
+        ;;              :stroke    '(0 0 0)}
+        ;;             ;; :logo-rotation -30}
+
+        ;;             {:opacity   1.0
+        ;;              :scale     1.0
+        ;;              :fillColor '(0 0 0)
+        ;;              :stroke    '(255 255 255)}
+        ;;             ;; :logo-rotation 30}
+        ;;             {:duration 1000
+        ;;              :easing   :cubic})
+        ;; times (concat (range 0.0 1.0 0.01) [1])
+        ;; values (-> intpl
+        ;; (ease/wrap (ease/ease :cubic))
+        ;; (map times)})
+        logo-rot-chan (transition/transition -30
+                                             30
+                                             {:duration 500})]
+    (go-loop [from -30
+              to 30
+              c logo-rot-chan]
+      (let [v       (<! c)
+            closed? (nil? v)]
+        (when-not closed?
+          (. (get-logo-path svg) (setAttribute "transform" (str "rotate(" v ")"))))
+        (recur (if closed? to from)
+               (if closed? from to)
+               (if closed? (transition/transition to from) c))))
+    (doseq [[i c] (map vector (range) the-chars)]
+      (transition-fn from to {:duration duration}
+                     (fn [{:keys [opacity scale]}]
+                       (-> c
+                           (set-opacity opacity)
+                           (set-scale scale))) (* i 100) true))))
+    ;; (go-loop [the-values (ping-pong values)]
+      ;; (let [{:keys [opacity scale fillColor stroke logo-rotation] :as v} (first the-values)]
         ;; (println opacity " - " scale)
         ;; (. c1 (setAttribute "opacity" opacity))
-        (doseq [c the-chars]
-          (-> c
-              (set-opacity opacity)
-              (set-scale scale)
-              (stroke-setter stroke)
-              (fill-color-setter fillColor)))
-        
-        (. (get-logo-path svg) (setAttribute "transform" (str "rotate(" logo-rotation ")")))
-        (<! (async/timeout 25))
-        (recur (rest the-values))))))
+        ;; (doseq [c the-chars]
+          ;; (-> c
+              ;; (set-opacity opacity)
+              ;; (set-scale scale)
+              ;; (stroke-setter stroke)
+              ;; (fill-color-setter fillColor)
 
-    
+        ;; (. (get-logo-path svg) (setAttribute "transform" (str "rotate(" logo-rotation ")")))
+        ;; (<! (async/timeout 50))
+        ;; (recur (rest the-values))))))
+
 (defn logo-animation []
   (let [l (reagent/atom nil)
         element-id (str (random-uuid))]
@@ -128,7 +205,7 @@
           ;; (reset! l l2)
           (. this (setState (clj->js {:listener-key l2})))
           (println "Got element " s)))
-      
+
       :render (fn [this]
                 [:div.my-inlined-svg
                  [:object
