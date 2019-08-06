@@ -95,7 +95,7 @@
   (cycle (concat values (reverse values))))
 
 (defn transition-fn [from to opts update-fn delay yoyo?]
-  (let [vs (transition/transition from to opts)]
+  (let [vs (transition/transition from to (update opts :duration + delay))]
     (go-loop [from from
               to to
               vs vs
@@ -119,31 +119,6 @@
         to        {:opacity 1.0
                    :scale   1.0}
         duration 1000
-        ;; char-trans (map (fn [ch]
-        ;;                   (transition/transition
-        ;;                    {:opacity 0.5
-        ;;                     :scale   1.2}
-        ;;                    {:opacity 1.0
-        ;;                     :scale   1.0}
-        ;;                    {:duration 1000})))
-        ;; values     (transition/transition
-        ;;             {:opacity   0.5
-        ;;              :scale     1.2
-        ;;              :fillColor '(255 255 255)
-        ;;              :stroke    '(0 0 0)}
-        ;;             ;; :logo-rotation -30}
-
-        ;;             {:opacity   1.0
-        ;;              :scale     1.0
-        ;;              :fillColor '(0 0 0)
-        ;;              :stroke    '(255 255 255)}
-        ;;             ;; :logo-rotation 30}
-        ;;             {:duration 1000
-        ;;              :easing   :cubic})
-        ;; times (concat (range 0.0 1.0 0.01) [1])
-        ;; values (-> intpl
-        ;; (ease/wrap (ease/ease :cubic))
-        ;; (map times)})
         logo-rot-chan (transition/transition -30
                                              30
                                              {:duration 500})]
@@ -162,7 +137,9 @@
                      (fn [{:keys [opacity scale]}]
                        (-> c
                            (set-opacity opacity)
-                           (set-scale scale))) (* i 100) true))))
+                           (set-scale scale)))
+                     (* i 300)
+                     false))))
     ;; (go-loop [the-values (ping-pong values)]
       ;; (let [{:keys [opacity scale fillColor stroke logo-rotation] :as v} (first the-values)]
         ;; (println opacity " - " scale)
