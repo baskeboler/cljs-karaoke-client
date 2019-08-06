@@ -13,16 +13,70 @@
 (deftype ColorRGBValue [r g b])
 (deftype StringValue [value])
 
+(defrecord TranslateValue [x y])
+(defrecord RotateValue [x y z])
+(defrecord ScaleValue [x y])
+
+(defrecord TransformValue [translate rotate scale])
+
+(defn ^TranslateValue translate-value
+  [x y] (->TranslateValue x y))
+
+(defn ^RotateValue rotate-value
+  ([x y z] (->RotateValue x y z))
+  ([x y] (rotate-value x y 0))
+  ([x] (rotate-value 0 0 x)))
+
+(defn ^ScaleValue scale-value
+  ([x y] (->ScaleValue x y))
+  ([x] (scale-value x x)))
+
+(defn ^TransformValue transform-value
+  [{scale :scale
+    translate :translate
+    rotate :rotate
+    :or {scale (scale-value 1)
+         rotate (rotate-value 0)
+         translate (translate-value 0 0)}}]
+  (map->TransformValue {:translate translate
+                        :rotate rotate
+                        :scale scale}))
+
 (defprotocol AttrValue
   (attr->str [this]))
 
 (extend-protocol AttrValue
+  PersistentArrayMap
+  (attr->str [this] (str this))
   ColorStringValue
   (attr->str [this] (.-value this))
   ColorRGBValue
   (attr->str [this] (str "rgb(" (.-r this) ", " (.-g this) ", " (.-b this) ")"))
   StringValue
-  (attr->str [this] (.-value this)))
+  (attr->str [this] (.-value this))
+  TranslateValue
+  (attr->str [this]
+    (if (and (:x this) (:y this))
+      (str "translate(" (:x this) "," (:y this) ") ")
+      ""))
+  RotateValue
+  (attr->str [this]
+    (if (and (:x this) (:y this) (:y this))
+      (str "rotate(" (:x this) "," (:y this), "," (:z this) ") ")
+      ""))
+  ScaleValue
+  (attr->str [this]
+    (if (and (:x this) (:y this))
+      (str "scale(" (:x this) "," (:y this) ") ")
+      ""))
+  TransformValue
+  (attr->str [this]
+    (let [tr (map->TranslateValue (:translate this))
+          rot  (map->RotateValue (:rotate this))
+          sc (map->ScaleValue (:scale this))]
+      (str (if tr (attr->str tr) "")
+           (if rot (attr->str rot) "")
+           (if sc (attr->str sc) "")))))
 
 (defn rgb-list [^ColorRGBValue rgb-color]
   (list (.-r rgb-color) (.-g rgb-color) (.-b rgb-color)))
@@ -32,12 +86,54 @@
   (interpolate/-interpolate [start end]
     (fn [t]
       (let [[r g b] ((interpolate/interpolate (rgb-list start) (rgb-list end)) t)]
-        (->ColorRGBValue r g b)))))
+        (->ColorRGBValue r g b))))
+  TranslateValue
+  (interpolate/-interpolate [start end]
+    (fn [t]
+      (let [[x y] ((interpolate/interpolate (list (:x start) (:y start))
+                                            (list (:x end) (:y end)))
+                   t)]
+        (->TranslateValue x y))))
+  ScaleValue
+  (interpolate/-interpolate [start end]
+    (fn [t]
+      (let [[x y] ((interpolate/interpolate (list (:x start) (:y start))
+                                            (list (:x end) (:y end)))
+                   t)]
+        (->ScaleValue x y))))
+  RotateValue
+  (interpolate/-interpolate [start end]
+    (fn [t]
+      (let [[x y z] ((interpolate/interpolate (list (:x start) (:y start) (:z start))
+                                              (list (:x end) (:y end) (:z end)))
+                     t)]
+        (->RotateValue x y z))))
+  TransformValue
+  (interpolate/-interpolate [start end]
+    (fn [t]
+      (let [sc-intpl (interpolate/interpolate (:scale start) (:scale end))
+            tr-intpl (interpolate/interpolate (:translate start) (:translate end))
+            rot-intpl (interpolate/interpolate (:rotate start) (:rotate end))]
+        (map->TransformValue {:translate (tr-intpl t)
+                              :rotate (rot-intpl t)
+                              :scale (sc-intpl t)})))))
 
 (extend-protocol interpolate/IFresh
   ColorRGBValue
   (interpolate/fresh [x]
-    (->ColorRGBValue 0 0 0)))
+    (->ColorRGBValue 0 0 0))
+  ScaleValue
+  (interpolate/fresh [x]
+    (scale-value 1))
+  TranslateValue
+  (interpolate/fresh [x]
+    (translate-value 0 0))
+  RotateValue
+  (interpolate/fresh [x]
+    (rotate-value 0))
+  TransformValue
+  (interpolate/fresh [x]
+    (transform-value {})))
 
 (def loader-logo
   {:display :block
@@ -67,12 +163,17 @@
 (def trasform-setter (attribute-setter "transform"))
 (def fill-color-setter (attribute-setter "color"))
 
-(defn- set-opacity [obj opacity]
+(defn set-opacity [obj opacity]
   (. obj (setAttribute "opacity" opacity))
   obj)
-(defn- set-scale [obj scale]
+(defn set-scale [obj scale]
   (. obj (setAttribute "transform-origin" "50% 50%"))
   (. obj (setAttribute "transform" (str "scale(" scale ", " scale ")")))
+  obj)
+
+(defn set-transform [obj ^TransformValue t]
+  (. obj (setAttribute "transform-origin" "50% 50%"))
+  (. obj (setAttribute "transform" (attr->str t)))
   obj)
 
 (defn get-logo-chars [svg]
@@ -83,31 +184,31 @@
   (. svg (querySelector "#logo")))
 
 (comment
- (defn generic-tween
-   ([svg from to element-id ms delay-ms yoyo?]
-    (let [intpl (interpolate/interpolate from to)
-          times (concat (range 0 1 0.01) [1])
-          values (-> intpl
-                     (ease/wrap (ease/ease :cubic))
-                     (map times))
-          element (. svg (querySelector (str "#" element-id)))
-          cancel (atom false)
-          cancel-chan (async/chan)]
-      (go
-        (<! cancel-chan)
-        (reset! cancel true))
-      (go-loop [the-values (if yoyo? (ping-pong values) values)
-                d delay-ms]
-        (<! (async/timeout d))
-        (let [obj-keys (keys (first the-values))]
-          (doseq [k obj-keys]
-            (. element (setAttribute (str k) (get (first the-values) k ""))))
-          (<! (async/timeout 50))
-          (when-not  @cancel
-            (recur (rest the-values) 0))))
-      cancel-chan))
-   ([svg from to element-id]
-    (generic-tween svg from to element-id 0 true))))
+  (defn generic-tween
+    ([svg from to element-id ms delay-ms yoyo?]
+     (let [intpl (interpolate/interpolate from to)
+           times (concat (range 0 1 0.01) [1])
+           values (-> intpl
+                      (ease/wrap (ease/ease :cubic))
+                      (map times))
+           element (. svg (querySelector (str "#" element-id)))
+           cancel (atom false)
+           cancel-chan (async/chan)]
+       (go
+         (<! cancel-chan)
+         (reset! cancel true))
+       (go-loop [the-values (if yoyo? (ping-pong values) values)
+                 d delay-ms]
+         (<! (async/timeout d))
+         (let [obj-keys (keys (first the-values))]
+           (doseq [k obj-keys]
+             (. element (setAttribute (str k) (get (first the-values) k ""))))
+           (<! (async/timeout 50))
+           (when-not  @cancel
+             (recur (rest the-values) 0))))
+       cancel-chan))
+    ([svg from to element-id]
+     (generic-tween svg from to element-id 0 true))))
 
 (defn- ping-pong [values]
   (cycle (concat values (reverse values))))
@@ -152,15 +253,18 @@
                    (rest values))
                  (if closed? delay 0)))))))
 
-
 (defn perform-animation
   "Main logo animation"
   [svg]
   (let [the-chars (get-logo-chars svg)
         from      {:opacity 0.5
-                   :scale   1.2}
+                   :transform (transform-value
+                               {:scale (scale-value 1.2)})}
+                   ;; :scale   1.2}
         to        {:opacity 1.0
-                   :scale   1.0}
+                   :transform (transform-value
+                               {:scale (scale-value 1.0)})}
+                   ;; :scale   1.0}
         duration 1000
         logo-rot-chan (transition/transition -30
                                              30
@@ -194,8 +298,8 @@
                                :let [s (.-style c)]]
                          (set! (.-stroke s) (attr->str stroke))
                          (set! (.-strokeWidth s) stroke-width))))
-                  8000 false) 
-                   
+                   8000 false)
+
     (transition-fn 1 0 {:duration 3000}
                    (fn [o]
                      (set! (.. (get-logo-path svg) -style -opacity) o))
@@ -206,10 +310,11 @@
     (doseq [[i c] (map vector (range) the-chars)]
       (transition-fn from to
                      {:duration duration}
-                     (fn [{:keys [opacity scale]}]
+                     (fn [{:keys [opacity ^TransformValue transform]}]
                        (-> c
                            (set-opacity opacity)
-                           (set-scale scale)))
+                           (set-transform (transform-value transform))))
+                           ;; (set-scale scale)))
                      (* i 500)
                      false))))
 
