@@ -23,6 +23,8 @@
   (attr->str [this] (str "rgb(" (.-r this) ", " (.-g this) ", " (.-b this) ")"))
   StringValue
   (attr->str [this] (.-value this)))
+
+
 (def loader-logo
   {:display :block
    :position :absolute
@@ -94,23 +96,37 @@
 (defn- ping-pong [values]
   (cycle (concat values (reverse values))))
 
-(defn transition-fn [from to opts update-fn delay yoyo?]
-  (let [vs (transition/transition from to (update opts :duration + delay))]
+(defn transition-fn [from to opts
+                     update-fn delay yoyo?]
+  (let [duration (get opts :duration 500)
+        times (concat
+               (range 0 1 (/ 50 duration))
+               [1])
+        intpl (interpolate/interpolate from to)
+        values (-> intpl
+                   (ease/wrap (ease/ease :cubic-in-out))
+                   (map times))]
+    (update-fn from)
     (go-loop [from from
               to to
-              vs vs
+              values values
               d delay]
-      (when (> delay 0)
-        (<! (async/timeout delay)))
-      (let [v         (<! vs)
+      (when (> d 0)
+        (<! (async/timeout d)))
+      (let [v         (first values)
             closed?   (nil? v)
             finished? (and closed? (not yoyo?))]
         (when-not closed?
           (update-fn v))
         (when-not finished?
+          (<! (async/timeout 50))
           (recur (if closed? to from)
                  (if closed? from to)
-                 (if closed? (transition/transition to from opts) vs)
+                 (if closed?
+                   (-> (interpolate/interpolate to from)
+                       (ease/wrap (ease/ease :cubic-in-out))
+                       (map times))
+                   (rest values))
                  (if closed? delay 0)))))))
 (defn perform-animation [svg]
   (let [the-chars (get-logo-chars svg)
@@ -122,45 +138,36 @@
         logo-rot-chan (transition/transition -30
                                              30
                                              {:duration 500})]
-    ;; (go-loop [from -30
-              ;; to 30
-              ;; c logo-rot-chan]
-      ;; (let [v       (<! c)
-            ;; closed? (nil? v)
-        ;; (when-not closed?
-          ;; (. (get-logo-path svg) (setAttribute "transform" (str "rotate(" v ")")))
-        ;; (recur (if closed? to from)
-               ;; (if closed? from to)
-               ;; (if closed? (transition/transition to from) c)]
     (transition-fn 0.2 1.0 {:duration 3000
-                            :easing :bounce}
+                            :easing :cubic}
                    (fn [s]
                      (set-scale (get-logo-path svg) s))
                    1000
                    false)
-                 
+    (transition-fn {:stroke '(0 0 0)
+                    :stroke-width 0.1}
+                   {:stroke '(255 255 255)
+                    :stroke-width 12.0}
+                   {:duration 3000}
+                   (fn [{:keys [stroke stroke-width]}]
+                     (let [l (get-logo-path svg)
+                           s (.-style l)
+                           [r g b] stroke]
+                       (set! (.-stroke s) (str "rgb(" (clojure.string/join "," stroke) ")"))
+                       (set! (.-strokeWidth s) stroke-width)))
+                       ;; (. l (setAttribute "stroke" (str "rgb(" (clojure.string/join "," stroke) ")")))
+                       ;; (. l (setAttribute "stroke-width" stroke-width))))
+                   4000
+                   false)
+                   
     (doseq [[i c] (map vector (range) the-chars)]
       (transition-fn from to {:duration duration}
                      (fn [{:keys [opacity scale]}]
                        (-> c
                            (set-opacity opacity)
                            (set-scale scale)))
-                     (* i 300)
+                     (* i 500)
                      false))))
-    ;; (go-loop [the-values (ping-pong values)]
-      ;; (let [{:keys [opacity scale fillColor stroke logo-rotation] :as v} (first the-values)]
-        ;; (println opacity " - " scale)
-        ;; (. c1 (setAttribute "opacity" opacity))
-        ;; (doseq [c the-chars]
-          ;; (-> c
-              ;; (set-opacity opacity)
-              ;; (set-scale scale)
-              ;; (stroke-setter stroke)
-              ;; (fill-color-setter fillColor)
-
-        ;; (. (get-logo-path svg) (setAttribute "transform" (str "rotate(" logo-rotation ")")))
-        ;; (<! (async/timeout 50))
-        ;; (recur (rest the-values))))))
 
 (defn logo-animation []
   (let [l (reagent/atom nil)
