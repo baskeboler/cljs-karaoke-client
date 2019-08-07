@@ -57,12 +57,12 @@
   TranslateValue
   (attr->str [this]
     (if (and (:x this) (:y this))
-      (str "translate(" (:x this) "," (:y this) ") ")
+      (str "translateX(" (:x this 0) ") translateY(" (:y this 0) ") ")
       ""))
   RotateValue
   (attr->str [this]
     (if (and (:x this) (:y this) (:y this))
-      (str "rotate(" (:x this) "," (:y this), "," (:z this) ") ")
+      (str "rotate("  (:z this) "deg) ")
       ""))
   ScaleValue
   (attr->str [this]
@@ -164,7 +164,8 @@
 (def fill-color-setter (attribute-setter "color"))
 
 (defn set-opacity [obj opacity]
-  (. obj (setAttribute "opacity" opacity))
+  ;; (. obj (setAttribute "opacity" opacity))
+  (set! (.. obj -style -opacity) opacity)
   obj)
 (defn set-scale [obj scale]
   (. obj (setAttribute "transform-origin" "50% 50%"))
@@ -172,9 +173,12 @@
   obj)
 
 (defn set-transform [obj ^TransformValue t]
-  (. obj (setAttribute "transform-origin" "50% 50%"))
-  (. obj (setAttribute "transform" (attr->str t)))
-  obj)
+  (let [s (.-style obj)]
+    (set! (. s -transformOrigin) "50% 50%")
+    (set! (. s -transform) (attr->str t))
+    ;; (. obj (setAttribute "transform-origin" "50% 50%"))
+    ;; (. obj (setAttribute "transform" (attr->str t)))
+    obj))
 
 (defn get-logo-chars [svg]
   (->> (for [c (mapv #(str "char" %) (range 1 8))]
@@ -183,6 +187,9 @@
 (defn- get-logo-path [svg]
   (. svg (querySelector "#logo")))
 
+(defn init-chars! [svg]
+  (let [logo-text (.. svg (querySelector "#logo-text"))]
+    (set! (.. logo-text -style -opacity) 1)))
 (comment
   (defn generic-tween
     ([svg from to element-id ms delay-ms yoyo?]
@@ -207,7 +214,7 @@
            (when-not  @cancel
              (recur (rest the-values) 0))))
        cancel-chan))
-    ([svg from to element-id]
+    ([:svg from to element-id]
      (generic-tween svg from to element-id 0 true))))
 
 (defn- ping-pong [values]
@@ -229,7 +236,8 @@
         intpl (interpolate/interpolate from to)
         values (-> intpl
                    (ease/wrap (ease/ease :cubic-in-out))
-                   (map times))]
+                   (map times))
+        cancelled? (reagent/atom false)]
     (update-fn from)
     (go-loop [from from
               to to
@@ -251,24 +259,45 @@
                        (ease/wrap (ease/ease :cubic-in-out))
                        (map times))
                    (rest values))
-                 (if closed? delay 0)))))))
+                 (if closed? delay 0)))))
+    cancelled?))
 
+(defn stagger-out-opacity [svg delay duration delta]
+  ;; (doall
+   (doseq [[i c] (mapv vector (range) (get-logo-chars svg))]
+     (transition-fn 1.0
+                    0.0
+                    {:duration duration}
+                    (fn [o]
+                      (-> c (set-opacity o)))
+                    (+ delay (* i delta))
+                    false)))
+
+(defn- set-chars-invisible! [svg]
+  (doseq [[i c] (map vector (range) (get-logo-chars svg))]
+    (set! (.. c -style -opacity) 0)))
 (defn perform-animation
   "Main logo animation"
   [svg]
   (let [the-chars (get-logo-chars svg)
-        from      {:opacity 0.5
+        from      {:opacity 0
                    :transform (transform-value
-                               {:scale (scale-value 1.2)})}
+                               {:scale (scale-value 1.2)
+                                :rotate (rotate-value 90)})}
+                                ;; :translate (translate-value -10  -10)})}
                    ;; :scale   1.2}
-        to        {:opacity 1.0
+        to        {:opacity 1
                    :transform (transform-value
-                               {:scale (scale-value 1.0)})}
+                               {:scale (scale-value 1.0)
+                                :rotate (rotate-value 0)})}
+                                ;; :translate (translate-value 0 0)})}
                    ;; :scale   1.0}
         duration 1000
         logo-rot-chan (transition/transition -30
                                              30
                                              {:duration 500})]
+    ;; (init-chars! svg)
+    (set-chars-invisible! svg)
     (transition-fn 0.2 1.0 {:duration 3000
                             :easing :cubic}
                    (fn [s]
@@ -294,7 +323,7 @@
                    {:duration 3000}
                    (fn [{:keys [stroke stroke-width]}]
                      (let [ls (get-logo-chars svg)]
-                       (doseq [c ls
+                       (doseq [c the-chars
                                :let [s (.-style c)]]
                          (set! (.-stroke s) (attr->str stroke))
                          (set! (.-strokeWidth s) stroke-width))))
@@ -316,7 +345,8 @@
                            (set-transform (transform-value transform))))
                            ;; (set-scale scale)))
                      (* i 500)
-                     false))))
+                     false))
+    (stagger-out-opacity svg 11000 1000 200)))
 
 (defn logo-animation []
   (let [l (reagent/atom nil)
@@ -337,7 +367,8 @@
                                          txt (. svg (querySelector "#logo-text"))
                                          logo (. svg (querySelector "#logo"))]
                                      (set! (.. txt -style -transformOrigin) "50% 50%")
-                                     (. (get-logo-path svg) (setAttribute "transform-origin" "50% 50%"))
+                                     (set! (.. (get-logo-path svg) -style -transformOrigin) "50% 50%")
+                                     ;; (. (get-logo-path svg) (setAttribute "transform-origin" "50% 50%"))
                                      (perform-animation svg)
                                      (js/console.log "Loaded doc " txt))))]
           (. this (setState (clj->js {:listener-key l2})))
@@ -352,3 +383,32 @@
                     :data "images/logo-2.svg"
                     :type "image/svg+xml"})]])})))
 
+
+
+(defprotocol Animation
+  (play! [this])
+  (duration [this])
+  (cancel! [this])
+  (pause [this])
+  (restart [this]))
+
+
+(defrecord Tween [id from to delay ms update-fn cancel-chan])
+
+(defn tween [from to update-fn delay ms]
+  (let [id (random-uuid)
+        c-ch (async/chan nil)]
+    (->Tween id from to delay ms update-fn c-ch)))
+
+(defrecord Timeline [id tweens delay ms])
+
+(defprotocol ITimeline
+  (then [this other-anim])
+  (current-pos [this])
+  (remove-from-timeline [this id-anim]))
+
+(extend-protocol Animation
+  Tween
+  (play! [this]
+    (transition-fn (:from this) (:to this) {:duration (:ms this)}
+                   (:update-fn this) (:delay this) false)))
