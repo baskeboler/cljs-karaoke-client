@@ -200,7 +200,26 @@
     padding: 1em;
 }
 
-
+#main-video {
+    transition: all 0.5s ease-in-out;
+    position:fixed;
+    display: block;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    border: 5px solid black;
+    border-radius: 1em;
+    height: 500px;
+}
+#main-video.preview {
+    height: 300px;
+    right: 1em;
+    bottom: 0.5em;
+    top: auto;
+    left: auto;
+    /* transform: unset */
+    transform: unset;
+}
 @media screen and (min-width: 1024px) {
     .notifications-container {
         position: fixed;
@@ -215,8 +234,9 @@
     .app {
         margin-top: 2em;
     }
-}
+
 
     nav.navbar>div.navbar-brand>a.navbar-item>object.header-logo {
         height: 2em;
     }
+}

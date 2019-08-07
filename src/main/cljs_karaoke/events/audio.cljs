@@ -3,6 +3,7 @@
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [cljs-karaoke.events.common :as common :refer [reg-set-attr]]
             [ajax.core :as ajax]
+            [cljs.core.async :as async :refer [<! >! go go-loop timeout chan]]
             [day8.re-frame.async-flow-fx]
             [cljs-karaoke.notifications :refer [notification add-notification]]
             [bardo.interpolate :as interpolate]))
@@ -57,10 +58,12 @@
     (. gain-node (connect delay-node))
     (. delay-node (connect gain-node))
     (. delay-node (connect wet-gain))
+    
     delay-node))
 
 (defn on-stream [{:keys [db]} [_ stream]]
   (let [audio-context (get-in db [:audio-data :audio-context])
+        vid (. js/document (querySelector "#main-video"))
         feedback-reduction? (get-in db [:audio-data :feedback-reduction?])
         reverb-buffer (get-in db [:audio-data :reverb-buffer])
         input (.createMediaStreamSource audio-context stream)
@@ -87,12 +90,20 @@
 
     (. output-mix1 (connect analyser2))
     (. output-mix1 (connect (.-destination audio-context)))
+    (set! (-> vid .-srcObject) stream)
+    (set! (-> vid .-style .-display) "block")
+    (. vid (play))
+
+    (go
+      (<! (async/timeout 3000))
+      (set! (. vid -class) "preview"))
 
     (cross-fade 1.0 dry-gain1 wet-gain1)
     (create-reverb! audio-context reverb-buffer wet-gain1)
 
+    (create-delay! audio-context 0.5 0.5 wet-gain1)
 
-
+    ;; (set! (.-srcObject vid) stream)
     ;; (set! (.-value (.-frequency audio-filter)) 60.0)
     ;; (set! (.-type audio-filter) "notch")
     ;; (set! (.-Q audio-filter) 10.0)
@@ -129,7 +140,8 @@
    :reverb-analyser     nil
    :freq-data           nil
    :audio-context       nil
-   :constraints         {:audio {:optional [{:echoCancellation false}]}}})
+   :constraints         {:audio {:optional [{:echoCancellation false}]}
+                         :video true}})
 
 (rf/reg-event-db
  ::init-audio-data
