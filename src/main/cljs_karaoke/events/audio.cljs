@@ -96,7 +96,7 @@
 
     (go
       (<! (async/timeout 3000))
-      (set! (.-class vid) "preview"))
+      (set! (.-className vid) "preview"))
 
     (cross-fade 1.0 dry-gain1 wet-gain1)
     (create-reverb! audio-context reverb-buffer wet-gain1)

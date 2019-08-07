@@ -13,17 +13,17 @@
   (:require-macros [cljs-karaoke.embed :refer [inline-svg]]))
 
 (defn page-loader-logo []
-  [:figure.image.is-3by1
+  [:figure.image.is-3by1.is-128x128
    [:img {:src "images/header-logo.svg"}]])
 
 (defn page-loader-component []
       [:div.pageloader
        {:class (if @(rf/subscribe [::subscriptions/pageloader-active?])
                  ["is-active"]
-                 [])}
+                 [])}])
        ;; [:img ;(stylefy/use-style)
        ;; loader-logo
        ;; [logo-animation]])
-       [page-loader-logo]])
+       ;; [page-loader-logo]])
        ;; {:src "/images/logo-2.svg"
          ;; :alt ""}])})))

@@ -67,7 +67,10 @@
 
 (defn camera-btn []
   [:button.button
-   {:on-click identity
+   {:on-click (fn [_]
+                (if-not @(rf/subscribe [::relay-subs/http-relay-listener-id])
+                  (rf/dispatch-sync [::relay-events/init-http-relay-listener]))
+                (remote-control/show-remote-control-id))
     :data-tooltip "Enabled camera"}
    [:span.icon>i.fa.fa-camera]])
 
