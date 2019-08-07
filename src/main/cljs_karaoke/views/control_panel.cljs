@@ -67,9 +67,9 @@
 
 (defn camera-btn []
   [:button.button
-   {:on-click (fn [_])
-    :data-tooltip "Enabled camera"
-    [:span.icon>i.fa.fa-camera]}])
+   {:on-click identity
+    :data-tooltip "Enabled camera"}
+   [:span.icon>i.fa.fa-camera]])
 
 (defn remote-control-btn []
   [:button.button.is-info.tooltip

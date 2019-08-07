@@ -92,11 +92,11 @@
     (. output-mix1 (connect (.-destination audio-context)))
     (set! (-> vid .-srcObject) stream)
     (set! (-> vid .-style .-display) "block")
-    (. vid (play))
+    (.play vid)
 
     (go
       (<! (async/timeout 3000))
-      (set! (. vid -class) "preview"))
+      (set! (.-class vid) "preview"))
 
     (cross-fade 1.0 dry-gain1 wet-gain1)
     (create-reverb! audio-context reverb-buffer wet-gain1)
