@@ -46,6 +46,10 @@
 
 (stylefy/init)
 
+(defn- ios? []
+  (-> (. js/navigator -platform)
+      (str/lower-case)
+      (str/includes? "ios")))
 (defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
 (.start shake)
@@ -198,7 +202,11 @@
                   long)]
     ;; (println  hours ":" mins ":" secs)
     [:div.time-display
-     (stylefy/use-style time-display-style)
+     (stylefy/use-style time-display-style
+                        (merge
+                         {}
+                         (if @(rf/subscribe [::audio-subs/recording?])
+                           {:class "has-text-danger has-background-light"} {})))
      [:span.hours hours] ":"
      [:span.minutes mins] ":"
      [:span.seconds secs] "."
@@ -221,8 +229,11 @@
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.control
       [icon-button "stop" "danger" stop]])
-   [:div.control
-    [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording]) (rf/subscribe [::audio-subs/recording-button-enabled?])]]
+   (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
+              @(rf/subscribe [::audio-subs/recording-enabled?]))
+     [:div.control
+      [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
+       (rf/subscribe [::audio-subs/recording-button-enabled?])]])
    [:div.control
     [icon-button "forward" "info" #(do
                                      (stop)
@@ -416,6 +427,9 @@
   (rf/dispatch-sync [::events/init-db])
   (init-routing!)
   (init-keybindings!)
+  (when (ios?)
+    (rf/dispatch [::audio-events/set-audio-input-available? false])
+    (rf/dispatch [::audio-events/set-recording-enabled? false]))
   (. js/window (addEventListener "shake" on-shake false)))
 
 (defn- capture-stream [audio]

@@ -151,6 +151,7 @@
    :media-recorder      nil
    :recording-options   nil
    :recording?          false
+   :audio-input-available? true
    :constraints         {:audio {:optional [{:echoCancellation true}]}
                          :video true}})
 
@@ -182,11 +183,15 @@
 (reg-set-attr ::set-audio-context   [:audio-data :audio-context])
 (reg-set-attr ::set-stream [:audio-data :stream])
 (reg-set-attr ::set-media-recorder [:audio-data :media-recorder])
+(reg-set-attr ::set-audio-input-available? [:audio-data :audio-input-available?])
+                                            
 (rf/reg-event-fx
  ::init-audio-context
  (fn-traced
   [{:keys [db]} _]
-  (let [ctx (js/AudioContext.)]
+  (let [ctx (if (-> db :audio-data :audio-input-available?)
+              (js/AudioContext.)
+              nil)]
     {:db db
      :dispatch [::set-audio-context ctx]})))
 
