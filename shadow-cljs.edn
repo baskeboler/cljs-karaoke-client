@@ -10,6 +10,7 @@
   [clj-tagsoup/clj-tagsoup "0.3.0"]
   [keybind "2.2.0"]
   [cljs-ajax "0.8.0"]
+  [meander/delta "0.0.149"]
   [re-frame "0.10.8"]
   [clj-commons/secretary "1.2.4"]
   [org.clojure/core.async "0.4.490"]

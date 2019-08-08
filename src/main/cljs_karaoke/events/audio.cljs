@@ -8,9 +8,10 @@
             [cljs-karaoke.notifications :refer [notification add-notification]]
             [bardo.interpolate :as interpolate]))
 (defn init-audio-input-flow []
-  {:rules [{:when :seen?
-            :events ::set-audio-context
-            :dispatch [::fetch-reverb-buffer]}
+  {:rules [
+           ;; {:when :seen?
+           ;;  :events ::set-audio-context
+           ;;  :dispatch [::fetch-reverb-buffer]}
            {:when :seen?
             :events ::set-reverb-buffer
             :dispatch [::setup-audio-input]}
@@ -150,16 +151,16 @@
    :media-recorder      nil
    :recording-options   nil
    :recording?          false
-   :constraints         {:audio {:optional [{:echoCancellation false}]}
+   :constraints         {:audio {:optional [{:echoCancellation true}]}
                          :video true}})
 
-(rf/reg-event-db
+(rf/reg-event-fx
  ::init-audio-data
  (fn-traced
-  [db _]
-  (-> db
-      (assoc :audio-data initial-audio-state))))
-
+  [{:keys [db]} _]
+  {:db (-> db
+           (assoc :audio-data initial-audio-state))
+   :dispatch [::init-audio-context]}))
 (rf/reg-event-fx
  ::init-pending-fns
  (rf/after)
@@ -289,19 +290,26 @@
  (fn-traced
   [{:keys [db]} _]
   {:db db
-   :dispatch [::init-audio-context]
+   :dispatch [::fetch-reverb-buffer]
    :async-flow (init-audio-input-flow)}))
 
 (def recorded-blobs (atom []))
 
 (defn merge-audio-channels [audio-context song-audio-stream input-audio-stream]
-  (let [merger (.createChannelMerger audio-context 2)
+  (let [merger (.createChannelMerger audio-context 4)
+        splitter1 (.createChannelSplitter audio-context 2)
+        splitter2 (.createChannelSplitter audio-context 2)
         res (.createMediaStreamDestination audio-context)
         in1 (.createMediaStreamSource audio-context input-audio-stream)
         in2 (.createMediaStreamSource audio-context song-audio-stream)]
-        
-    (. in1 (connect merger))
-    (. in2 (connect merger))
+        ;; in1 (convert-to-mono in1 audio-context)
+        ;; in2 (convert-to-mono in2 audio-context)]
+    (. in1 (connect splitter1))
+    (. in2 (connect splitter2))
+    (. splitter1 (connect merger 0 0))
+    (. splitter1 (connect merger 0 1))
+    (. splitter2 (connect merger 0 2))
+    (. splitter2 (connect merger 0 3))
     (. merger (connect res))
     res))
 

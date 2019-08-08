@@ -52,7 +52,6 @@
 
 (defonce my-shake-event (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
-
 (def parent-style
   {:transition "background-image 1s ease-out"
    :background-size "cover"
@@ -60,13 +59,12 @@
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
-
 (defn return-after-timeout [obj delay]
   (let [ret-chan (chan)]
-      (go
-        (when  (>= delay 0)
-          (<! (timeout delay)))
-        (>! ret-chan obj))
+    (go
+      (when  (>= delay 0)
+        (<! (timeout delay)))
+      (>! ret-chan obj))
     ret-chan))
 
 (defn highlight-parts-2 [frame player-id]
@@ -122,13 +120,13 @@
                        (not (nil? v))
                        (not= frame-chan ch)              ;; (into frame-tos [frame-chan]))]]
                        (= @current-player-status-id status-id))]
-           (case ch
-             frame-chan (doseq [c frames-tos]
-                          (async/close! c))
-             (do
-               (println "Dispatching frame")
-               (rf/dispatch-sync [::events/set-current-frame v])
-               (highlight-parts-2 v status-id))))
+         (case ch
+           frame-chan (doseq [c frames-tos]
+                        (async/close! c))
+           (do
+             (println "Dispatching frame")
+             (rf/dispatch-sync [::events/set-current-frame v])
+             (highlight-parts-2 v status-id))))
        (println "Finished lyrics play go-block"))
      frame-chan))
   ([frames] (play-lyrics-2 frames 0)))
@@ -139,7 +137,6 @@
            (not (str/blank? (frame-text-string @frame))))
       [:div.current-frame
        [frame-text @(rf/subscribe [::s/current-frame])]])))
-
 
 (defn select-current-frame [frames ms]
   (let [previous-frames (filter #(<= (:offset %) ms) frames)
@@ -158,7 +155,7 @@
     (doseq [c @highlight-status]
       (async/close! c))
     (rf/dispatch-sync [::events/set-player-status
-                         (play-lyrics-2 @frames (+ (* 1000 @pos) offset))])
+                       (play-lyrics-2 @frames (+ (* 1000 @pos) offset))])
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
 (def centered {:position :fixed
                :display :block
@@ -207,7 +204,6 @@
      [:span.seconds secs] "."
      [:span.milis (-> ms (mod 1000) long)]]))
 
-
 (def top-right
   {:position :absolute
    :top "0.5em"
@@ -218,7 +214,7 @@
    (stylefy/use-style top-right)
    [:div.control
     [enable-audio-input-button]]
-   
+
    (when @(rf/subscribe [::s/display-home-button?])
      [:div.control
       [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])]])
@@ -318,7 +314,6 @@
    :transform "translate(-50%,-50%)"
    :opacity 0.5})
 
-
 (defn app []
   [:div.app
    (when @(rf/subscribe [::s/navbar-visible?])
@@ -389,10 +384,10 @@
                (cond
                  (not (empty? @(rf/subscribe [::s/modals]))) (rf/dispatch [::modal-events/modal-pop])
                  :else (do
-                        (when-let [_ @(rf/subscribe [::s/loop?])]
-                          (rf/dispatch-sync [::events/set-loop? false]))
-                        (when-not (nil? @(rf/subscribe [::s/player-status]))
-                          (stop))))))
+                         (when-let [_ @(rf/subscribe [::s/loop?])]
+                           (rf/dispatch-sync [::events/set-loop? false]))
+                         (when-not (nil? @(rf/subscribe [::s/player-status]))
+                           (stop))))))
   (key/bind! "l r" ::l-r-kb #(songs/load-song))
   (key/bind! "alt-o" ::alt-o #(rf/dispatch [::views-events/set-view-property :playback :options-enabled? true]))
   (key/bind! "alt-h" ::alt-h #(rf/dispatch [::views-events/view-action-transition :go-to-home]))
@@ -413,7 +408,6 @@
    [app]
    (. js/document (getElementById "root"))))
 
-
 (defn on-shake [evt] (trigger-toasty))
 
 (defn init! []
@@ -426,11 +420,11 @@
 
 (defn- capture-stream [audio]
   (cond
-    (-> audio .-captureStream) (-> audio (.captureStream))
-    (-> audio .-mozCaptureStream) (-> audio (.mozCaptureStream))
+    (-> audio .-captureStream) (. audio (captureStream))
+    (-> audio .-mozCaptureStream) (. audio (mozCaptureStream))
     :else  nil))
 
-(defmethod aud/process-audio-event :canplay
+(defmethod aud/process-audio-event :canplaythrough
   [event]
   (println "handling canplaythrough event")
   (rf/dispatch-sync [::events/set-can-play? true])
@@ -438,17 +432,9 @@
         output-mix @(rf/subscribe [::audio-subs/output-mix])
         ctx @(rf/subscribe [::audio-subs/audio-context])
         song-stream (capture-stream audio)
-        ;; new-audio (do
-                    ;; (let [res (.createMediaStreamDestination (js/AudioContext.))]
-                      ;; (. song-stream (connect res))
-                      ;; (. output-mix (connect res))
-                      ;; res)    
         song-paused? @(rf/subscribe [::s/song-paused?])]
-    (rf/dispatch [::song-events/set-song-stream song-stream])) 
-  #_(when-let [_ (and)
-               @(rf/subscribe [::s/loop?])
-               @(rf/subscribe [::s/song-paused?])]
-      (play)))
+    (rf/dispatch [::song-events/set-song-stream song-stream])))
+    ;; (play)))
 (defn ->ms [secs]
   (* 1000 secs))
 (defn ->secs [ms]
@@ -469,12 +455,12 @@
            (> (.-currentTime a) 0))
       (rf/dispatch [::song-events/set-first-playback-position-updated? true])
       (update-karaoke-player-status))))
-      
+
 (defmethod aud/process-audio-event :play
   [event]
   (println "play event"))
   ;; (update-karaoke-player-status))
-  
+
 (defmethod aud/process-audio-event :playing
   [event]
   (println "playing event")
