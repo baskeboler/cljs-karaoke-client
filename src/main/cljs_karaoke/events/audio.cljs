@@ -189,12 +189,20 @@
  ::init-audio-context
  (fn-traced
   [{:keys [db]} _]
-  (let [ctx (if (-> db :audio-data :audio-input-available?)
-              (js/AudioContext.)
-              nil)]
-    {:db db
-     :dispatch [::set-audio-context ctx]})))
-
+  (let [ctx (try
+              (if (-> db :audio-data :audio-input-available?)
+                (if (-> db :audio-data :audio-context)
+                  (-> db :audio-data :audio-context)
+                  (js/AudioContext.))
+                nil)
+              (catch :default e
+                (. js/console (log "Failed to create audio context, will try again later"))
+                nil))]
+    (merge
+     {:db db}
+     (if-not (nil? ctx)
+       {:dispatch [::set-audio-context ctx]}
+       {})))))
 (rf/reg-event-fx
  ::fetch-reverb-buffer
  (fn-traced
@@ -295,7 +303,8 @@
  (fn-traced
   [{:keys [db]} _]
   {:db db
-   :dispatch [::fetch-reverb-buffer]
+   :dispatch-n [[::init-audio-context]
+                [::fetch-reverb-buffer]]
    :async-flow (init-audio-input-flow)}))
 
 (def recorded-blobs (atom []))
