@@ -53,12 +53,16 @@
         [:input {:type :radio
                  :name :answer}
          r]]))])
-(defn icon-button [icon button-type callback]
-  [:div.control
-   [:p.control
-    [:a.button
-     {:class ["button" (str "is-" button-type)]
-      :on-click callback}
-     [:span.icon.is-small
-      [:i
-       {:class ["fa" (str "fa-" icon)]}]]]]])
+(defn icon-button
+  ([icon button-type callback enabled?]
+   [:div.control
+    [:p.control
+     [:a.button
+      {:class ["button" (str "is-" button-type)]
+       :disabled (not @enabled?)
+       :on-click callback}
+      [:span.icon.is-small
+       [:i
+        {:class ["fa" (str "fa-" icon)]}]]]]])
+  ([icon button-type callback]
+   (icon-button icon button-type callback (atom true))))

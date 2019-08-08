@@ -58,7 +58,7 @@
     (. gain-node (connect delay-node))
     (. delay-node (connect gain-node))
     (. delay-node (connect wet-gain))
-    
+
     delay-node))
 
 (defn on-stream [{:keys [db]} [_ stream]]
@@ -120,9 +120,10 @@
                   [::set-effect-input effect-input1]
                   [::set-output-mix output-mix1]
                   [::set-clean-analyser analyser1]
-                  [::set-reverb-analyser analyser2]]}))
-                  
-                  
+                  [::set-reverb-analyser analyser2]
+                  [::set-stream stream]
+                  [::set-recording-enabled? true]]}))
+
 (rf/reg-event-fx
  ::on-stream
  on-stream)
@@ -139,7 +140,13 @@
    :clean-analyser      nil
    :reverb-analyser     nil
    :freq-data           nil
+   :stream              nil
    :audio-context       nil
+   :recording-enabled?  false
+   :recorded-blobs      []
+   :media-recorder      nil
+   :recording-options   nil
+   :recording?          false
    :constraints         {:audio {:optional [{:echoCancellation false}]}
                          :video true}})
 
@@ -156,6 +163,7 @@
  (fn-traced
   [{:keys [db]}]))
 
+(reg-set-attr ::set-recording-enabled? [:audio-data :recording-enabled?])
 (reg-set-attr ::set-feedback-reduction? [:audio-data :feedback-reduction?])
 (reg-set-attr ::set-reverb-buffer [:audio-data :reverb-buffer])
 (reg-set-attr ::set-dry-gain        [:audio-data :dry-gain])
@@ -168,7 +176,8 @@
 (reg-set-attr ::set-reverb-analyser [:audio-data :reverb-analyser])
 (reg-set-attr ::set-freq-data       [:audio-data :freq-data])
 (reg-set-attr ::set-audio-context   [:audio-data :audio-context])
-
+(reg-set-attr ::set-stream [:audio-data :stream])
+(reg-set-attr ::set-media-recorder [:audio-data :media-recorder])
 (rf/reg-event-fx
  ::init-audio-context
  (fn-traced
@@ -198,13 +207,19 @@
     (. buf-promise (then #(rf/dispatch [::set-reverb-buffer %])))
     {:db db})))
 
-
 (rf/reg-event-db
  ::handle-fetch-reverb-buffer-failure
  (fn-traced
   [db [_ err]]
   (println "Failed to fetch reverb buffer" err)
   db))
+
+(rf/reg-event-db
+ ::append-recorded-blob
+ (fn-traced
+  [db [_ blob]]
+  (-> db
+      (update-in [:audio-data :recorded-blobs] conj blob))))
 
 
 (defn get-user-media [args on-success on-failure]
@@ -226,7 +241,6 @@
 (rf/reg-event-fx
  ::setup-audio-input
  get-microphone-input)
-
 
 (def meter-count (int (/ 800.0 12)))
 
@@ -256,8 +270,7 @@
         data (get-freq-data a)]
     {:db db
      :dispatch [::set-freq-data data]})))
-             
-  
+
 (rf/reg-event-fx
  ::start-audio-input-spectrograph
  (fn-traced
@@ -275,3 +288,91 @@
   {:db db
    :dispatch [::init-audio-context]
    :async-flow (init-audio-input-flow)}))
+
+(def recorded-blobs (atom []))
+
+(defn- get-recording-options []
+  (let [mime-types ["video/webm;codecs=vp9"
+                    "video/webm;codecs=vp8"
+                    "video/webm"]
+        result     (first (filter
+                           (fn [mime-type]
+                             (if-not (. js/MediaRecorder (isTypeSupported mime-type))
+                               (do
+                                 (. js/console (error (str mime-type " is not supported")))
+                                 false)
+                               true))
+                           mime-types))]
+    (if-not (nil? result)
+      (clj->js {:mediaType result})
+      (clj->js {:mediaType ""}))))
+
+(defn get-media-recorder [stream options]
+  (when-let [rec (try
+                  (js/MediaRecorder. stream options)
+                  (catch js/Error e
+                    (. js/console (error "Failed to create MediaRecorder " e))
+                    nil))]
+    (. js/console (log "Created media recorder " rec " with options " options))
+    rec))
+(defn handle-data-available [event]
+  (when (and (. event -data)
+             (> (.. event -data -size) 0))
+    (rf/dispatch [::append-recorded-blob (. event -data)])))
+
+(defn start-recording [{:keys [db]} _]
+  (let [stream (get-in db [:audio-data :stream])
+        recording-blobs (get-in [:audio-data :recorded-blobs] db)
+        options (get-recording-options)
+        media-recorder (get-media-recorder stream options)]
+    (set! (. media-recorder -onstop)
+          (fn [event]
+            (. js/console (log "Recording stopped: " event))))
+    (set! (. media-recorder -ondataavailable) handle-data-available)
+    (. media-recorder (start 10))
+    (. js/console (log "Media Recorder started." media-recorder))
+    {:db (-> db
+             (assoc-in [:audio-data :recording?] true))
+     :dispatch-n [[::set-media-recorder media-recorder]
+                  [::set-recording-options options]]}))
+
+(rf/reg-event-fx
+ ::start-recording
+ (fn-traced [cofx evt] (start-recording cofx evt)))
+
+(rf/reg-event-fx
+ ::test-recording
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db
+   :dispatch [::start-recording]
+   :dispatch-later [{:dispatch [::stop-recording]
+                     :ms 10000}]}))
+
+(defn- download-video [recorded-blobs]
+  (let [video-blob (js/Blob. (clj->js recorded-blobs) #js {:type "video/webm"})
+        url (.. js/window -URL (createObjectURL video-blob))
+        a (.. js/document (createElement "a"))]
+    (set! (.. a -style -display) "none")
+    (set! (. a -href) url)
+    (set! (. a -download) "karaoke.webm")
+    (.. js/document -body (appendChild a))
+    (. a (click))
+    (js/setTimeout
+     (fn []
+       (.. js/document -body (removeChild a))
+       (.. js/window -URL (revokeObjectURL url)))
+     100)))
+
+(defn stop-recording [{:keys [db]} _]
+  (let [media-recorder (get-in db [:audio-data :media-recorder])
+        recorded-blobs (get-in db [:audio-data :recorded-blobs])]
+    (. media-recorder (stop))
+    (. js/console (log "Stopped recording: " recorded-blobs))
+    (download-video recorded-blobs)
+    {:db (-> db
+             (assoc-in [:audio-data :recording?] false))}))
+
+(rf/reg-event-fx
+ ::stop-recording
+ (fn-traced [cofx evt] (stop-recording cofx evt)))

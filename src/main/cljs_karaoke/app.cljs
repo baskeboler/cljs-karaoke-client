@@ -14,7 +14,9 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.events.modals :as modal-events]
+            [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.subs :as s]
+            [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.utils :as utils :refer [icon-button show-export-sync-info-modal]]
             [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
             [cljs.reader :as reader]
@@ -214,14 +216,21 @@
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
    (stylefy/use-style top-right)
-   [enable-audio-input-button]
+   [:div.control
+    [enable-audio-input-button]]
+   
    (when @(rf/subscribe [::s/display-home-button?])
-     [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])])
+     [:div.control
+      [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])]])
    (when-not @(rf/subscribe [::s/song-paused?])
-     [icon-button "stop" "danger" stop])
-   [icon-button "forward" "info" #(do
-                                    (stop)
-                                    (rf/dispatch [::playlist-events/playlist-next]))]])
+     [:div.control
+      [icon-button "stop" "danger" stop]])
+   [:div.control
+    [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording]) (rf/subscribe [::audio-subs/recording-button-enabled?])]]
+   [:div.control
+    [icon-button "forward" "info" #(do
+                                     (stop)
+                                     (rf/dispatch [::playlist-events/playlist-next]))]]])
 
 (defn playback-view []
   [:div.playback-view

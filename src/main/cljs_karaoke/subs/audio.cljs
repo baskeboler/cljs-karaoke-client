@@ -25,6 +25,17 @@
 (reg-audio-data-sub ::reverb-analyser :reverb-analyser)
 (reg-audio-data-sub ::freq-data :freq-data)
 (reg-audio-data-sub ::audio-context :audio-context)
+(reg-audio-data-sub ::recording-enabled? :recording-enabled?)
+(reg-audio-data-sub ::recorded-blobs :recorded-blobs)
+(reg-audio-data-sub ::media-recorder :media-recorder)
+(reg-audio-data-sub ::recording? :recording?)
+
+(rf/reg-sub
+ ::recording-button-enabled?
+ :<- [::recording?]
+ :<- [::recording-enabled?]
+ (fn [[recording? enabled?] _]
+   (and enabled? (not recording?))))
 
 (rf/reg-sub
  ::microphone-enabled?
