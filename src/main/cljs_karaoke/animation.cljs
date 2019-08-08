@@ -381,8 +381,8 @@
                    loader-logo
                    {:id element-id
                     :data "images/logo-2.svg"
-                    :type "image/svg+xml"})
-                  "funky animation"]])})))
+                    :type "image/svg+xml"
+                    :alt "funky animation"})]])})))
 
 
 

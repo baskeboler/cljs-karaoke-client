@@ -12,8 +12,8 @@
       [:a.navbar-item
        {:href "#/"}
        [:object.header-logo
-        {:data "images/header-logo.svg"}]]
-        "header logo"
+        {:data "images/header-logo.svg"
+         :alt "header logo"}]]
       [:a
        {:role :button
         :class (concat
