@@ -13,6 +13,7 @@
        {:href "#/"}
        [:object.header-logo
         {:data "images/header-logo.svg"}]]
+        "header logo"
       [:a
        {:role :button
         :class (concat
