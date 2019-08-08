@@ -220,6 +220,12 @@
     /* transform: unset */
     transform: unset;
 }
+
+
+nav.navbar>div.navbar-brand>a.navbar-item>object.header-logo {
+    height: 2em;
+}
+
 @media screen and (min-width: 1024px) {
     .notifications-container {
         position: fixed;
@@ -236,7 +242,4 @@
     }
 
 
-    nav.navbar>div.navbar-brand>a.navbar-item>object.header-logo {
-        height: 2em;
-    }
 }
