@@ -25,6 +25,7 @@
 (reg-audio-data-sub ::reverb-analyser :reverb-analyser)
 (reg-audio-data-sub ::freq-data :freq-data)
 (reg-audio-data-sub ::audio-context :audio-context)
+(reg-audio-data-sub ::stream :stream)
 (reg-audio-data-sub ::recording-enabled? :recording-enabled?)
 (reg-audio-data-sub ::recorded-blobs :recorded-blobs)
 (reg-audio-data-sub ::media-recorder :media-recorder)
@@ -42,3 +43,8 @@
  :<- [::output-mix]
  (fn [mix _]
    (not (nil? mix))))
+
+(rf/reg-sub
+ ::song-stream
+ (fn [db _]
+    (:song-stream db)))

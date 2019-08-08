@@ -114,3 +114,5 @@
   [db [_ updated?]]
   (. js/console (log "Setting first position updated to " updated?))
   (-> db (assoc :first-playback-position-updated? updated?))))
+
+(cljs-karaoke.events.common/reg-set-attr ::set-song-stream :song-stream)

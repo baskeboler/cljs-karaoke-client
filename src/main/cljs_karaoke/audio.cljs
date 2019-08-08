@@ -47,14 +47,6 @@
          (fn [evt] (go (>! out-chan (playing evt))))))
     out-chan))
 
-;; (def audio-context (js/AudioContext.))
-;; (def analyser (atom nil))
 
 
-;; var constraints = 
-;; {
-;;  audio: {
-;;          optional: [{ echoCancellation: false}]}}
-         
-;;  ;
 

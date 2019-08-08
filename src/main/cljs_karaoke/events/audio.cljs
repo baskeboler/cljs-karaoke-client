@@ -64,6 +64,8 @@
 (defn on-stream [{:keys [db]} [_ stream]]
   (let [audio-context (get-in db [:audio-data :audio-context])
         vid (. js/document (querySelector "#main-video"))
+        song-stream (get-in db [:song-stream])
+        song-stream-source (convert-to-mono (.createMediaStreamSource audio-context song-stream) audio-context)
         feedback-reduction? (get-in db [:audio-data :feedback-reduction?])
         reverb-buffer (get-in db [:audio-data :reverb-buffer])
         input (.createMediaStreamSource audio-context stream)
@@ -90,6 +92,7 @@
 
     (. output-mix1 (connect analyser2))
     (. output-mix1 (connect (.-destination audio-context)))
+    (. song-stream-source (connect (.-destination audio-context)))
     (set! (-> vid .-srcObject) stream)
     (set! (-> vid .-style .-display) "block")
     (.play vid)
@@ -291,6 +294,17 @@
 
 (def recorded-blobs (atom []))
 
+(defn merge-audio-channels [audio-context song-audio-stream input-audio-stream]
+  (let [merger (.createChannelMerger audio-context 2)
+        res (.createMediaStreamDestination audio-context)
+        in1 (.createMediaStreamSource audio-context input-audio-stream)
+        in2 (.createMediaStreamSource audio-context song-audio-stream)]
+        
+    (. in1 (connect merger))
+    (. in2 (connect merger))
+    (. merger (connect res))
+    res))
+
 (defn- get-recording-options []
   (let [mime-types ["video/webm;codecs=vp9"
                     "video/webm;codecs=vp8"
@@ -322,15 +336,24 @@
 
 (defn start-recording [{:keys [db]} _]
   (let [stream (get-in db [:audio-data :stream])
+        ctx (get-in db [:audio-data :audio-context])
+        song-stream (get-in db [:song-stream])
         recording-blobs (get-in [:audio-data :recorded-blobs] db)
         options (get-recording-options)
-        media-recorder (get-media-recorder stream options)]
+        media-recorder (get-media-recorder stream options)
+        newaudio (merge-audio-channels ctx song-stream stream)]
     (set! (. media-recorder -onstop)
           (fn [event]
             (. js/console (log "Recording stopped: " event))))
+    (.. stream (getAudioTracks) (forEach #(. stream (removeTrack %))))
+    (.. newaudio -stream (getTracks) (forEach #(. stream (addTrack %))))
+    ;; (.. song-stream (getTracks) (forEach #(.addTrack stream %)))
+    (.. stream (getAudioTracks) (forEach #(set! (.-enabled %) true)))
     (set! (. media-recorder -ondataavailable) handle-data-available)
+    ;; (. media-recorder (addTrack))
     (. media-recorder (start 10))
     (. js/console (log "Media Recorder started." media-recorder))
+    (add-notification (notification "Started recording."))
     {:db (-> db
              (assoc-in [:audio-data :recording?] true))
      :dispatch-n [[::set-media-recorder media-recorder]

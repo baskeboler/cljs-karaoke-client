@@ -424,13 +424,27 @@
   (init-keybindings!)
   (. js/window (addEventListener "shake" on-shake false)))
 
+(defn- capture-stream [audio]
+  (cond
+    (-> audio .-captureStream) (-> audio (.captureStream))
+    (-> audio .-mozCaptureStream) (-> audio (.mozCaptureStream))
+    :else  nil))
 
-(defmethod aud/process-audio-event :canplaythrough
+(defmethod aud/process-audio-event :canplay
   [event]
   (println "handling canplaythrough event")
   (rf/dispatch-sync [::events/set-can-play? true])
   (let [audio @(rf/subscribe [::s/audio])
-        song-paused? @(rf/subscribe [::s/song-paused?])])
+        output-mix @(rf/subscribe [::audio-subs/output-mix])
+        ctx @(rf/subscribe [::audio-subs/audio-context])
+        song-stream (capture-stream audio)
+        ;; new-audio (do
+                    ;; (let [res (.createMediaStreamDestination (js/AudioContext.))]
+                      ;; (. song-stream (connect res))
+                      ;; (. output-mix (connect res))
+                      ;; res)    
+        song-paused? @(rf/subscribe [::s/song-paused?])]
+    (rf/dispatch [::song-events/set-song-stream song-stream])) 
   #_(when-let [_ (and)
                @(rf/subscribe [::s/loop?])
                @(rf/subscribe [::s/song-paused?])]
