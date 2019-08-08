@@ -428,8 +428,8 @@
   (init-routing!)
   (init-keybindings!)
   (when (ios?)
-    (rf/dispatch [::audio-events/set-audio-input-available? false])
-    (rf/dispatch [::audio-events/set-recording-enabled? false]))
+    (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
+    (rf/dispatch-sync [::audio-events/set-recording-enabled? false]))
   (. js/window (addEventListener "shake" on-shake false)))
 
 (defn- capture-stream [audio]

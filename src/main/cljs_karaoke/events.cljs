@@ -208,7 +208,7 @@
                   (:custom-song-delay db {})]]}))
 
 (rf/reg-event-fx
- ::fetch-song-background-config
+ 
  (fn-traced
   [{:keys [db]} _]
   {:db db
