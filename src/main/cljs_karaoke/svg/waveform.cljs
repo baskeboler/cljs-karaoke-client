@@ -6,6 +6,7 @@
             [thi.ng.geom.svg.core :as svg]
             [thi.ng.geom.path :as paths]
             [thi.ng.geom.types :as geom-types]
+            [cljs.core.async :as async :refer [go go-loop chan <! >!]]
             [re-frame.core  :as rf]
             [cljs-karaoke.events.audio :as aevents]
             [cljs-karaoke.subs.audio :as asubs]))
@@ -55,4 +56,39 @@
 ;; (def curve-points (list (vec2 100 0) (vec2 200 100) (vec2 100 0)))
 
 ;; (def curve (beziers/auto-spline2 curve-points true))
- 
+(defn get-audio-buffer [src-url]
+ (let [ctx (js/OfflineAudioContext. 2 (* 44100 60 5) 44100)
+       a-ctx (js/AudioContext.)
+       src-buf  (.. ctx (createBufferSource))
+       src-url (.. (.. js/document (querySelector "#main-audio")) -src)
+       out (chan)
+       handle-rendered (fn [rendered-buffer]
+                         (let [data (.getChannelData rendered-buffer 0)]
+                           (js/console.log "rendering completed successfully: " data) 
+                           (go
+                             (>! out (-> data
+                                         aclone
+                                         js->clj)))))
+       handle-decoded (fn [buf]
+                        (println "hello!")
+                        (set! (-> src-buf .-buffer) buf)
+                        (-> src-buf (.connect (-> ctx .-destination)))
+                        (-> src-buf (.start))
+                        (-> ctx
+                            (.startRendering)
+                            (.then handle-rendered)))
+       handle-fetch-response (fn [resp]
+                              (println "Got response")
+                              (let [r-buf (-> resp (.arrayBuffer))]
+                                (println "got buffer: " r-buf)
+                                (-> r-buf
+                                    (.then
+                                     (fn [rr-buf] 
+                                       (-> a-ctx
+                                           (.decodeAudioData
+                                            rr-buf
+                                            handle-decoded)))))))]
+   (println "fetching: " src-url)
+   (-> (js/fetch src-url)
+       (.then handle-fetch-response))
+   out))

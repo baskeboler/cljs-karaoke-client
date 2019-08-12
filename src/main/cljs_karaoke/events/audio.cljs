@@ -347,7 +347,7 @@
          (mapv (comp
                 identity
                 ;; dec
-                #(/ % 70)
+                #(/ % 255)
                 avg)))))
 
 (rf/reg-event-fx
