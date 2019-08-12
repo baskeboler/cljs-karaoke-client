@@ -2,8 +2,10 @@
   (:require [goog.math :as gmath]
             [thi.ng.geom.bezier :as beziers]
             [thi.ng.geom.core :as geom]
+            [thi.ng.geom.vector :as geom-vec :include-macros true :refer [vec2 Vec2]]
             [thi.ng.geom.svg.core :as svg]
             [thi.ng.geom.path :as paths]
+            [thi.ng.geom.types :as geom-types]
             [re-frame.core  :as rf]
             [cljs-karaoke.events.audio :as aevents]
             [cljs-karaoke.subs.audio :as asubs]))
@@ -49,3 +51,8 @@
         buf (js/Float32Array. (. anal -fftSize))]
     (. anal (getFloatTimeDomainData buf))))
     
+
+(def curve-points `((vec2 100 0) (vec2 200 100) (vec2 100 0)))
+
+(def curve (beziers/auto-spline2 curve-points true))
+ 

@@ -236,7 +236,7 @@
         intpl (interpolate/interpolate from to)
         values (-> intpl
                    (ease/wrap (ease/ease :cubic-in-out))
-                   (map times))]
+                   (interpolate/into-lazy-seq times))]
         ;; cancelled? (reagent/atom false)]
     (update-fn from)
     (go-loop [from from
