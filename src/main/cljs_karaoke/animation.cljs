@@ -236,8 +236,8 @@
         intpl (interpolate/interpolate from to)
         values (-> intpl
                    (ease/wrap (ease/ease :cubic-in-out))
-                   (map times))
-        cancelled? (reagent/atom false)]
+                   (map times))]
+        ;; cancelled? (reagent/atom false)]
     (update-fn from)
     (go-loop [from from
               to to
@@ -259,8 +259,8 @@
                        (ease/wrap (ease/ease :cubic-in-out))
                        (map times))
                    (rest values))
-                 (if closed? delay 0)))))
-    cancelled?))
+                 (if closed? delay 0)))))))
+    ;; cancelled?))
 
 (defn stagger-out-opacity [svg delay duration delta]
   ;; (doall

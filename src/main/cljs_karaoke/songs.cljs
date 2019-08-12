@@ -645,28 +645,29 @@
          (when @remote-control-enabled?
            [:th])]]
        [:tbody
-        (for [name (->> (keys song-map)
-                        (filter #(clojure.string/includes?
-                                  (clojure.string/lower-case %)
-                                  (clojure.string/lower-case @filter-text)))
-                        (sort)
-                        (vec)
-                        (drop @page-offset)
-                        (take @page-size)) ;(vec (sort (keys song-map)))
-              :let [title (get song-map name)]]
-          [:tr {:key name}
-           [:td title]
-           [:td [:a
-                 {:href (str "#/songs/" name)}
-                   ;; :on-click #(select-fn name)}
-                 "Load song"]]
-           (when @remote-control-enabled?
-             [:td
-              [:a
-               {:on-click (fn []
-                            (let [cmd (cmds/play-song-command name)]
-                              (rf/dispatch [::remote-events/remote-control-command cmd])))}
-               "Play remotely"]])])]]
+        (doall
+         (for [name (->> (keys song-map)
+                         (filter #(clojure.string/includes?
+                                   (clojure.string/lower-case %)
+                                   (clojure.string/lower-case @filter-text)))
+                         (sort)
+                         (drop @page-offset)
+                         (take @page-size) ;(vec (sort (keys song-map)))
+                         (into []))
+                :let [title (get song-map name)]]
+           [:tr {:key name}
+            [:td title]
+            [:td [:a
+                  {:href (str "#/songs/" name)}
+                  ;; :on-click #(select-fn name)}
+                  "Load song"]]
+            (when @remote-control-enabled?
+              [:td
+               [:a
+                {:on-click (fn []
+                             (let [cmd (cmds/play-song-command name)]
+                               (rf/dispatch [::remote-events/remote-control-command cmd])))}
+                "Play remotely"]])]))]]
       [song-table-pagination]]]))
 
 (defn load-song

@@ -336,7 +336,6 @@
    [utils/modals-component]
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))]
-    ;; [:object (stylefy/use-style logo-bg-style  {:data "images/logo-2.svg" :type "image/svg+xml"})]
    [logo-animation]
    (when-let [_ (and
                  @(rf/subscribe [::s/initialized?])
