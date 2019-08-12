@@ -383,7 +383,7 @@
                    {:id element-id
                     :data "images/logo-2.svg"
                     :type "image/svg+xml"
-                    :alt "funky animation"})]])})))
+                    :title "funky animation"})]])})))
 
 
 
