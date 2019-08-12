@@ -257,7 +257,7 @@
                  (if closed?
                    (-> (interpolate/interpolate to from)
                        (ease/wrap (ease/ease :cubic-in-out))
-                       (map times))
+                       (interpolate/into-lazy-seq times))
                    (rest values))
                  (if closed? delay 0)))))))
     ;; cancelled?))
