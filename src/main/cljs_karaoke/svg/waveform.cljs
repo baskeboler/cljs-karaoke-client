@@ -52,7 +52,7 @@
     (. anal (getFloatTimeDomainData buf))))
     
 
-(def curve-points `((vec2 100 0) (vec2 200 100) (vec2 100 0)))
+;; (def curve-points (list (vec2 100 0) (vec2 200 100) (vec2 100 0)))
 
-(def curve (beziers/auto-spline2 curve-points true))
+;; (def curve (beziers/auto-spline2 curve-points true))
  
