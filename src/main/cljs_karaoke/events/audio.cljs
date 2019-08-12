@@ -7,6 +7,21 @@
             [day8.re-frame.async-flow-fx]
             [cljs-karaoke.notifications :refer [notification add-notification]]
             [bardo.interpolate :as interpolate]))
+
+(defn get-device-types
+  "Returns an async channel with a set of device types available
+   in the current browser"
+  []
+  (let [devsPromise (.. js/navigator -mediaDevices (enumerateDevices))
+        out (chan)]
+    (.. devsPromise
+        (then (fn [devices]
+                (let [kinds (map #(. % -kind) (js->clj devices))
+                      kinds (into #{} kinds)]
+                  (go
+                    (>! out kinds))))))
+    out))
+
 (defn init-audio-input-flow []
   {:rules [
            ;; {:when :seen?
@@ -58,9 +73,19 @@
     (set! (.. gain-node -gain -value) dregen)
     (. gain-node (connect delay-node))
     (. delay-node (connect gain-node))
-    (. delay-node (connect wet-gain))
-
+    ;; (. delay-node (connect wet-gain))
+ 
     delay-node))
+
+(defn create-compressor! [audio-context]
+  (let [c (.createDynamicsCompressor audio-context)]
+    (.. c -threshold (setValueAtTime -50 (. audio-context -currentTime)))
+    (.. c -knee (setValueAtTime 40 (. audio-context -currentTime)))
+    (.. c -ratio (setValueAtTime 12 (. audio-context -currentTime)))
+    (.. c -attack (setValueAtTime 0 (. audio-context -currentTime)))
+    (.. c -release (setValueAtTime 0.25 (. audio-context -currentTime)))
+    c))
+(declare replace-audio-track)
 
 (defn on-stream [{:keys [db]} [_ stream]]
   (let [audio-context (get-in db [:audio-data :audio-context])
@@ -83,17 +108,37 @@
         output-mix1 (.createGain audio-context)
         dry-gain1 (.createGain audio-context)
         wet-gain1 (.createGain audio-context)
-        effect-input1 (.createGain audio-context)]
+        effect-input1 (.createGain audio-context)
+        merger (.createChannelMerger audio-context)
+        compressor (create-compressor! audio-context)
+        out-stream (. audio-context (createMediaStreamDestination))]
     (. audio-input (connect dry-gain1))
     (. audio-input (connect wet-gain1))
     (. audio-input (connect effect-input1))
-    (. audio-input (connect analyser1))
-    (. dry-gain1 (connect output-mix1))
-    (. wet-gain1 (connect output-mix1))
+    ;; (. audio-input (connect analyser1))
 
-    (. output-mix1 (connect analyser2))
-    (. output-mix1 (connect (.-destination audio-context)))
-    (. song-stream-source (connect (.-destination audio-context)))
+
+    (cross-fade 1.0 dry-gain1 wet-gain1)
+    ;; (create-reverb! audio-context reverb-buffer wet-gain1)
+
+    (let [delay-node (create-delay! audio-context 0.5 0.5 wet-gain1)]
+      (. wet-gain1 (connect delay-node))
+      (. delay-node (connect merger)))
+    ;; (. dry-gain1 (connect output-mix1))
+    ;; (. wet-gain1 (connect output-mix1))
+    ;; (. output-mix1 (connect compressor))
+    ;; (. compressor (connect merger))
+    (. song-stream-source (connect merger))
+    (. output-mix1 (connect merger))
+    (. merger (connect compressor))
+    (. compressor (connect analyser1))
+    ;; (. analyser2 (connect compressor))
+    ;; (. merger (connect compressor))
+    ;; (. merger  (connect (.-destination audio-context)))
+    (. analyser1 (connect (. audio-context -destination)))
+    (. analyser1 (connect out-stream))
+
+    (replace-audio-track stream (. out-stream -stream))
     (set! (-> vid .-srcObject) stream)
     (set! (-> vid .-style .-display) "block")
     (.play vid)
@@ -102,10 +147,6 @@
       (<! (async/timeout 3000))
       (set! (.-className vid) "preview"))
 
-    (cross-fade 1.0 dry-gain1 wet-gain1)
-    (create-reverb! audio-context reverb-buffer wet-gain1)
-
-    (create-delay! audio-context 0.5 0.5 wet-gain1)
 
     ;; (set! (.-srcObject vid) stream)
     ;; (set! (.-value (.-frequency audio-filter)) 60.0)
@@ -149,10 +190,11 @@
    :recording-enabled?  false
    :recorded-blobs      []
    :media-recorder      nil
+   :device-types        []
    :recording-options   nil
    :recording?          false
    :audio-input-available? true
-   :constraints         {:audio {:optional [{:echoCancellation true}]}
+   :constraints         {:audio {:optional [{:echoCancellation false}]}
                          :video true}})
 
 (rf/reg-event-fx
@@ -161,12 +203,27 @@
   [{:keys [db]} _]
   {:db (-> db
            (assoc :audio-data initial-audio-state))
-   :dispatch [::init-audio-context]}))
+   :dispatch-n [[::init-audio-context]
+                [::init-device-types]]}))
+
 (rf/reg-event-fx
  ::init-pending-fns
- (rf/after)
+ ;; (rf/after)
  (fn-traced
-  [{:keys [db]}]))
+  [{:keys [db]}]
+  {:db db}))
+
+(rf/reg-event-fx
+ ::init-device-types
+ (rf/after
+  (fn [_ _]
+    (let [types-chan (get-device-types)]
+      (go
+        (let [types (<! types-chan)]
+          (rf/dispatch [::set-device-types types]))))))
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db}))
 
 (reg-set-attr ::set-recording-enabled? [:audio-data :recording-enabled?])
 (reg-set-attr ::set-feedback-reduction? [:audio-data :feedback-reduction?])
@@ -184,7 +241,8 @@
 (reg-set-attr ::set-stream [:audio-data :stream])
 (reg-set-attr ::set-media-recorder [:audio-data :media-recorder])
 (reg-set-attr ::set-audio-input-available? [:audio-data :audio-input-available?])
-                                            
+(reg-set-attr ::set-device-types [:audio-data :device-types])
+
 (rf/reg-event-fx
  ::init-audio-context
  (fn-traced
@@ -247,9 +305,16 @@
             (println "Could not find GetUserMedia function")
             nil)))
 
+(defn- supports-video-input? [db]
+  (let [types (get-in db [:audio-data :device-types] #{})]
+    (types "videoinput")))
+
 (defn get-microphone-input [{:keys [db]} _]
-  (let [args (clj->js
-              (get-in db [:audio-data :constraints]))]
+  (let [video? (supports-video-input? db)
+        constraints (get-in db [:audio-data :constraints])
+        constraints (if video? constraints (-> constraints (dissoc :video)))
+        args (clj->js constraints)]
+              
     (get-user-media args
                     #(rf/dispatch [::on-stream %])
                     #(println "Failed to setup audio input" %))
@@ -271,12 +336,13 @@
     (/ sum (count col))))
 
 (defn get-freq-data [analyser]
-  (let [data (get-raw-freq-data analyser)]
+  (let [data (get-raw-freq-data analyser)
+        max-decibels (. analyser -maxDecibels)]
     (->> (partition (int (/ (count data) meter-count)) data)
          (mapv (comp
                 identity
                 ;; dec
-                #(/ % 205)
+                #(/ % 70)
                 avg)))))
 
 (rf/reg-event-fx
@@ -356,11 +422,15 @@
              (> (.. event -data -size) 0))
     (rf/dispatch [::append-recorded-blob (. event -data)])))
 
+(defn replace-audio-track [video-stream audio-stream]
+  (.. video-stream (getAudioTracks) (forEach #(. video-stream (removeTrack %))))
+  (.. audio-stream (getTracks) (forEach #(.. video-stream (addTrack %)))))
+
 (defn start-recording [{:keys [db]} _]
   (let [stream (get-in db [:audio-data :stream])
         ctx (get-in db [:audio-data :audio-context])
         song-stream (get-in db [:song-stream])
-        recording-blobs (get-in [:audio-data :recorded-blobs] db)
+        recording-blobs (get-in db [:audio-data :recorded-blobs])
         options (get-recording-options)
         media-recorder (get-media-recorder stream options)
         newaudio (merge-audio-channels ctx song-stream stream)]
@@ -411,7 +481,8 @@
 
 (defn stop-recording [{:keys [db]} _]
   (let [media-recorder (get-in db [:audio-data :media-recorder])
-        recorded-blobs (get-in db [:audio-data :recorded-blobs])]
+        recorded-blobs (get-in db [:audio-data :recorded-blobs])
+        audio-input (-> db :audio-data :audio-input)]
     (. media-recorder (stop))
     (. js/console (log "Stopped recording: " recorded-blobs))
     (download-video recorded-blobs)
@@ -421,3 +492,25 @@
 (rf/reg-event-fx
  ::stop-recording
  (fn-traced [cofx evt] (stop-recording cofx evt)))
+
+
+(defn reset-audio-input [audio-input audio]
+  (.. js/document (querySelector "video#main-video") (pause))
+  (.. js/document (querySelector "audio#main-audio") (pause))
+  (. audio-input (disconnect)))
+
+(rf/reg-event-fx
+ ::reset-audio!
+ (fn-traced
+  [{:keys [db]} _]
+  (reset-audio-input (-> db :audio-data :audio-input) (-> db :audio))
+  (.close (-> db :audio-data :audio-context))
+  {:db db
+   :dispatch-n [[::set-audio-input nil]
+                [::set-audio-context (-> db :audio-data :audio-context)]]}))
+                
+
+(defn- get-audio-element []
+  (first
+   (-> filter
+       (update :k +))))

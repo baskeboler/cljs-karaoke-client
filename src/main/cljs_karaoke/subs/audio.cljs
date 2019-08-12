@@ -21,7 +21,7 @@
 (reg-audio-data-sub ::output-mix :output-mix)
 (reg-audio-data-sub ::audio-input :audio-input)
 (reg-audio-data-sub ::lp-input-filter :lp-input-filter)
-(reg-audio-data-sub ::clean-analysesr :clean-analyser)
+(reg-audio-data-sub ::clean-analyser :clean-analyser)
 (reg-audio-data-sub ::reverb-analyser :reverb-analyser)
 (reg-audio-data-sub ::freq-data :freq-data)
 (reg-audio-data-sub ::audio-context :audio-context)

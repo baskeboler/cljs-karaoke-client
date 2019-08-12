@@ -133,7 +133,9 @@
         lyrics-loaded? (rf/subscribe [::s/lyrics-loaded?])
         song-list-visible? (rf/subscribe [::s/song-list-visible?])
         can-play? (rf/subscribe [::s/can-play?])
-        remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])]
+        remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])
+        input-available? (rf/subscribe [::audio-subs/audio-input-available?])
+        recording-enabled? (rf/subscribe [::audio-subs/recording-enabled?])]
     [:div.control-panel.columns
      {:class (if @(rf/subscribe [::s/song-paused?])
                ["song-paused"]
@@ -170,8 +172,9 @@
          [enable-remote-control-btn]]
         [:div.control
          [remote-control-btn]]
-        [:div.control
-         [enable-audio-input-button]]]
+        (when @input-available?
+          [:div.control
+             [enable-audio-input-button]])]
        [:div.field
         [:div.control
          [save-custom-delay-btn]]]

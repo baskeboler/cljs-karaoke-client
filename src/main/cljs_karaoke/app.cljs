@@ -40,6 +40,7 @@
             [cljs-karaoke.views.navbar :as navbar]
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.animation :refer [logo-animation]]
+            [cljs-karaoke.svg.waveform :as waves]
             ["shake.js" :as Shake])
   (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
   (:import goog.History))
@@ -50,6 +51,7 @@
   (-> (. js/navigator -platform)
       (str/lower-case)
       (str/includes? "ios")))
+
 (defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
 (.start shake)

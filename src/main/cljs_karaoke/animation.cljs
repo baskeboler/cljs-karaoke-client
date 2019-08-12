@@ -274,7 +274,7 @@
                     false)))
 
 (defn- set-chars-invisible! [svg]
-  (doseq [[i c] (map vector (range) (get-logo-chars svg))]
+  (doseq [[i c] (map-indexed #(vector %1 %2) (get-logo-chars svg))]
     (set! (.. c -style -opacity) 0)))
 (defn perform-animation
   "Main logo animation"
@@ -336,7 +336,7 @@
                    false)
 
     ;; stagger the logo chars by half a sec
-    (doseq [[i c] (map vector (range) the-chars)]
+    (doseq [[i c] (map-indexed #(vector %1 %2) the-chars)]
       (transition-fn from to
                      {:duration duration}
                      (fn [{:keys [opacity ^TransformValue transform]}]
@@ -367,6 +367,7 @@
                                          txt (. svg (querySelector "#logo-text"))
                                          logo (. svg (querySelector "#logo"))]
                                      (set! (.. txt -style -transformOrigin) "50% 50%")
+                                     (set! (.. logo -style -transformOrigin) "50% 50%")
                                      (set! (.. (get-logo-path svg) -style -transformOrigin) "50% 50%")
                                      ;; (. (get-logo-path svg) (setAttribute "transform-origin" "50% 50%"))
                                      (perform-animation svg)
