@@ -355,8 +355,8 @@
      {:component-will-unmount
       (fn [this]
         (gevents/unlistenByKey (.. ^js this ^js -state ^js -listenerKey))
-        (. this (setState nil))
-        (println "unlistened event"))
+        (. this (setState nil)))
+        ;; (println "unlistened event"))
       :initial-state {"listenerKey" nil}
       :component-did-mount
       (fn [this]
@@ -370,10 +370,10 @@
                                      (set! (.. logo -style -transformOrigin) "50% 50%")
                                      (set! (.. (get-logo-path svg) -style -transformOrigin) "50% 50%")
                                      ;; (. (get-logo-path svg) (setAttribute "transform-origin" "50% 50%"))
-                                     (perform-animation svg)
-                                     (js/console.log "Loaded doc " txt))))]
-          (. this (setState (clj->js {:listener-key l2})))
-          (println "Got element " s)))
+                                     (perform-animation svg))))]
+                                     ;; (js/console.log "Loaded doc " txt))))]
+          (. this (setState (clj->js {:listener-key l2})))))
+          ;; (println "Got element " s)))
 
       :render (fn [this]
                 [:div.my-inlined-svg

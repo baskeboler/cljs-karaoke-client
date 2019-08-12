@@ -12,15 +12,19 @@
   "Returns an async channel with a set of device types available
    in the current browser"
   []
-  (let [devsPromise (.. js/navigator -mediaDevices (enumerateDevices))
-        out (chan)]
-    (.. devsPromise
-        (then (fn [devices]
-                (let [kinds (map #(. % -kind) (js->clj devices))
-                      kinds (into #{} kinds)]
-                  (go
-                    (>! out kinds))))))
-    out))
+  (if (-> js/navigator .-mediaDevices)
+   (let [devsPromise (.. js/navigator -mediaDevices (enumerateDevices))
+         out (chan)]
+     (.. devsPromise
+         (then (fn [devices]
+                 (let [kinds (map #(. % -kind) (js->clj devices))
+                       kinds (into #{} kinds)]
+                   (go
+                     (>! out kinds))))))
+     out)
+   (let [out (chan)]
+     (go (>! out #{}))
+     out)))
 
 (defn init-audio-input-flow []
   {:rules [
@@ -132,6 +136,7 @@
     (. output-mix1 (connect merger))
     (. merger (connect compressor))
     (. compressor (connect analyser1))
+    (. compressor (connect analyser2))
     ;; (. analyser2 (connect compressor))
     ;; (. merger (connect compressor))
     ;; (. merger  (connect (.-destination audio-context)))
