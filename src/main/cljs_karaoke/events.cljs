@@ -107,6 +107,7 @@
                   :pageloader-active? true
                   :display-home-button? true
          ;; :playlist (pl/build-playlist)
+                  :navbar-menu-active? false
                   :modals []
                   :notifications []}
     ;; :dispatch-n [[::fetch-custom-delays]
@@ -300,6 +301,7 @@
 (reg-set-attr ::set-player-current-time :player-current-time)
 (reg-set-attr ::set-playing? :playing?)
 (reg-set-attr ::set-pageloader-active? :pageloader-active?)
+(reg-set-attr ::set-navbar-menu-active? :navbar-menu-active?)
 
 (rf/reg-event-db
  ::toggle-display-lyrics
@@ -390,3 +392,4 @@
   [db _]
   (. js/console (log "Initial Audio Setup Complete!"))
   (-> db (assoc :initial-audio-setup-complete? true))))
+

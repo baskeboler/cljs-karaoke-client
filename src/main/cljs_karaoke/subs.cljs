@@ -169,7 +169,11 @@
  (fn [playlist _]
    (some-> playlist
            (pl/current))))
-
+(rf/reg-sub
+ ::navbar-visible?
+ :<- [::current-view]
+ (fn [view _]
+   (#{:playlist :home} view)))
 ;; (rf/reg-sub
  ;; ::initialized?
  ;; :<- [::views]
@@ -221,3 +225,8 @@
  ::notifications
  (fn [db _]
    (:notifications db)))
+
+(rf/reg-sub
+ ::navbar-menu-active?
+ (fn [db _]
+   (:navbar-menu-active? db)))

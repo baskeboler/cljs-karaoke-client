@@ -24,6 +24,16 @@ The midi parser is on a separate project: [clj-karaoke](https://github.com/baske
 
 Another difficulty was obtaining the song audio track, since the lyrics are synced to the midi audio track, the sanest thing to do was to use that. Initially I intended to use the midi files directly for the audio tracks but when playing the audio, the quality depended greatly on the sound fonts you have installed and setting up a good env for decent results is not a trivial task. Also if I wanted to play these files on a web client, taking all this into account just made things more complicated. So I settled with extracting the lyrics to separate files and rendering the midis to mp3 files using [Timidity](http://timidity.sourceforge.net) which is pretty awesome and I was able to experiment with different sound font collections.
 
+## Features 
+
+- Tons of songs
+- Ability to sync lyrics by an offset in miliseconds (either from the control panel or by appending a query string to the url)
+- Automatic playlist built from previously synced songs
+- Export local song sync information so that it may be merged to the server-side sync data
+- Experimental audio input for desktop firefox and chrome with live echo/reverb sound fx (use an external microphone for best results)
+- Experimental webcam recording and video export to webm file. The audio channel in the exported video is the result of mixing the microphone input with effects and the song track.
+- Remote control. Run the application on a big screen and control playback from a different application instance (for example, from your mobile device!)
+
 ## Running locally
 
 Prerequisites: 
@@ -59,6 +69,5 @@ The build will be located in the `/public` directory.
 
 ## Future work
 
-- Audio input 
 - Raspberry PI image
 - Lyrics sync editor

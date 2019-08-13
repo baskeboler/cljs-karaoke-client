@@ -14,8 +14,10 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.events.modals :as modal-events]
+            [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.subs :as s]
-            [cljs-karaoke.utils :as utils :refer [show-export-sync-info-modal]]
+            [cljs-karaoke.subs.audio :as audio-subs]
+            [cljs-karaoke.utils :as utils :refer [icon-button show-export-sync-info-modal]]
             [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
             [cljs.reader :as reader]
             [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
@@ -35,18 +37,26 @@
             [cljs-karaoke.views.control-panel :refer [control-panel]]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
+            [cljs-karaoke.views.navbar :as navbar]
             [cljs-karaoke.notifications :as notifications]
+            [cljs-karaoke.animation :refer [logo-animation]]
+            [cljs-karaoke.svg.waveform :as waves]
             ["shake.js" :as Shake])
+  (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
   (:import goog.History))
 
 (stylefy/init)
+
+(defn- ios? []
+  (-> (. js/navigator -platform)
+      (str/lower-case)
+      (str/includes? "ios")))
 
 (defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
 (.start shake)
 
 (defonce my-shake-event (Shake. (clj->js {:threshold 15 :timeout 1000})))
-
 
 (def parent-style
   {:transition "background-image 1s ease-out"
@@ -55,13 +65,12 @@
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
-
 (defn return-after-timeout [obj delay]
   (let [ret-chan (chan)]
-      (go
-        (when  (>= delay 0)
-          (<! (timeout delay)))
-        (>! ret-chan obj))
+    (go
+      (when  (>= delay 0)
+        (<! (timeout delay)))
+      (>! ret-chan obj))
     ret-chan))
 
 (defn highlight-parts-2 [frame player-id]
@@ -117,13 +126,13 @@
                        (not (nil? v))
                        (not= frame-chan ch)              ;; (into frame-tos [frame-chan]))]]
                        (= @current-player-status-id status-id))]
-           (case ch
-             frame-chan (doseq [c frames-tos]
-                          (async/close! c))
-             (do
-               (println "Dispatching frame")
-               (rf/dispatch-sync [::events/set-current-frame v])
-               (highlight-parts-2 v status-id))))
+         (case ch
+           frame-chan (doseq [c frames-tos]
+                        (async/close! c))
+           (do
+             (println "Dispatching frame")
+             (rf/dispatch-sync [::events/set-current-frame v])
+             (highlight-parts-2 v status-id))))
        (println "Finished lyrics play go-block"))
      frame-chan))
   ([frames] (play-lyrics-2 frames 0)))
@@ -134,7 +143,6 @@
            (not (str/blank? (frame-text-string @frame))))
       [:div.current-frame
        [frame-text @(rf/subscribe [::s/current-frame])]])))
-
 
 (defn select-current-frame [frames ms]
   (let [previous-frames (filter #(<= (:offset %) ms) frames)
@@ -153,7 +161,7 @@
     (doseq [c @highlight-status]
       (async/close! c))
     (rf/dispatch-sync [::events/set-player-status
-                         (play-lyrics-2 @frames (+ (* 1000 @pos) offset))])
+                       (play-lyrics-2 @frames (+ (* 1000 @pos) offset))])
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
 (def centered {:position :fixed
                :display :block
@@ -196,22 +204,16 @@
                   long)]
     ;; (println  hours ":" mins ":" secs)
     [:div.time-display
-     (stylefy/use-style time-display-style)
+     (stylefy/use-style time-display-style
+                        (merge
+                         {}
+                         (if @(rf/subscribe [::audio-subs/recording?])
+                           {:class "has-text-danger has-background-light"} {})))
      [:span.hours hours] ":"
      [:span.minutes mins] ":"
      [:span.seconds secs] "."
      [:span.milis (-> ms (mod 1000) long)]]))
 
-
-(defn icon-button [icon button-type callback]
-  [:div.control
-   [:p.control
-    [:a.button
-     {:class ["button" (str "is-" button-type)]
-      :on-click callback}
-     [:span.icon.is-small
-      [:i
-       {:class ["fa" (str "fa-" icon)]}]]]]])
 (def top-right
   {:position :absolute
    :top "0.5em"
@@ -220,14 +222,24 @@
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
    (stylefy/use-style top-right)
-   [enable-audio-input-button]
+   [:div.control
+    [enable-audio-input-button]]
+
    (when @(rf/subscribe [::s/display-home-button?])
-     [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])])
+     [:div.control
+      [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])]])
    (when-not @(rf/subscribe [::s/song-paused?])
-     [icon-button "stop" "danger" stop])
-   [icon-button "forward" "info" #(do
-                                    (stop)
-                                    (rf/dispatch [::playlist-events/playlist-next]))]])
+     [:div.control
+      [icon-button "stop" "danger" stop]])
+   (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
+              @(rf/subscribe [::audio-subs/recording-enabled?]))
+     [:div.control
+      [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
+       (rf/subscribe [::audio-subs/recording-button-enabled?])]])
+   [:div.control
+    [icon-button "forward" "info" #(do
+                                     (stop)
+                                     (rf/dispatch [::playlist-events/playlist-next]))]]])
 
 (defn playback-view []
   [:div.playback-view
@@ -269,7 +281,7 @@
       [song-progress]])])
 
 (defn default-view []
-  [:div.default-view
+  [:div.default-view.container
    [control-panel]
    [:button.button.is-danger.edge-stop-btn
     {:class (if @(rf/subscribe [::s/song-paused?])
@@ -306,14 +318,25 @@
     (.play a)
     (rf/dispatch [::events/trigger-toasty])))
 
+(def logo-bg-style
+  {:position :fixed
+   :top "50%"
+   :left "50%"
+   :max-width "80vw"
+   :max-height "80vh"
+   :transform "translate(-50%,-50%)"
+   :opacity 0.5})
+
 (defn app []
-  [:div.container.app
+  [:div.app
+   (when @(rf/subscribe [::s/navbar-visible?])
+     [navbar/navbar-component])
    [toasty]
    [notifications/notifications-container-component]
    [utils/modals-component]
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))]
-
+   [logo-animation]
    (when-let [_ (and
                  @(rf/subscribe [::s/initialized?])
                  @(rf/subscribe [::s/current-view]))]
@@ -326,7 +349,8 @@
   (secretary/set-config! :prefix "#")
   (defroute "/" []
     (println "home path")
-    (rf/dispatch-sync [::playlist-events/playlist-load]))
+    (rf/dispatch-sync [::playlist-events/playlist-load])
+    (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
   (defroute "/songs/:song"
     [song query-params]
     (println "song: " song)
@@ -344,7 +368,7 @@
     (rf/dispatch [::playlist-events/set-loop? true])
     (rf/dispatch [::playlist-events/playlist-load]))
   (defroute "/playlist" []
-    (rf/dispatch [::views-events/set-current-view :playlist]))
+    (rf/dispatch-sync [::views-events/set-current-view :playlist]))
   (let [h (History.)]
     (gevents/listen h ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
     (doto h (.setEnabled true))))
@@ -372,10 +396,10 @@
                (cond
                  (not (empty? @(rf/subscribe [::s/modals]))) (rf/dispatch [::modal-events/modal-pop])
                  :else (do
-                        (when-let [_ @(rf/subscribe [::s/loop?])]
-                          (rf/dispatch-sync [::events/set-loop? false]))
-                        (when-not (nil? @(rf/subscribe [::s/player-status]))
-                          (stop))))))
+                         (when-let [_ @(rf/subscribe [::s/loop?])]
+                           (rf/dispatch-sync [::events/set-loop? false]))
+                         (when-not (nil? @(rf/subscribe [::s/player-status]))
+                           (stop))))))
   (key/bind! "l r" ::l-r-kb #(songs/load-song))
   (key/bind! "alt-o" ::alt-o #(rf/dispatch [::views-events/set-view-property :playback :options-enabled? true]))
   (key/bind! "alt-h" ::alt-h #(rf/dispatch [::views-events/view-action-transition :go-to-home]))
@@ -396,7 +420,6 @@
    [app]
    (. js/document (getElementById "root"))))
 
-
 (defn on-shake [evt] (trigger-toasty))
 
 (defn init! []
@@ -405,19 +428,28 @@
   (rf/dispatch-sync [::events/init-db])
   (init-routing!)
   (init-keybindings!)
+  (when (ios?)
+    (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
+    (rf/dispatch-sync [::audio-events/set-recording-enabled? false]))
   (. js/window (addEventListener "shake" on-shake false)))
 
+(defn- capture-stream [audio]
+  (cond
+    (-> audio .-captureStream) (. audio (captureStream))
+    (-> audio .-mozCaptureStream) (. audio (mozCaptureStream))
+    :else  nil))
 
 (defmethod aud/process-audio-event :canplaythrough
   [event]
   (println "handling canplaythrough event")
   (rf/dispatch-sync [::events/set-can-play? true])
   (let [audio @(rf/subscribe [::s/audio])
-        song-paused? @(rf/subscribe [::s/song-paused?])])
-  #_(when-let [_ (and)
-               @(rf/subscribe [::s/loop?])
-               @(rf/subscribe [::s/song-paused?])]
-      (play)))
+        output-mix @(rf/subscribe [::audio-subs/output-mix])
+        ctx @(rf/subscribe [::audio-subs/audio-context])
+        song-stream (capture-stream audio)
+        song-paused? @(rf/subscribe [::s/song-paused?])]
+    (rf/dispatch [::song-events/set-song-stream song-stream])))
+    ;; (play)))
 (defn ->ms [secs]
   (* 1000 secs))
 (defn ->secs [ms]
@@ -438,12 +470,12 @@
            (> (.-currentTime a) 0))
       (rf/dispatch [::song-events/set-first-playback-position-updated? true])
       (update-karaoke-player-status))))
-      
+
 (defmethod aud/process-audio-event :play
   [event]
   (println "play event"))
   ;; (update-karaoke-player-status))
-  
+
 (defmethod aud/process-audio-event :playing
   [event]
   (println "playing event")

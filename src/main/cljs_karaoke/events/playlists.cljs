@@ -56,3 +56,17 @@
     {:db new-db
      :dispatch [:cljs-karaoke.events.songs/trigger-load-song-flow
                 (pl/current (:playlist new-db))]})))
+
+(rf/reg-event-fx
+ ::move-song-up
+ (fn-traced
+  [{:keys [db]} [_ pos]]
+  {:db (-> db
+           (update :playlist #(pl/update-song-position % pos -1)))}))
+
+(rf/reg-event-fx
+ ::move-song-down
+ (fn-traced
+  [{:keys [db]} [_ pos]]
+  {:db (-> db
+           (update :playlist #(pl/update-song-position % pos 1)))}))
