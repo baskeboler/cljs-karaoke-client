@@ -50,9 +50,12 @@
 .current-frame .frame-text > span.highlighted .icon {
     color: black;
 }
-.contorl-panel {
+.control-panel {
+    background-color: rgba(255,255,255, 0.7);
     transition: all 2s ease-out;
- 
+    margin-top: 1.5em;
+    border: solid 1px white;
+    border-radius: 0.5em;
 }
 .control-panel.song-playing {
     display: none;

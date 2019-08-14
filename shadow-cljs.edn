@@ -37,7 +37,7 @@
                             :static-fns true}}
   :app  {:target           :browser
          :output-dir       "resources/public/js"
-         :asset-path       "public/js/."
+         :asset-path       "js/."
          :build-options    {:cache-level :on}
          :compiler-options {:static-fns         true
                             :infer-externs      :auto

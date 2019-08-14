@@ -4,6 +4,7 @@
 (def main-window (atom nil))
 
 (defn init-browser []
+  (println "Starting up your karaoke!")
   (reset! main-window ^js (BrowserWindow.
                             (clj->js {:width 800
                                       :height 600})))
@@ -17,6 +18,8 @@
             :productName "karaoke"
             :submitURL "https://example.com/submit-endpoint"
             :autoSubmit false}))
-  (.on ^js app "window-all-closed" #(when-not (= js/process.platform "darwin") (.quit ^js app)))
+  (.on ^js app "window-all-closed" #(when-not (= js/process.platform "darwin")
+                                      (println "Exiting.")
+                                      (.quit ^js app)))
   (.on ^js app "ready" init-browser))
 
