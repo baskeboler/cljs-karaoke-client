@@ -8,3 +8,4 @@ karaoke-darwin-x64/
 karaoke-linux-x64/
 karaoke-mas-x64/
 karaoke-win32-x64/
+resources/**/*.js
