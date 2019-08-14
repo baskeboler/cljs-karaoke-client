@@ -4,3 +4,7 @@ public/js/cljs-runtime
 public/js/main.js
 .nrepl-port
 public/js/manifest.edn
+karaoke-darwin-x64/
+karaoke-linux-x64/
+karaoke-mas-x64/
+karaoke-win32-x64/
