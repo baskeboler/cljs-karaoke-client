@@ -7,7 +7,7 @@
 
 [build]
   # base    = "site"
-  command = "npm run build"
+  command = "npm install && npm run build"
   # publish = ""
 
 # Production context: All deploys from the main
