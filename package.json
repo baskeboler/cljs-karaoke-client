@@ -3,13 +3,14 @@
   "repository": "https://github.com/baskeboler/cljs-karaoke-client",
   "version": "1.2.0",
   "description": "",
-  "main": "index.js",
+  "main": "./resources/karaoke.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "shadow-cljs watch app",
     "compile": "shadow-cljs compile app",
     "release": "shadow-cljs release app",
-    "start": "shadow-cljs watch app"
+    "start": "shadow-cljs watch app",
+    "build": "shadow-cljs release app main && electron-packager . karaoke --arch=x64 --platform=linux --overwrite"
   },
   "keywords": [],
   "author": "",
@@ -22,10 +23,13 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-flip-move": "^3.0.3",
+    "electron": "^6.0.2",
     "react-highlight.js": "^1.0.7",
     "shake.js": "^1.2.2"
   },
   "devDependencies": {
+    "electron": "^6.0.2",
+    "electron-packager": "^14.0.4",
     "shadow-cljs": "^2.8.45"
   }
 }

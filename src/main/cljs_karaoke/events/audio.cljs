@@ -272,7 +272,7 @@
   [{:keys [db]} _]
   {:db db
    :http-xhrio {:method :get
-                :uri  "/media/cardiod-rear-levelled.wav"
+                :uri  "media/cardiod-rear-levelled.wav"
                 :timeout 5000
                 :response-format (-> (ajax/raw-response-format)
                                      (assoc :type :arraybuffer))
