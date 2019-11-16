@@ -660,7 +660,8 @@
             [:td [:a
                   {:href (str "#/songs/" name)}
                   ;; :on-click #(select-fn name)}
-                  "Load song"]]
+                  [:i.fas.fa-play]]]
+                  ;; "Load song"]]
             (when @remote-control-enabled?
               [:td
                [:a

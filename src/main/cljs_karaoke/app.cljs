@@ -237,7 +237,7 @@
       [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
        (rf/subscribe [::audio-subs/recording-button-enabled?])]])
    [:div.control
-    [icon-button "forward" "info" #(do
+    [icon-button "step-forward" "info" #(do
                                      (stop)
                                      (rf/dispatch [::playlist-events/playlist-next]))]]])
 
