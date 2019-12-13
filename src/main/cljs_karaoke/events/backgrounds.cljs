@@ -6,7 +6,7 @@
             [ajax.core :as ajax]
             [day8.re-frame.async-flow-fx]))
 
-(defonce fetch-bg-from-web-enabled? false)
+(defonce fetch-bg-from-web-enabled? true)
 (def ^export wallpapers
   ["wp1.jpg"
    "Dolphin.jpg"
