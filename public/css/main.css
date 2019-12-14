@@ -43,7 +43,7 @@
 .current-frame .frame-text > span.highlighted {
     color: red;
     opacity: 1;
-    font-size: 1.05em;
+    /* font-size: 1.05em; */
     transform: translate(10px, 50px);
 }
 
