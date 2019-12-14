@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css?family=Chewy&display=swap');
 
 .current-frame  {
     position: fixed;
@@ -37,7 +38,7 @@
     /* transition: all 0.2s ease-out; */
     color: black;
     transition: all 0.5s ease-out;
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Chewy', cursive;
     text-shadow:  -2px -2px 1px #eee;
 }
 .current-frame .frame-text > span.highlighted {
@@ -226,6 +227,12 @@ nav.navbar>div.navbar-brand>a.navbar-item>object.header-logo {
     height: 2em;
 }
 
+@media screen and (min-width: 320px) {
+    .current-frame {
+        width: 90vw;
+    }
+}
+
 @media screen and (min-width: 1024px) {
     .notifications-container {
         position: fixed;
@@ -234,6 +241,7 @@ nav.navbar>div.navbar-brand>a.navbar-item>object.header-logo {
         width: 25vw;
     }
     .current-frame {
+        width: 70vw;
         font-size: 2rem;
     }
 

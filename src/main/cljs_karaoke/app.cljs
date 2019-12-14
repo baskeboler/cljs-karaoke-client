@@ -175,17 +175,20 @@
                :margin "2em 2em"})
 
 (def time-display-style
-  {:position :fixed
-   :display :block
-   :color :white
-   :font-weight :bold
-   :top 0
-   :left "50%"
-   :transform "translate(-50%)"
-   :margin "1em"
-   :border-radius ".5em"
-   :padding "0.5em"
-   :background-color "rgba(0,0,0, 0.3)"})
+  {:position         :fixed
+   :display          :block
+   :color            :white
+   :font-weight      :bold
+   :top              0
+   :margin           "0.1em"
+   :border-radius    ".5em"
+   :padding          "0.5em"
+   :background-color "rgba(0,0,0, 0.3)"
+   ::stylefy/media   {{:min-width "320px"} {:left        0
+                                            :margin-left "0.1em"}
+                      {:min-width "640px"} {:left      "50%"
+                                            :margin    " 1em"
+                                            :transform "translate(-50%)"}}})
 
 (defn song-time-display [^double ms]
   (let [secs (-> ms
