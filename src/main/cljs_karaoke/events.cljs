@@ -108,6 +108,7 @@
                   :display-home-button? true
          ;; :playlist (pl/build-playlist)
                   :navbar-menu-active? false
+                  :fetch-bg-from-web-enabled? true
                   :modals []
                   :notifications []}
     ;; :dispatch-n [[::fetch-custom-delays]

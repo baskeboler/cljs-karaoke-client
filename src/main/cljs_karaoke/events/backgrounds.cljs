@@ -73,14 +73,15 @@
  ;; ::update-bg-image
  (fn-traced
   [{:keys [db]} [_ title]]
-  (let [cached (get-in db [:song-backgrounds title] nil)]
+  (let [cached             (get-in db [:song-backgrounds title] nil)
+        search-bg-enabled? (get-in db [:fetch-bg-from-web-enabled?])]
     (merge
-     {:db db
+     {:db         db
       :async-flow (update-song-bg-flow)}
      (cond
-       (not (nil? cached))        {:dispatch [::set-cached-bg cached]}
-       fetch-bg-from-web-enabled? {:dispatch [::search-images title [::handle-fetch-bg-success title] ::handle-fetch-bg-failure]}
-       :else                      {:dispatch [::set-random-bg-image]})))))
+       (not (nil? cached)) {:dispatch [::set-cached-bg cached]}
+       search-bg-enabled?  {:dispatch [::search-images title [::handle-fetch-bg-success title] ::handle-fetch-bg-failure]}
+       :else               {:dispatch [::set-random-bg-image]})))))
 
 (rf/reg-event-fx
  ::set-cached-bg
@@ -119,12 +120,22 @@
                   (when-not (nil? candidate-image) [::cache-song-bg-image title (:url candidate-image)])
                   (when (nil? candidate-image) [::set-random-bg-image])]})))
 
+(rf/reg-event-db
+ ::set-fetch-bg-from-web
+ (fn-traced
+  [db [_ value]]
+  (-> db
+      (assoc :fetch-bg-from-web-enabled? false))))
+
 (rf/reg-event-fx
  ::handle-fetch-bg-failure
  (fn-traced
   [{:keys [db]} [_ err]]
+  (. js/console (log "Failed to fetch bg from web" err))
   {:db db
-   :dispatch [::set-random-bg-image]}))
+   :dispatch-n [
+                [::set-fetch-bg-from-web false]
+                [::set-random-bg-image]]}))
 
 (rf/reg-event-fx
  ::generate-bg-css
