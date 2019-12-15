@@ -1,22 +1,10 @@
-(ns cljs-karaoke.playlists)
-
+(ns cljs-karaoke.playlists
+  (:require [cljs-karaoke.protocols :as protocols
+             :refer [Playlist Storable add-song remove-song next-song
+                     clear is-empty? current has-next? contains-song?
+                     songs update-song-position to-json from-json]]))
 (def empty-col? cljs.core/empty?)
 
-(defprotocol ^:export Playlist
-  (add-song [this song])
-  (remove-song [this pos])
-  (next-song [this])
-  (clear [this])
-  (is-empty? [this])
-  (current [this])
-  (has-next? [this])
-  (contains-song? [this song-name])
-  (songs [this])
-  (update-song-position [this pos dpos]))
-
-(defprotocol ^:export Storable
-  (to-json [this])
-  (from-json [this json]))
 
 (defrecord ^:export KaraokePlaylist [id created current songs]
   Playlist

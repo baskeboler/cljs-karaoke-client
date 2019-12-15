@@ -6,7 +6,8 @@
             [cljs-karaoke.subs :as subs]
             [cljs-karaoke.views.navbar :refer [navbar-component]]
             [cljs-karaoke.subs :as subs]
-            [cljs-karaoke.utils :as utils :refer [icon-button]]))
+            [cljs-karaoke.utils :as utils :refer [icon-button]]
+            [cljs-karaoke.protocols :as protocols]))
 (defn playlist-controls [i song]
   [:div.playlist-controls.field.has-addons])
 
@@ -35,7 +36,7 @@
         [:th "#"] [:th "Song"] [:th "Action"]]
        [:tbody
         (doall
-         (for [[i s] (mapv vector (map inc (range)) (playlists/songs @pl))]
+         (for [[i s] (mapv vector (map inc (range)) (protocols/songs @pl))]
            ^{:key (str "playlist-row-" i)}
            [:tr
             {:class (if (= @current s) "is-selected" "")}

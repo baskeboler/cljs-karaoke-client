@@ -5,7 +5,8 @@
             [ajax.core :as ajax]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.common :as common-events]
-            [cljs.tools.reader.edn :as reader]))
+            [cljs.tools.reader.edn :as reader]
+            [cljs-karaoke.lyrics :as l]))
 
 (defn load-lyrics-flow []
   {:rules [{:when :seen-any-of?
@@ -34,10 +35,12 @@
  ::handle-fetch-lyrics-success
  (fn-traced
   [{:keys [db]} [_ response]]
-  (let [lyrics (-> response
-                   (reader/read-string))
+  (let [lyrics (->> response
+                    (reader/read-string)
+                    (map #(l/create-frame %)))
         new-db (-> db
-                   (assoc :lyrics lyrics)
+                   (assoc :lyrics (vec lyrics))
+                   (assoc :song (l/create-song (:current-song db) (vec (->> response reader/read-string))))
                    (assoc :lyrics-fetching? false)
                    (assoc :lyrics-loaded? true))]
      {:db new-db})))

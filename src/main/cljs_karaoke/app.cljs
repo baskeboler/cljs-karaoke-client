@@ -3,6 +3,7 @@
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
+            [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
             [cljs-karaoke.remote-control :as remote-control]
@@ -136,26 +137,28 @@
        (println "Finished lyrics play go-block"))
      frame-chan))
   ([frames] (play-lyrics-2 frames 0)))
+
+
 (defn current-frame-display []
   (let [frame (rf/subscribe [::s/current-frame])]
     (when (and
-           @frame
+           ((comp not nil?) @frame)
            (not (str/blank? (frame-text-string @frame))))
       [:div.current-frame
-       [frame-text @(rf/subscribe [::s/current-frame])]])))
+       [frame-text @frame]])))
 
 (defn select-current-frame [frames ms]
   (let [previous-frames (filter #(<= (:offset %) ms) frames)
-        latest-offset (apply max (map :offset previous-frames))
-        latest (first (filter #(= (:offset %) latest-offset) previous-frames))]
+        latest-offset   (apply max (map :offset previous-frames))
+        latest          (first (filter #(= (:offset %) latest-offset) previous-frames))]
     latest))
 
 (defn seek [offset]
-  (let [player-status (rf/subscribe [::s/player-status])
-        audio (rf/subscribe [::s/audio])
+  (let [player-status    (rf/subscribe [::s/player-status])
+        audio            (rf/subscribe [::s/audio])
         highlight-status (rf/subscribe [::s/highlight-status])
-        frames (rf/subscribe [::s/lyrics])
-        pos (rf/subscribe [::s/player-current-time])]
+        frames           (rf/subscribe [::s/lyrics])
+        pos              (rf/subscribe [::s/player-current-time])]
     (when-not (nil? @player-status)
       (async/close! @player-status))
     (doseq [c @highlight-status]
@@ -163,16 +166,16 @@
     (rf/dispatch-sync [::events/set-player-status
                        (play-lyrics-2 @frames (+ (* 1000 @pos) offset))])
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
-(def centered {:position :fixed
-               :display :block
-               :top "50%"
-               :left "50%"
+(def centered {:position  :fixed
+               :display   :block
+               :top       "50%"
+               :left      "50%"
                :transform "translate(-50%, -50%)"})
 (def top-left {:position :fixed
-               :display :block
-               :top 0
-               :left 0
-               :margin "2em 2em"})
+               :display  :block
+               :top      0
+               :left     0
+               :margin   "2em 2em"})
 
 (def time-display-style
   {:position         :fixed
@@ -191,15 +194,15 @@
                                             :transform "translate(-50%)"}}})
 
 (defn song-time-display [^double ms]
-  (let [secs (-> ms
-                 (/ 1000.0)
-                 (mod 60.0)
-                 long)
-        mins (-> ms
-                 (/ 1000.0)
-                 (/ (* 60.0 1.0))
-                 (mod 60.0)
-                 long)
+  (let [secs  (-> ms
+                  (/ 1000.0)
+                  (mod 60.0)
+                  long)
+        mins  (-> ms
+                  (/ 1000.0)
+                  (/ (* 60.0 1.0))
+                  (mod 60.0)
+                  long)
         hours (-> ms
                   (/ 1000.0)
                   (/ (* 60.0 60.0 1.0))
@@ -219,8 +222,8 @@
 
 (def top-right
   {:position :absolute
-   :top "0.5em"
-   :right "0.5em"})
+   :top      "0.5em"
+   :right    "0.5em"})
 
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
@@ -241,8 +244,8 @@
        (rf/subscribe [::audio-subs/recording-button-enabled?])]])
    [:div.control
     [icon-button "step-forward" "info" #(do
-                                     (stop)
-                                     (rf/dispatch [::playlist-events/playlist-next]))]]])
+                                          (stop)
+                                          (rf/dispatch [::playlist-events/playlist-next]))]]])
 
 (defn playback-view []
   [:div.playback-view
@@ -302,17 +305,17 @@
     (when-let [_ (rf/subscribe [::s/initialized?])]
       [:div (stylefy/use-style
              (merge
-              {:position :fixed
-               :bottom "-474px"
-               :left "0"
-               :opacity 0
-               :z-index 2
-               :display :block
+              {:position   :fixed
+               :bottom     "-474px"
+               :left       "0"
+               :opacity    0
+               :z-index    2
+               :display    :block
                :transition "all 0.5s ease-in-out"}
-              (if @toasty {:bottom "0px"
+              (if @toasty {:bottom  "0px"
                            :opacity 1})))
-       [:audio {:id "toasty-audio"
-                :src "media/toasty.mp3"
+       [:audio {:id    "toasty-audio"
+                :src   "media/toasty.mp3"
                 :style {:display :none}}]
        [:img {:src "images/toasty.png" :alt "toasty"}]])))
 
@@ -322,13 +325,13 @@
     (rf/dispatch [::events/trigger-toasty])))
 
 (def logo-bg-style
-  {:position :fixed
-   :top "50%"
-   :left "50%"
-   :max-width "80vw"
+  {:position   :fixed
+   :top        "50%"
+   :left       "50%"
+   :max-width  "80vw"
    :max-height "80vh"
-   :transform "translate(-50%,-50%)"
-   :opacity 0.5})
+   :transform  "translate(-50%,-50%)"
+   :opacity    0.5})
 
 (defn app []
   [:div.app

@@ -1,6 +1,7 @@
 (ns cljs-karaoke.events.playlists
   (:require [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.playlists :as pl]
+            [cljs-karaoke.protocols :as protocols]
             [day8.re-frame.tracing :refer-macros [fn-traced]]))
 
 
@@ -18,18 +19,18 @@
   [{:keys [db]} _]
   {:db db
    :dispatch (if-not (nil? (:playlist db))
-               [:cljs-karaoke.events/set-current-song (pl/current (:playlist db))]
+               [:cljs-karaoke.events/set-current-song (protocols/current (:playlist db))]
                [::playlist-load])}))
 
 (rf/reg-event-fx
  ::add-song
  (fn-traced
   [{:keys [db]} [_ song-name]]
-  {:db (if-not (pl/contains-song? (:playlist db) song-name)
+  {:db (if-not (protocols/contains-song? (:playlist db) song-name)
          (do
            (println "song not in playlist, adding.")
            (-> db
-               (update :playlist pl/add-song song-name)))
+               (update :playlist protocols/add-song song-name)))
          (do
            (println "song already in playlist, skipping")
            db))}))
@@ -52,21 +53,21 @@
  (fn-traced
   [{:keys [db]} _]
   (let [new-db (-> db
-                   (update :playlist pl/next-song))]
+                   (update :playlist protocols/next-song))]
     {:db new-db
      :dispatch [:cljs-karaoke.events.songs/trigger-load-song-flow
-                (pl/current (:playlist new-db))]})))
+                (protocols/current (:playlist new-db))]})))
 
 (rf/reg-event-fx
  ::move-song-up
  (fn-traced
   [{:keys [db]} [_ pos]]
   {:db (-> db
-           (update :playlist #(pl/update-song-position % pos -1)))}))
+           (update :playlist #(protocols/update-song-position % pos -1)))}))
 
 (rf/reg-event-fx
  ::move-song-down
  (fn-traced
   [{:keys [db]} [_ pos]]
   {:db (-> db
-           (update :playlist #(pl/update-song-position % pos 1)))}))
+           (update :playlist #(protocols/update-song-position % pos 1)))}))
