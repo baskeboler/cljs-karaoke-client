@@ -50,10 +50,10 @@
  (fn [db _]
    (:current-song db)))
 
-(rf/reg-sub
- ::player-status
- (fn [db _]
-   (:player-status db)))
+;; (rf/reg-sub
+ ;; ::player-status
+ ;; (fn [db _]
+   ;; (:player-status db)))
 
 (rf/reg-sub
  ::highlight-status

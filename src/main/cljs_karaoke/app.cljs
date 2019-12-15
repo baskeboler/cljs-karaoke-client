@@ -66,29 +66,6 @@
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
-(defn return-after-timeout [obj delay]
-  (let [ret-chan (chan)]
-    (go
-      (when  (>= delay 0)
-        (<! (timeout delay)))
-      (>! ret-chan obj))
-    ret-chan))
-
-(defn highlight-parts-2 [frame player-id]
-  (let [part-chan (chan)
-        current-status-id (rf/subscribe [::s/player-status-id])
-        current-frame (rf/subscribe [::s/current-frame])
-        part-tos (->> (:events frame)
-                      (mapv (fn [evt]
-                              (return-after-timeout evt (:offset evt)))))]
-    (rf/dispatch-sync [::events/set-highlight-status part-tos])
-    (go
-      (doseq [_ (range (count part-tos))
-              :let [[v ch] (async/alts! part-tos)]
-              :while (and v (= player-id @current-status-id))]
-        (when (= player-id @current-status-id)
-          (rf/dispatch-sync [::events/highlight-frame-part (:id frame) (:id v)]))))))
-
 (defn song-progress []
   (let [dur (rf/subscribe [::s/song-duration])
         cur (rf/subscribe [::s/song-position])]
@@ -100,44 +77,6 @@
               (long (* 100 (/ @cur @dur)))
               0) "%")])))
 
-(defn play-lyrics-2
-  ([frames offset]
-   (let [frame-chan (chan 1000)
-         part-chan (chan 10)
-         status-id (random-uuid)
-         remaining-frames (drop-while #(< (:offset %) offset) frames)
-         current-frame (last (take-while #(< (:offset %) offset) frames))
-         current-player-status-id (rf/subscribe [::s/player-status-id])
-         song (rf/subscribe [::s/current-song])
-         song-delay (rf/subscribe [::s/custom-song-delay @song])
-         frames-tos (mapv (fn [fr]
-                            (return-after-timeout
-                             fr
-                             (+ @song-delay
-                                (- (:offset fr)
-                                   offset))))
-                          remaining-frames)]
-     (rf/dispatch-sync [::song-events/set-player-status-id status-id])
-     (rf/dispatch-sync [::events/set-current-frame current-frame])
-     (go
-       (doseq [_ (range (count remaining-frames))
-               :let [[v ch] (async/alts! (conj frames-tos frame-chan) {:priority true})]
-               :while (and
-                       (not @(rf/subscribe [::s/song-paused?]))
-                       (not (nil? v))
-                       (not= frame-chan ch)              ;; (into frame-tos [frame-chan]))]]
-                       (= @current-player-status-id status-id))]
-         (case ch
-           frame-chan (doseq [c frames-tos]
-                        (async/close! c))
-           (do
-             (println "Dispatching frame")
-             (rf/dispatch-sync [::events/set-current-frame v])
-             (highlight-parts-2 v status-id))))
-       (println "Finished lyrics play go-block"))
-     frame-chan))
-  ([frames] (play-lyrics-2 frames 0)))
-
 
 (defn current-frame-display []
   (let [frame (rf/subscribe [::s/current-frame])]
@@ -147,24 +86,11 @@
       [:div.current-frame
        [frame-text @frame]])))
 
-(defn select-current-frame [frames ms]
-  (let [previous-frames (filter #(<= (:offset %) ms) frames)
-        latest-offset   (apply max (map :offset previous-frames))
-        latest          (first (filter #(= (:offset %) latest-offset) previous-frames))]
-    latest))
-
 (defn seek [offset]
-  (let [player-status    (rf/subscribe [::s/player-status])
-        audio            (rf/subscribe [::s/audio])
-        highlight-status (rf/subscribe [::s/highlight-status])
-        frames           (rf/subscribe [::s/lyrics])
+  (let [audio            (rf/subscribe [::s/audio])
         pos              (rf/subscribe [::s/player-current-time])]
-    (when-not (nil? @player-status)
-      (async/close! @player-status))
-    (doseq [c @highlight-status]
-      (async/close! c))
-    (rf/dispatch-sync [::events/set-player-status
-                       (play-lyrics-2 @frames (+ (* 1000 @pos) offset))])
+    ;; (when-not (nil? @player-status)
+      ;; (async/close! @player-status)
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
 (def centered {:position  :fixed
                :display   :block
@@ -364,7 +290,7 @@
     (songs/load-song song)
     (when-some [offset (:offset query-params)]
       (rf/dispatch-sync [::events/set-lyrics-delay (long offset)]))
-      ;; (rf/dispatch-sync [::events/set-custom-song-delay song (long offset)]))
+      ;; (rf/dispatch [::events/set-custom-song-delay song (long offset)]))
     (when-some [show-opts? (:show-opts query-params)]
       (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
 
@@ -461,26 +387,11 @@
 (defn ->secs [ms]
   (/ (double ms) 1000.0))
 
-(defn update-karaoke-player-status []
-  (let [current-time (rf/subscribe [::s/player-current-time])
-        lyrics (rf/subscribe [::s/lyrics])
-        new-status (play-lyrics-2 @lyrics (->ms @current-time))]
-    (rf/dispatch-sync [::events/set-player-status new-status])))
 
 (defmethod aud/process-audio-event :timeupdate
   [event]
   (when-let [a @(rf/subscribe [::s/audio])]
-    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])
-    (when (and
-           (not @(rf/subscribe [::s/first-playback-position-updated?]))
-           (> (.-currentTime a) 0))
-      (rf/dispatch [::song-events/set-first-playback-position-updated? true])
-      (update-karaoke-player-status))))
-
-(defmethod aud/process-audio-event :play
-  [event]
-  (println "play event"))
-  ;; (update-karaoke-player-status))
+    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])))
 
 (defmethod aud/process-audio-event :playing
   [event]

@@ -31,7 +31,7 @@
            :events [::audio-stopped ::audio-events-closed]
            :dispatch-n [
                         ;; [::events/set-audio-events nil]
-                        [::events/set-current-frame nil]
+                        ;; [::events/set-current-frame nil]
                         [::events/set-lyrics nil]
                         [::events/set-lyrics-loaded?false]]]})
 
@@ -103,10 +103,10 @@
   (. js/console (log "setup audio complete!"))
   db))
 
-(rf/reg-event-db
- ::set-player-status-id
- (fn-traced [db [_ id]]
-    (-> db (assoc :player-status-id id))))
+;; (rf/reg-event-db
+;;  ::set-player-status-id
+;;  (fn-traced [db [_ id]]
+;;     (-> db (assoc :player-status-id id))))
 
 (rf/reg-event-db
  ::set-first-playback-position-updated?

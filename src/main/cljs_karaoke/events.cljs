@@ -90,9 +90,9 @@
                   :audio-events nil
                   :display-lyrics? false
                   :current-song nil
-                  :player-status nil
+                  ;; :player-status nil
                   :can-play? false
-                  :highlight-status nil
+                  ;; :highlight-status nil
                   :playing? false
                   :toasty? false
                   :player-current-time 0
@@ -292,7 +292,7 @@
 (reg-set-attr ::set-loop? :loop?)
 (reg-set-attr ::set-audio-events :audio-events)
 (reg-set-attr ::set-song-duration :song-duration)
-(reg-set-attr ::set-current-frame :current-frame)
+;; (reg-set-attr ::set-current-frame :current-frame)
 (reg-set-attr ::set-audio :audio)
 (reg-set-attr ::set-lyrics :lyrics)
 (reg-set-attr ::set-lyrics-delay :lyrics-delay)
@@ -321,8 +321,8 @@
                 ;; [::fetch-bg song-name]
                 [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
 
-(reg-set-attr ::set-player-status :player-status)
-(reg-set-attr ::set-highlight-status :highlight-status)
+;; (reg-set-attr ::set-player-status :player-status)
+;; (reg-set-attr ::set-highlight-status :highlight-status)
 
 (rf/reg-event-fx
  ::play
@@ -331,22 +331,6 @@
   {:db (-> db
            (assoc :playing? true))}))
 
-(defn highlight-if-same-id [id]
-  (fn [evt]
-    (if (= id (:id evt))
-      (assoc evt :highlighted? true)
-      evt)))
-
-(rf/reg-event-db
- ::highlight-frame-part
- (fn-traced [db [_ frame-id part-id]]
-            (if (and  (get db :current-frame)
-                      (= frame-id (:id (get db :current-frame))))
-              (-> db
-                  (update-in [:current-frame :events]
-                             (fn [evts]
-                               (mapv (highlight-if-same-id part-id) evts))))
-              db)))
 
 
 (rf/reg-event-fx
