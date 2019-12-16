@@ -1,5 +1,6 @@
 (ns cljs-karaoke.views.lyrics
   (:require [clojure.string :as str]
+            [goog.string :as gstr]
             [stylefy.core :as stylefy]
             [re-frame.core :as rf]
             [cljs-karaoke.lyrics :as l]
@@ -8,7 +9,9 @@
 (defn- clean-text [t]
   (-> t
       (str/replace #"/" "")
-      (str/replace #"\\" "")))
+      (str/replace #"\\" "")
+      (str/replace #" " "&#160;")
+      (gstr/unescapeEntities)))
 (defn- leading? [t]
   (or (str/starts-with? t "/")
       (str/starts-with? t "\\")))

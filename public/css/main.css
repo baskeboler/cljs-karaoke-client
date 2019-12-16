@@ -50,7 +50,7 @@
 }
 
 .current-frame .frame-text > span {
-    display: inline-blcok;
+    display: inline-block;
     /* position: relative; */
     opacity: 0.6;
     /* transition: all 0.5s ease-in-out; */
@@ -63,14 +63,15 @@
 
 
 .current-frame .frame-text > span.highlighted {
-    display: contents;
+    display: inline-block;
     color: red;
     /* opacity: 1; */
     /* transition: all 0.5s ease-in-out; */
     /* font-size: 1.05em; */
     /* transform: translate(10px, 50px); */
-    -webkit-animation: pulsate-bck 0.5s ease-in-out both;
-    animation: pulsate-bck 0.5s ease-in-out both;
+    -webkit-animation: pulsate-fwd 0.5s ease-in-out both;
+    animation: pulsate-fwd 0.5s ease-in-out both;
+    /* animation: bounce-top 0.5s ease both; */
 }
 
 
