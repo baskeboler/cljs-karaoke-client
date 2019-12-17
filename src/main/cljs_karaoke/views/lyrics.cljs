@@ -26,7 +26,8 @@
         delay        (rf/subscribe [::subs/lyrics-delay])
         current-time (rf/subscribe [::subs/player-current-time])]
     ;; (fn []
-      [:div.frame-text
+    [:div.frame-text
+       {:key (str "frame-" (:id frame))}
        (doall
         (for [e    (vec (:events frame))
               :let [span-text (clean-text (p/get-text e))

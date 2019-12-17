@@ -55,7 +55,7 @@
        [:h3 "Playlist is unavailable"]])))
 
 (defn ^export playlist-view-component []
-  [:div.playlist-view.container>div.columns
+  [:div.playlist-view.container.puff-in-hor.slide-out-top>div.columns
    [:div.column
     [:p.title "Playlist Mode"]
     [playlist-component]]])

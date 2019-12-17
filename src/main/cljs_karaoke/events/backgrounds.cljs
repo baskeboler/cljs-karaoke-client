@@ -2,17 +2,12 @@
   (:require [re-frame.core :as rf :include-macros true]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [cljs-karaoke.search :as search]
+            [cljs-karaoke.styles :refer [wallpapers]]
             [cljs-karaoke.events.common :as common-events]
             [ajax.core :as ajax]
             [day8.re-frame.async-flow-fx]))
 
 ;; (defonce fetch-bg-from-web-enabled? true)
-(def ^export wallpapers
-  ["wp1.jpg"
-   "Dolphin.jpg"
-   "wp2.jpg"
-   "wp3.jpg"
-   "wp4.jpg"])
 
 (defn rand-wallpaper []
   (->> wallpapers

@@ -8,7 +8,7 @@
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
             [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events :as events]
-            [cljs-karaoke.events.backgrounds :as bg-events :refer [wallpapers]]
+            [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.views :as views-events]
@@ -42,6 +42,10 @@
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.animation :refer [logo-animation]]
             [cljs-karaoke.svg.waveform :as waves]
+            [cljs-karaoke.styles :as styles
+             :refer [time-display-style centered
+                     top-left parent-style
+                     top-right logo-bg-style]]
             ["shake.js" :as Shake])
   (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
   (:import goog.History))
@@ -58,11 +62,6 @@
 (.start shake)
 
 (defonce my-shake-event (Shake. (clj->js {:threshold 15 :timeout 1000})))
-
-(def parent-style
-  {:transition "background-image 1s ease-out"
-   :background-size "cover"
-   :background-image (str "url(\"images/" (first wallpapers) "\")")})
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
@@ -92,33 +91,6 @@
     ;; (when-not (nil? @player-status)
       ;; (async/close! @player-status)
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
-(def centered {:position  :fixed
-               :display   :block
-               :top       "50%"
-               :left      "50%"
-               :transform "translate(-50%, -50%)"})
-(def top-left {:position :fixed
-               :display  :block
-               :top      0
-               :left     0
-               :margin   "2em 2em"})
-
-(def time-display-style
-  {:position         :fixed
-   :display          :block
-   :color            :white
-   :font-weight      :bold
-   :top              0
-   :margin           "0.1em"
-   :border-radius    ".5em"
-   :padding          "0.5em"
-   :background-color "rgba(0,0,0, 0.3)"
-   ::stylefy/media   {{:min-width "320px"} {:left        0
-                                            :margin-left "0.1em"}
-                      {:min-width "640px"} {:left      "50%"
-                                            :margin    " 1em"
-                                            :transform "translate(-50%)"}}})
-
 (defn song-time-display [^double ms]
   (let [secs  (-> ms
                   (/ 1000.0)
@@ -145,11 +117,6 @@
      [:span.minutes mins] ":"
      [:span.seconds secs] "."
      [:span.milis (-> ms (mod 1000) long)]]))
-
-(def top-right
-  {:position :absolute
-   :top      "0.5em"
-   :right    "0.5em"})
 
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
@@ -250,15 +217,6 @@
     (.play a)
     (rf/dispatch [::events/trigger-toasty])))
 
-(def logo-bg-style
-  {:position   :fixed
-   :top        "50%"
-   :left       "50%"
-   :max-width  "80vw"
-   :max-height "80vh"
-   :transform  "translate(-50%,-50%)"
-   :opacity    0.5})
-
 (defn app []
   [:div.app
    (when @(rf/subscribe [::s/navbar-visible?])
@@ -267,7 +225,7 @@
    [notifications/notifications-container-component]
    [utils/modals-component]
    [page-loader/page-loader-component]
-   [:div.app-bg (stylefy/use-style (merge parent-style @bg-style))]
+   [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
    [logo-animation]
    (when-let [_ (and
                  @(rf/subscribe [::s/initialized?])
@@ -327,11 +285,11 @@
                (println "esc pressed!")
                (cond
                  (not (empty? @(rf/subscribe [::s/modals]))) (rf/dispatch [::modal-events/modal-pop])
-                 :else (do
-                         (when-let [_ @(rf/subscribe [::s/loop?])]
-                           (rf/dispatch-sync [::events/set-loop? false]))
-                         (when-not (nil? @(rf/subscribe [::s/player-status]))
-                           (stop))))))
+                 :else                                       (do
+                                                               (when-let [_ @(rf/subscribe [::s/loop?])]
+                                                                 (rf/dispatch-sync [::events/set-loop? false]))
+                                                               (when-not (nil? @(rf/subscribe [::s/player-status]))
+                                                                 (stop))))))
   (key/bind! "l r" ::l-r-kb #(songs/load-song))
   (key/bind! "alt-o" ::alt-o #(rf/dispatch [::views-events/set-view-property :playback :options-enabled? true]))
   (key/bind! "alt-h" ::alt-h #(rf/dispatch [::views-events/view-action-transition :go-to-home]))
