@@ -2,6 +2,8 @@
   (:require [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.protocols :as protocols]
+            ;; [cljs-karaoke.events :as events]
+            ;; [cljs-karaoke.events.songs :as song-events]
             [day8.re-frame.tracing :refer-macros [fn-traced]]))
 
 
@@ -19,8 +21,16 @@
   [{:keys [db]} _]
   {:db db
    :dispatch (if-not (nil? (:playlist db))
-               [:cljs-karaoke.events/set-current-song (protocols/current (:playlist db))]
+               [:cljs-karaoke.events.songs/trigger-load-song-flow  (protocols/current (:playlist db))]
                [::playlist-load])}))
+
+(rf/reg-event-fx
+ ::jump-to-playlist-position
+ (fn-traced
+  [{:keys [db]} [_ position]]
+  {:db (-> db
+           (update :playlist assoc :current position))
+   :dispatch [::set-current-playlist-song]}))
 
 (rf/reg-event-fx
  ::add-song

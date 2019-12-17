@@ -48,7 +48,10 @@
                            (->> (concat (take new-pos song-list)
                                         [moved]
                                         (drop new-pos song-list))
-                                (into [])))))))
+                                (into [])))))
+        (update :current (fn [c] (if (= pos c)
+                                  (+ pos d)
+                                  c)))))
   (remove-song [this pos]
     (-> this
         (update :songs (fn [song-list]

@@ -122,6 +122,10 @@
  (fn [db _]
    (:song-duration db)))
 
+(rf/reg-sub
+ ::song-playing?
+ (fn [db _]
+   (:playing? db)))
 
 (rf/reg-sub
  ::custom-song-delay
@@ -235,9 +239,9 @@
  ::display-home-button?
  (fn [db _] (:display-home-button? db)))
 
-(rf/reg-sub
- ::first-playback-position-updated?
- (fn [db _] (:first-playback-position-updated? db)))
+;; (rf/reg-sub
+ ;; ::first-playback-position-updated?
+ ;; (fn [db _] (:first-playback-position-updated? db)))
 
 (rf/reg-sub
  ::notifications

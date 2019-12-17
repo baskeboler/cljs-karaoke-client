@@ -28,7 +28,7 @@
             [goog.history.EventType :as EventType]
             [keybind.core :as key]
             [clojure.string :as str]
-            ["bulma-extensions"]
+            ;; ["bulma-extensions"]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.audio-input :refer [enable-audio-input-button spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
@@ -180,7 +180,7 @@
       [song-progress]])])
 
 (defn default-view []
-  [:div.default-view.container
+  [:div.default-view.container-fluid
    [control-panel]
    [:button.button.is-danger.edge-stop-btn
     {:class (if @(rf/subscribe [::s/song-paused?])
@@ -227,13 +227,14 @@
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
    [logo-animation]
+   ;; [:div.page-content.roll-in-blurred-top
    (when-let [_ (and
-                 @(rf/subscribe [::s/initialized?])
-                 @(rf/subscribe [::s/current-view]))]
-     (condp = @(rf/subscribe [::s/current-view])
-       :home [default-view]
-       :playback [playback-view]
-       :playlist [playlist-view-component]))])
+                   @(rf/subscribe [::s/initialized?])
+                   @(rf/subscribe [::s/current-view]))]
+       (condp = @(rf/subscribe [::s/current-view])
+         :home [default-view]
+         :playback [playback-view]
+         :playlist [playlist-view-component]))])
 
 (defn init-routing! []
   (secretary/set-config! :prefix "#")
@@ -285,11 +286,12 @@
                (println "esc pressed!")
                (cond
                  (not (empty? @(rf/subscribe [::s/modals]))) (rf/dispatch [::modal-events/modal-pop])
-                 :else                                       (do
-                                                               (when-let [_ @(rf/subscribe [::s/loop?])]
-                                                                 (rf/dispatch-sync [::events/set-loop? false]))
-                                                               (when-not (nil? @(rf/subscribe [::s/player-status]))
-                                                                 (stop))))))
+                 :else
+                 (do
+                   (when-let [_ @(rf/subscribe [::s/loop?])]
+                     (rf/dispatch-sync [::events/set-loop? false]))
+                   (when  @(rf/subscribe [::s/song-playing?])
+                     (stop))))))
   (key/bind! "l r" ::l-r-kb #(songs/load-song))
   (key/bind! "alt-o" ::alt-o #(rf/dispatch [::views-events/set-view-property :playback :options-enabled? true]))
   (key/bind! "alt-h" ::alt-h #(rf/dispatch [::views-events/view-action-transition :go-to-home]))

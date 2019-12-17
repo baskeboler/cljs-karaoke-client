@@ -37,8 +37,8 @@
     ;; (when-not (nil? @highlight-status)
       ;; (doseq [c @highlight-status]
         ;; (async/close! c))
-    (rf/dispatch-sync [::events/set-playing? false])
+    (rf/dispatch-sync [::events/set-playing? false])))
     ;; (rf/dispatch-sync [::events/set-highlight-status nil])
     ;; (rf/dispatch-sync [::events/set-player-status nil])
-    (rf/dispatch [::song-events/set-first-playback-position-updated? false])))
+    ;; (rf/dispatch [::song-events/set-first-playback-position-updated? false])))
     ;; (songs/load-song @current)))
