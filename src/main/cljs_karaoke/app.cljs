@@ -226,7 +226,7 @@
    [utils/modals-component]
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
-   [logo-animation]
+   ;; [logo-animation]
    ;; [:div.page-content.roll-in-blurred-top
    (when-let [_ (and
                    @(rf/subscribe [::s/initialized?])
