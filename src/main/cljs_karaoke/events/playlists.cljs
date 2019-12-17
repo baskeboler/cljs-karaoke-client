@@ -6,15 +6,14 @@
             ;; [cljs-karaoke.events.songs :as song-events]
             [day8.re-frame.tracing :refer-macros [fn-traced]]))
 
-
 (rf/reg-event-fx
  ::playlist-load
  (fn-traced
   [{:keys [db]} _]
   {:db db
-   :dispatch-later [{:ms 2000
-                     :dispatch [::set-current-playlist-song]}]}))
-
+   ;; :dispatch-later [{:ms 2000
+                     ;; :dispatch [::set-current-playlist-song]}))
+   :dispatch [::build-verified-playlist]}))
 (rf/reg-event-fx
  ::set-current-playlist-song
  (fn-traced
