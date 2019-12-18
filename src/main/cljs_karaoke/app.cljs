@@ -160,7 +160,9 @@
           [:i.fas.fa-cog.fa-3x]]])
       [:a
        (stylefy/use-style
-        centered
+        (merge
+         centered
+         {:z-index 500})
         {:on-click play})
        [:span.icon
         [:i.fas.fa-play.fa-5x]]]])

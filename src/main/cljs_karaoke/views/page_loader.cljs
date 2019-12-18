@@ -18,7 +18,7 @@
   {:position   :fixed
    :display    :block
    :background :lightpink
-   :z-index    10000
+   :z-index    1000
    :width      "100vw"
    :height     "100vh"
    :top        0
@@ -41,7 +41,8 @@
                        pageloader-styles
                        (if-not @(rf/subscribe [::subscriptions/pageloader-active?])
                          {:animation "slide-out-blurred-bottom 1s ease both"
-                          :animation-delay "1s"})))
+                          :animation-delay "1s"
+                          :z-index 100})))
    [:div
     (stylefy/use-style (merge
                         styles/centered
