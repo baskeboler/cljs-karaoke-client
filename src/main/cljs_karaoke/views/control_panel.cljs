@@ -26,20 +26,20 @@
 (defn toggle-song-list-btn []
   (let [visible? (rf/subscribe [::s/song-list-visible?])]
     [:button.button.is-fullwidth.tooltip
-     {:class (concat []
-                     (if @visible?
-                       ["is-selected"
-                        "is-success"]
-                       ["is-danger"]))
+     {:class        (concat []
+                            (if @visible?
+                              ["is-selected"
+                               "is-success"]
+                              ["is-danger"]))
       :data-tooltip "TOGGLE SONG LIST"
-      :on-click #(rf/dispatch [::song-list-events/toggle-song-list-visible])}
+      :on-click     #(rf/dispatch [::song-list-events/toggle-song-list-visible])}
      [:span.icon
       (if @visible?
         [:i.fas.fa-eye-slash];"Hide songs"
         [:i.fas.fa-eye])]])) ;"Show song list")]]))
 (defn save-custom-delay-btn []
   (let [selected (rf/subscribe [::s/current-song])
-        delay (rf/subscribe [::s/lyrics-delay])]
+        delay    (rf/subscribe [::s/lyrics-delay])]
     [:button.button.is-primary
      {:disabled (nil? @selected)
       :on-click #(when-not (nil? @selected)
@@ -48,8 +48,8 @@
 
 (defn export-sync-data-btn []
   [:button.button.is-info.tooltip
-   {:on-click (fn [_]
-                (utils/show-export-sync-info-modal))
+   {:on-click     (fn [_]
+                    (utils/show-export-sync-info-modal))
     :data-tooltip "EXPORT SYNC INFO"}
    [:span.icon
     [:i.fas.fa-file-export]]])
@@ -57,32 +57,32 @@
 
 (defn enable-remote-control-btn []
   [:button.button.is-info.tooltip
-   {:on-click (fn [_]
-                (if-not @(rf/subscribe [::relay-subs/http-relay-listener-id])
-                  (rf/dispatch-sync [::relay-events/init-http-relay-listener]))
-                (remote-control/show-remote-control-id))
+   {:on-click     (fn [_]
+                    (if-not @(rf/subscribe [::relay-subs/http-relay-listener-id])
+                      (rf/dispatch-sync [::relay-events/init-http-relay-listener]))
+                    (remote-control/show-remote-control-id))
     :data-tooltip "Remote Control information"}
    [:span.icon
     [:i.fas.fa-wifi]]])
 
 (defn camera-btn []
   [:button.button
-   {:on-click (fn [_]
-                (if-not @(rf/subscribe [::relay-subs/http-relay-listener-id])
-                  (rf/dispatch-sync [::relay-events/init-http-relay-listener]))
-                (remote-control/show-remote-control-id))
+   {:on-click     (fn [_]
+                    (if-not @(rf/subscribe [::relay-subs/http-relay-listener-id])
+                      (rf/dispatch-sync [::relay-events/init-http-relay-listener]))
+                    (remote-control/show-remote-control-id))
     :data-tooltip "Enabled camera"}
    [:span.icon>i.fa.fa-camera]])
 
 (defn remote-control-btn []
   [:button.button.is-info.tooltip
-   {:on-click (fn [_]
-                (remote-control/show-remote-control-settings))
+   {:on-click     (fn [_]
+                    (remote-control/show-remote-control-settings))
     :data-tooltip "Control Remote Karaoke"}
    [:span.icon
     [:i.fas.fa-satellite-dish]]])
 (defn info-table []
-  (let [current-song (rf/subscribe [::s/current-song])
+  (let [current-song   (rf/subscribe [::s/current-song])
         lyrics-loaded? (rf/subscribe [::s/lyrics-loaded?])]
     [:table.table.is-fullwidth
      [:tbody
@@ -108,10 +108,10 @@
     [:div.field
      [:div.control
       [:div.select.is-primary.is-fullwidth.delay-select
-       [:select {:value @delay
+       [:select {:value     @delay
                  :on-change #(rf/dispatch [::events/set-lyrics-delay (-> % .-target .-value (long))])}
         (for [v (vec (range -10000 10001 250))]
-          [:option {:key (str "opt_" v)
+          [:option {:key   (str "opt_" v)
                     :value v}
            v])]]]]))
 (defn toggle-display-lyrics []
@@ -120,23 +120,23 @@
 (defn toggle-display-lyrics-link []
   [:div.field>div.control
    [:a.button.is-info
-    {:href "#"
+    {:href     "#"
      :on-click toggle-display-lyrics}
     (if @(rf/subscribe [::s/display-lyrics?])
       "hide lyrics"
       "show lyrics")]])
 
 (defn control-panel []
-  (let [lyrics (rf/subscribe [::s/lyrics])
-        display-lyrics? (rf/subscribe [::s/display-lyrics?])
-        current-song (rf/subscribe [::s/current-song])
-        lyrics-loaded? (rf/subscribe [::s/lyrics-loaded?])
-        song-list-visible? (rf/subscribe [::s/song-list-visible?])
-        can-play? (rf/subscribe [::s/can-play?])
+  (let [lyrics                  (rf/subscribe [::s/lyrics])
+        display-lyrics?         (rf/subscribe [::s/display-lyrics?])
+        current-song            (rf/subscribe [::s/current-song])
+        lyrics-loaded?          (rf/subscribe [::s/lyrics-loaded?])
+        song-list-visible?      (rf/subscribe [::s/song-list-visible?])
+        can-play?               (rf/subscribe [::s/can-play?])
         remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])
-        input-available? (rf/subscribe [::audio-subs/audio-input-available?])
-        recording-enabled? (rf/subscribe [::audio-subs/recording-enabled?])]
-    [:div.control-panel.columns
+        input-available?        (rf/subscribe [::audio-subs/audio-input-available?])
+        recording-enabled?      (rf/subscribe [::audio-subs/recording-enabled?])]
+    [:div.control-panel.puff-in-hor.slide-out-top.columns
      {:class (if @(rf/subscribe [::s/song-paused?])
                ["song-paused"]
                ["song-playing"])}
@@ -153,14 +153,14 @@
         [:div.control
          [:button.button.is-info.tooltip
           (if @can-play?
-            {:on-click play
+            {:on-click     play
              :data-tooltip "PLAY"}
             {:disabled true})
           [:span.icon
            [:i.fas.fa-play]]]]
         [:div.control
          [:button.button.is-warning.stop-btn.tooltip
-          {:on-click stop
+          {:on-click     stop
            :data-tooltip "STOP"}
           [:span.icon
            [:i.fas.fa-stop]]]]

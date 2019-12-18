@@ -58,9 +58,11 @@
    [:div.control
     [:p.control
      [:a.button
-      {:class ["button" (str "is-" button-type)]
-       :disabled (not @enabled?)
-       :on-click callback}
+      {:class      ["button" (str "is-" button-type)]
+       :disabled   (not @enabled?)
+       :on-click   callback
+       :aria-label icon
+       :title      icon}
       [:span.icon.is-small
        [:i
         {:class ["fa" (str "fa-" icon)]}]]]]])

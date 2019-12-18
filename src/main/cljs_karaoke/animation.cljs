@@ -348,7 +348,7 @@
                      false))
     (stagger-out-opacity svg 11000 1000 200)))
 
-(defn logo-animation []
+(defn ^:export logo-animation []
   (let [l (reagent/atom nil)
         element-id (str (random-uuid))]
     (reagent/create-class

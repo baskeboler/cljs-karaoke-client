@@ -1,7 +1,8 @@
 (ns cljs-karaoke.subs
   (:require [re-frame.core :as rf :include-macros true]
-            [cljs-karaoke.playlists :as pl]))
-
+            [cljs-karaoke.playlists :as pl]
+            [cljs-karaoke.lyrics :as lyrics]
+            [cljs-karaoke.protocols :as protocols]))
 (rf/reg-sub
  ::display-lyrics?
  (fn [db _]
@@ -23,19 +24,36 @@
    (:lyrics-loaded? db)))
 
 (rf/reg-sub
- ::current-frame
+ ::current-song-delay
  (fn [db _]
-   (:current-frame db)))
+   (get-in db [:custom-song-delay (:current-song db)])))
+(rf/reg-sub
+ ::current-frame
+ :<- [::lyrics]
+ :<- [::song-position]
+ :<- [::custom-song-delay]
+ (fn [[lyrics song-position custom-song-delay] _]
+   (when-not (or
+              (empty? lyrics)
+              (nil? song-position)
+              (zero? song-position))
+     (last
+      (filterv
+       (fn [^cljs-karaoke.lyrics.LyricsFrame frame]
+         (< 
+          (protocols/get-offset frame)
+          (+ (* -1 custom-song-delay) (* 1000 song-position))))
+       lyrics)))))
 
 (rf/reg-sub
  ::current-song
  (fn [db _]
    (:current-song db)))
 
-(rf/reg-sub
- ::player-status
- (fn [db _]
-   (:player-status db)))
+;; (rf/reg-sub
+ ;; ::player-status
+ ;; (fn [db _]
+   ;; (:player-status db)))
 
 (rf/reg-sub
  ::highlight-status
@@ -47,6 +65,11 @@
  (fn [db _]
    (:lyrics-delay db)))
 
+
+(rf/reg-sub
+ ::available-songs
+ (fn [db _]
+   (:available-songs db)))
 
 (rf/reg-sub
  ::song-list
@@ -104,6 +127,10 @@
  (fn [db _]
    (:song-duration db)))
 
+(rf/reg-sub
+ ::song-playing?
+ (fn [db _]
+   (:playing? db)))
 
 (rf/reg-sub
  ::custom-song-delay
@@ -168,7 +195,7 @@
  :<- [::playlist]
  (fn [playlist _]
    (some-> playlist
-           (pl/current))))
+           (protocols/current))))
 (rf/reg-sub
  ::navbar-visible?
  :<- [::current-view]
@@ -217,9 +244,9 @@
  ::display-home-button?
  (fn [db _] (:display-home-button? db)))
 
-(rf/reg-sub
- ::first-playback-position-updated?
- (fn [db _] (:first-playback-position-updated? db)))
+;; (rf/reg-sub
+ ;; ::first-playback-position-updated?
+ ;; (fn [db _] (:first-playback-position-updated? db)))
 
 (rf/reg-sub
  ::notifications

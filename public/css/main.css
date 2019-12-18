@@ -1,12 +1,31 @@
+@import url('https://fonts.googleapis.com/css?family=Chewy&display=swap');
+@import 'animista.css';
 
+.button, .navbar-item {
+    text-transform: capitalize;
+}
+.slide-out-top {
+	  -webkit-animation: slide-out-top 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+	  animation: slide-out-top 0.5s cubic-bezier(0.550, 0.085, 0.680, 0.530) both;
+}
+.slide-in-bck-center {
+	  -webkit-animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+	  animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+}
+.roll-in-blurred-top {
+	  -webkit-animation: roll-in-blurred-top 0.6s cubic-bezier(0.230, 1.000, 0.320, 1.000) both;
+	  animation: roll-in-blurred-top 0.6s cubic-bezier(0.230, 1.000, 0.320, 1.000) both;
+}
 .current-frame  {
     position: fixed;
+    display: block;
     top: 50%;
     left: 50%;
     z-index: 100;
-    transition: all 0.5s ease;
+    width: 90vw;
+    /* transition: all 0.5s ease; */
     transform: translate(-50%, -50%);
-    display: flex;
+    /* display: flex; */
     justify-content: center;
     text-align: center;
     font-size: 1.5rem;
@@ -32,27 +51,45 @@
     background-size: cover;
 }
 
+.current-frame .frame-text {
+
+    animation: puff-in-center 0.5s ease both;
+}
 .current-frame .frame-text > span {
+    display: inline-block;
+    /* position: relative; */
     opacity: 0.6;
-    /* transition: all 0.2s ease-out; */
+    /* transition: all 0.5s ease-in-out; */
+    font-family: 'Chewy', cursive;
     color: black;
-    transition: all 0.5s ease-out;
-    font-family: 'Montserrat', sans-serif;
-    text-shadow:  -2px -2px 1px #eee;
+    /* transform: scale(1) translate(0px,0px); */
+    /* transition: all 2s ease-out; */
+    /* text-shadow:  -2px -2px 1px #eee; */
 }
+
+
 .current-frame .frame-text > span.highlighted {
+    display: inline-block;
     color: red;
-    opacity: 1;
+    /* opacity: 1; */
+    /* transition: all 0.5s ease-in-out; */
     /* font-size: 1.05em; */
-    transform: translate(10px, 50px);
+    /* transform: translate(10px, 50px); */
+    -webkit-animation: pulsate-fwd 0.5s ease-in-out both;
+    animation: pulsate-fwd 0.5s ease-in-out both;
+    /* animation: bounce-top 0.5s ease both; */
 }
+
+
 
 .current-frame .frame-text > span.highlighted .icon {
     color: black;
 }
-.contorl-panel {
+
+.control-panel {
     transition: all 2s ease-out;
- 
+    -webkit-animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+	  animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; 
 }
 .control-panel.song-playing {
     display: none;
@@ -105,9 +142,9 @@
     position: fixed;
     display: block;
     opacity: 0;
-    top: 0;
+    top: 3em;
     right: 0;
-    height: 100vh;
+    height: calc(100vh - 3em);
     width: 3em;
     z-index: 3;
 }
@@ -195,6 +232,11 @@
     transition: height 0.1s ease;
 }
 
+.puff-in-hor {
+	  -webkit-animation: puff-in-hor 0.7s cubic-bezier(0.470, 0.000, 0.745, 0.715) both;
+	  animation: puff-in-hor 0.7s cubic-bezier(0.470, 0.000, 0.745, 0.715) both;
+}
+
 .playlist-view.container {
     background-color: white;
     padding: 1em;
@@ -221,12 +263,26 @@
     transform: unset;
 }
 
+.page-content {
+    margin-top: 2em;
+}
 
 nav.navbar>div.navbar-brand>a.navbar-item>object.header-logo {
     height: 2em;
 }
 
+html {
+    overflow-y: auto;
+}
+
+@media screen and (min-width: 320px) {
+    .current-frame {
+        width: 90vw;
+    }
+}
+
 @media screen and (min-width: 1024px) {
+    
     .notifications-container {
         position: fixed;
         top: 1em;
@@ -234,6 +290,7 @@ nav.navbar>div.navbar-brand>a.navbar-item>object.header-logo {
         width: 25vw;
     }
     .current-frame {
+        width: 70vw;
         font-size: 2rem;
     }
 

@@ -2,17 +2,12 @@
   (:require [re-frame.core :as rf :include-macros true]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [cljs-karaoke.search :as search]
+            [cljs-karaoke.styles :refer [wallpapers]]
             [cljs-karaoke.events.common :as common-events]
             [ajax.core :as ajax]
             [day8.re-frame.async-flow-fx]))
 
-(defonce fetch-bg-from-web-enabled? true)
-(def ^export wallpapers
-  ["wp1.jpg"
-   "Dolphin.jpg"
-   "wp2.jpg"
-   "wp3.jpg"
-   "wp4.jpg"])
+;; (defonce fetch-bg-from-web-enabled? true)
 
 (defn rand-wallpaper []
   (->> wallpapers
@@ -21,8 +16,7 @@
        (str "/images/")))
 
 (defn update-song-bg-flow []
-  {
-   ;; :first-dispatch [::update-bg-image song-name]
+  {;; :first-dispatch [::update-bg-image song-name]
    :rules [{:when :seen-all-of?
             :events [::search-images
                      ::handle-fetch-bg-success
@@ -43,7 +37,7 @@
             :dispatch [::update-bg-image-complete]}
            {:when :seen-any-of?
             :events [::set-cached-bg
-                     ::generate-bg-css 
+                     ::generate-bg-css
                      ::handle-fetch-bg-failure
                      ::cache-song-bg-image]}
            {:when :seen?
@@ -80,13 +74,13 @@
       :async-flow (update-song-bg-flow)}
      (cond
        (not (nil? cached)) {:dispatch [::set-cached-bg cached]}
-       search-bg-enabled?  {:dispatch [::search-images title [::handle-fetch-bg-success title] ::handle-fetch-bg-failure]}
+       search-bg-enabled?  {:dispatch [::search-images title [::handle-fetch-bg-success title] [::handle-fetch-bg-failure]]}
        :else               {:dispatch [::set-random-bg-image]})))))
 
 (rf/reg-event-fx
  ::set-cached-bg
  (rf/after
-  (fn[db _]
+  (fn [db _]
     (. js/console (log "Setting bg image from cache"))))
 
  (fn-traced
@@ -131,11 +125,11 @@
  ::handle-fetch-bg-failure
  (fn-traced
   [{:keys [db]} [_ err]]
-  (. js/console (log "Failed to fetch bg from web" err))
-  {:db db
-   :dispatch-n [
-                [::set-fetch-bg-from-web false]
-                [::set-random-bg-image]]}))
+  (println "Failed to fetch bg from web" err)
+  (let [should-disable? (>= (:status err) 400)]
+    {:db         db
+     :dispatch-n [[::set-fetch-bg-from-web (= should-disable? false)]
+                  [::set-random-bg-image]]})))
 
 (rf/reg-event-fx
  ::generate-bg-css
@@ -158,7 +152,7 @@
  (fn-traced
   [{:keys [db]} [_ song-name image-url]]
   (let [new-db (-> db (assoc-in [:song-backgrounds song-name] image-url))]
-    {:db new-db 
+    {:db new-db
      :dispatch [::common-events/save-to-localstorage
                 "song-bg-cache"
                 (:song-backgrounds new-db)
