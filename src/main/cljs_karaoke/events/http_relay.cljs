@@ -5,7 +5,7 @@
             [cljs.reader :as reader]
             [cljs-karaoke.remote-control.commands :as cmds]
             [cljs-karaoke.remote-control.queue :as remote-queue]))
-(def base-http-relay-url "https://httprelay.io/link/")
+(def base-http-relay-url "https://demo.httprelay.io/link/")
 
 (defn ^export generate-remote-control-id []
   (->> (random-uuid)

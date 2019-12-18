@@ -23,17 +23,24 @@
    :height     "100vh"
    :top        0
    :left       0
-   :animation "slide-in-top 0.5s ease both"})
+   :animation "slide-in-bck-center 0.9s ease-in both"})
 
 (defn page-loader-logo []
-  [:img {:src "images/header-logo.svg"}])
+  [:img
+   (stylefy/use-style
+    {:animation-name            "pulsate-bck"
+     :animation-iteration-count :infinite
+     :animation-duration        "1s"
+     :animation-fill-mode       :both
+     :animation-timing-function :ease-in-out}
+    {:src "images/header-logo.svg"})])
 
 (defn page-loader-component []
   [:div.pageloader
    (stylefy/use-style (merge
                        pageloader-styles
                        (if-not @(rf/subscribe [::subscriptions/pageloader-active?])
-                         {:animation "slide-out-top 0.5s ease both"
+                         {:animation "slide-out-blurred-bottom 1s ease both"
                           :animation-delay "1s"})))
    [:div
     (stylefy/use-style (merge

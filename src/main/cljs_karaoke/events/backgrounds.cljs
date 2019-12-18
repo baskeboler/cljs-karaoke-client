@@ -136,7 +136,8 @@
  (fn-traced
   [{:keys [db]} [_ url]]
   (let [styles {:background-image (str "url(\"" url "\"), url(" (rand-wallpaper) ")")
-                :background-size :cover}]
+                :background-size :cover
+                :transition "all 2s ease"}]
     {:db (-> db (assoc :bg-style styles))
      :dispatch [::generate-bg-css-complete]})))
 

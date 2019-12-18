@@ -382,14 +382,6 @@
 
 
 (rf/reg-event-fx
- ::print-arg
- (fn-traced
-  [{:keys [db]} [_ & opts]]
-  (cljs.pprint/pprint opts)
-  {:db db}))
-
-
-(rf/reg-event-fx
  ::initial-audio-setup
  (rf/after
   (fn [db _]
