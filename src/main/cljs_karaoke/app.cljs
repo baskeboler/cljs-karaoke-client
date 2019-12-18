@@ -328,7 +328,7 @@
     (rf/dispatch-sync [::audio-events/set-recording-enabled? false]))
   (. js/window (addEventListener "shake" on-shake false)))
 
-(defn- capture-stream [audio]
+(defn- capture-stream [^js/AudioBuffer audio]
   (cond
     (-> audio .-captureStream) (. audio (captureStream))
     (-> audio .-mozCaptureStream) (. audio (mozCaptureStream))

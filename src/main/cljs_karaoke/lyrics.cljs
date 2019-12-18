@@ -1,7 +1,7 @@
 (ns cljs-karaoke.lyrics
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
-            [com.rpl.specter :as s :include-macros true]
+            ;; [com.rpl.specter :as s :include-macros true]
             [cljs.core :as core :refer [random-uuid]]
             [cljs-karaoke.protocols :as protocols
              :refer [set-text reset-progress inc-progress
@@ -17,18 +17,22 @@
 
 (defn to-relative-offset-events [base-offset]
   (fn [event]
-    (s/transform [:offset] #(- % base-offset) event)))
+    (-> event
+        (update :offset #(- % base-offset)))))
+    ;; (s/transform [:offset] #(- % base-offset) event)))
 
 (defn to-relative-offset-events-with-id [base-offset]
   (comp set-event-id (to-relative-offset-events base-offset)))
 
 (defn update-events-to-relative-offset [base-offset]
   (fn [events]
-    (s/transform [s/ALL] (to-relative-offset-events base-offset) events)))
+    (map (to-relative-offset-events base-offset) events)))
+    ;; (s/transform [s/ALL] (to-relative-offset-events base-offset) events)))
 
 (defn update-events-to-relative-offset-with-id [base-offset]
   (fn [events]
-    (s/transform [s/ALL] (to-relative-offset-events-with-id base-offset) events)))
+    (map (to-relative-offset-events-with-id base-offset) events)))
+    ;; (s/transform [s/ALL] (to-relative-offset-events-with-id base-offset) events)))
 
 (defn to-relative-frame-offsets [frames]
   (reduce
@@ -38,8 +42,10 @@
                         (- (:offset fr) (:offset last-frame))
                         (:offset fr))
            new-frame (->> fr
-                          (s/setval [:relative-offset] new-offset)
-                          (s/setval [:id] (random-uuid)))
+                          (assoc :relative-offset new-offset)
+                          (assoc :id (random-uuid)))
+                          ;; (s/setval [:relative-offset] new-offset)
+                          ;; (s/setval [:id] (random-uuid)))
            #_(-> fr
                  (assoc :relative-offset new-offset)
                  (set-event-id))]
@@ -122,10 +128,17 @@
   #_(s/transform [s/ALL]
                  (fn [fr]
                    (s/setval [:id] (rand-uuid) fr)))
-  (s/transform [s/ALL :events s/ALL]
-               (fn [evt]
-                 (assoc evt :id (rand-uuid)))
-               frames))
+  (map (fn [frame]
+         (-> frame
+             (update :events
+                     (fn [evt]
+                       (-> evt
+                           (assoc :id (rand-uuid)))))))
+       frames))
+  ;; (s/transform [s/ALL :events s/ALL]
+               ;; (fn [evt]
+                 ;; (assoc evt :id (rand-uuid))
+               ;; frames))
 
 (defn preprocess-frames [frames]
   (let [no-dupes
