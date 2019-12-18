@@ -257,3 +257,12 @@
  ::navbar-menu-active?
  (fn [db _]
    (:navbar-menu-active? db)))
+
+(rf/reg-sub
+ ::song-frames-relative-positions
+ :<- [::song-duration]
+ :<- [::lyrics]
+ :<- [::current-song-delay]
+ (fn [[duration frames delay] _]
+   (let [duration-ms (* duration 1000)]
+     (map (comp (partial * (/ 1.0 duration-ms)) (partial + delay)  protocols/get-offset) frames))))

@@ -44,7 +44,8 @@
                            :http-port  8089
                            :http-handler shadow.http.push-state/handle
                            :http-root  "public"
-                           :preloads   [devtools.preload day8.re-frame-10x.preload]
+                           :preloads   [devtools.preload day8.re-frame-10x.preload
+                                        shadow.remote.runtime.cljs.browser]
                            :after-load cljs-karaoke.app/init!}
         :dev              {:compiler-options
                            {:closure-defines
