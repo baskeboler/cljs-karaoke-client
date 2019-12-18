@@ -26,19 +26,19 @@
         next-fn      #(rf/dispatch [::song-list-events/set-song-list-current-page (inc @current-page)])
         prev-fn      #(rf/dispatch [::song-list-events/set-song-list-current-page (dec @current-page)])]
     (fn []
-      (let [song-count (count @song-list)]
+      (when-let [song-count (count @song-list)]
         [:nav.pagination {:role :navigation}
          [:a.pagination-previous {:on-click #(when (pos? @current-page) (prev-fn))
-                                  :disabled (if-not (pos? @current-page) true false)}]]
-        "Previous"
+                                  :disabled (if-not (pos? @current-page) true false)}
+          "Previous"]
          [:a.pagination-next {:on-click #(when (> (- song-count @page-offset)
                                                   @page-size)
                                            (next-fn))
                               :disabled (if-not (> (- song-count @page-offset)
                                                    @page-size)
                                           true
-                                          false)}]
-        "Next"))))
+                                          false)}
+          "Next"]]))))
 (defn song-filter-component []
   (let [filt (rf/subscribe [::s/song-list-filter])]
     [:div.field>div.control.has-icon
