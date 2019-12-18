@@ -33,7 +33,8 @@
    (stylefy/use-style (merge
                        pageloader-styles
                        (if-not @(rf/subscribe [::subscriptions/pageloader-active?])
-                         {:animation "slide-out-top 0.5s ease both"})))
+                         {:animation "slide-out-top 0.5s ease both"
+                          :animation-delay "1s"})))
    [:div
     (stylefy/use-style (merge
                         styles/centered

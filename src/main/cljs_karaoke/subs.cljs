@@ -67,6 +67,11 @@
 
 
 (rf/reg-sub
+ ::available-songs
+ (fn [db _]
+   (:available-songs db)))
+
+(rf/reg-sub
  ::song-list
  (fn [db _]
    (:song-list db)))

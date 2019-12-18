@@ -16,24 +16,24 @@
   {
    ;; :first-dispatch [::load-song-start song-name]
 
-     :rules [{:when :seen-all-of?
-              :events [
-                       ::lyrics-events/fetch-lyrics-complete
-                       ::bg-events/update-bg-image-flow-complete
-                       ::setup-audio-complete]
-              :dispatch-n [[::events/set-pageloader-active? false]
-                           [::events/set-can-play? true]]
-              :halt? true}]})
+   :rules [{:when       :seen-all-of?
+            :events     [
+                         ::lyrics-events/fetch-lyrics-complete
+                         ::bg-events/update-bg-image-flow-complete
+                         ::setup-audio-complete]
+            :dispatch-n [[::events/set-pageloader-active? false]
+                         [::events/set-can-play? true]]
+            :halt?      true}]})
 
 (defn stop-song-flow []
   {:first-dispatch [::stop-song-start]
-   :rules [:when :seen-all-of?
-           :events [::audio-stopped ::audio-events-closed]
-           :dispatch-n [
-                        ;; [::events/set-audio-events nil]
-                        ;; [::events/set-current-frame nil]
-                        [::events/set-lyrics nil]
-                        [::events/set-lyrics-loaded?false]]]})
+   :rules          [:when :seen-all-of?
+                    :events [::audio-stopped ::audio-events-closed]
+                    :dispatch-n [
+                                 ;; [::events/set-audio-events nil]
+                                 ;; [::events/set-current-frame nil]
+                                 [::events/set-lyrics nil]
+                                 [::events/set-lyrics-loaded?false]]]})
 
 (rf/reg-event-fx
  ::stop-song-start
@@ -68,7 +68,7 @@
  ;; ::load-song-start
  (fn-traced
   [{:keys [db]} [_ song-name]]
-  {:db db
+  {:db         db
    :async-flow (load-song-flow)
    :dispatch-n [[::events/set-pageloader-active? true]
                 [::events/set-can-play? false]
@@ -83,13 +83,21 @@
                 [::views-events/view-action-transition :load-song]]})) 
 
 (rf/reg-event-fx
+ ::trigger-load-random-song
+ (fn-traced
+  [{:keys [db]} _]
+  (let [song-name (->> db :available-songs rand-nth)]
+    {:db       db
+     :dispatch [::trigger-load-song-flow song-name]})))
+
+(rf/reg-event-fx
  ::setup-audio-events
  (rf/after
   (fn [db [_ song-name]]
     (. js/console (log "setup audio: " song-name  ", storage: " (get db :base-storage-url "")))
     (let [base-storage-url (get db :base-storage-url "")
-          audio-path (str events/base-storage-url "/mp3/" song-name ".mp3")
-          audio (.  js/document (getElementById "main-audio"))]
+          audio-path       (str events/base-storage-url "/mp3/" song-name ".mp3")
+          audio            (.  js/document (getElementById "main-audio"))]
       (set! (.-src audio) audio-path)
       (rf/dispatch [::events/set-player-current-time 0])
       (rf/dispatch [::setup-audio-complete]))))

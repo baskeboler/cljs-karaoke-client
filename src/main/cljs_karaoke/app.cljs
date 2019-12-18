@@ -138,7 +138,9 @@
    [:div.control
     [icon-button "step-forward" "info" #(do
                                           (stop)
-                                          (rf/dispatch [::playlist-events/playlist-next]))]]])
+                                          (rf/dispatch [::playlist-events/playlist-next]))]]
+   [:div.control
+    [icon-button "random" "warning" #(rf/dispatch [::song-events/trigger-load-random-song])]]])
 
 (defn playback-view []
   [:div.playback-view
@@ -306,7 +308,8 @@
                                             (rf/dispatch-sync [::playlist-events/playlist-next])))
   (key/bind! "t t" ::double-t #(trigger-toasty))
   (key/bind! "alt-x" ::alt-x #(remote-control/show-remote-control-id))
-  (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings)))
+  (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings))
+  (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song])))
 (defn mount-components! []
   (reagent/render
    [app]

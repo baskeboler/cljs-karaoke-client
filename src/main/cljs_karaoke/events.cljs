@@ -57,7 +57,8 @@
                          ::initial-audio-setup-complete
                          ::playlist-events/playlist-ready
                          ::views-events/views-state-ready
-                         ::song-list-events/song-list-ready]
+                         ::song-list-events/song-list-ready
+                         ::fetch-song-list-complete]
             :dispatch-n [[::set-pageloader-active? false]
                          [::initialized]]
             :halt?      true}]})
@@ -117,6 +118,7 @@
              :async-flow (init-flow)
 
              :dispatch-n [[::fetch-custom-delays]
+                          [::fetch-song-list]
                           [::fetch-song-background-config]
                           [::initial-audio-setup]
                           [::audio-events/init-audio-data]
@@ -152,10 +154,39 @@
 (rf/reg-event-fx
  ::http-fetch-fail
  (fn-traced
-  [db [_ err dispatch-n-vec]]
+  [{:keys [db]} [_ err dispatch-n-vec]]
   (println "fetch failed" err)
   {:db db
    :dispatch-n dispatch-n-vec}))
+
+(rf/reg-event-fx
+ ::fetch-song-list
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db
+   :http-xhrio {:method :get
+                :uri "/data/songs.edn"
+                :timeout 8000
+                :response-format (ajax/text-response-format)
+                :on-success [::handle-fetch-song-list-success]
+                :on-failure [::http-fetch-fail [[::fetch-song-list-complete]]]}}))
+
+(rf/reg-event-fx
+ ::handle-fetch-song-list-success
+ (fn-traced
+  [{:keys [db]} [_ response]]
+  {:db (-> db
+           (assoc :available-songs (reader/read-string response)))
+   :dispatch [::fetch-song-list-complete]}))
+
+(rf/reg-event-db
+ ::fetch-song-list-complete
+ (fn-traced
+  [db _]
+  (println "fetch song list complete!")
+  db))
+
+
 
 (rf/reg-event-fx
  ::fetch-custom-delays
