@@ -135,7 +135,7 @@
  ::generate-bg-css
  (fn-traced
   [{:keys [db]} [_ url]]
-  (let [styles {:background-image (str "url(\"" url "\")")
+  (let [styles {:background-image (str "url(\"" url "\"), url(" (rand-wallpaper) ")")
                 :background-size :cover}]
     {:db (-> db (assoc :bg-style styles))
      :dispatch [::generate-bg-css-complete]})))
