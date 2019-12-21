@@ -108,10 +108,18 @@
 
 (cljs-karaoke.events.common/reg-set-attr ::set-song-stream :song-stream)
 
+
+(defn save-delays-flow []
+  {:rules [{:when     :seen?
+            :events   [::events/set-custom-song-delay]
+            :dispatch [::events/save-custom-song-delays-to-localstorage]
+            :halt?    true}]})
 (rf/reg-event-fx
  ::inc-current-song-delay
  (fn-traced
   [{:keys [db]} [_ delta]]
   {:db (-> db
            (update-in [:lyrics-delay] (partial + delta)))
-   :dispatch [::notification-events/add-notification (n/notification (str "sync'ed lyrics by " delta " ms"))]}))
+   :async-flow (save-delays-flow)
+   :dispatch-n [[::events/set-custom-song-delay (:current-song db) (+ (:lyrics-delay db) delta)]
+                [::notification-events/add-notification (n/notification (str "sync'ed lyrics by " (+ (:lyrics-delay db) delta) " ms"))]]}))

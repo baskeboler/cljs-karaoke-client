@@ -61,14 +61,6 @@
      {:dispatch [callback-event]}
      {}))))
 
-(rf/reg-event-fx
- ::load-from-localstorage
- (fn-traced
-  [{:keys [db]} [_ name cb-event]]
-  {:db db
-   :dispatch [cb-event (get-from-localstorage name)]}))
-   
-
 (defn set-page-title! [title]
   (set! (.-title js/document) title))
 
