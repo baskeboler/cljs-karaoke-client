@@ -5,7 +5,7 @@
             [cljs-karaoke.notifications :refer [add-notification notification]]
             [cljs.core.async :as async :refer [timeout <! >! go-loop]]
             [cljs-karaoke.events.audio :as audio-events]
-            [cljs-karaoke.utils :refer [modal-card-dialog]]
+            [cljs-karaoke.modals :refer [modal-card-dialog]]
             [cljs-karaoke.events.modals :as modal-events]))
 
 (defn enable-audio-input-confirmation-modal-content []

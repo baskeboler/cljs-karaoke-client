@@ -9,13 +9,13 @@
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
-            [cljs.core.async :as async :refer [go go-loop <! >! chan]]))
+            [cljs.core.async :as async :refer [go go-loop <! >! chan]]
+            [cljs-karaoke.notifications :as n]
+            [cljs-karaoke.events.notifications :as notification-events]))
 
-                                        ; fetch song delay, fetch song background
 (defn load-song-flow []
   {
    ;; :first-dispatch [::load-song-start song-name]
-
    :rules [{:when       :seen-all-of?
             :events     [
                          ::lyrics-events/fetch-lyrics-complete
@@ -26,7 +26,8 @@
             :halt?      true}]})
 
 (defn stop-song-flow []
-  {:first-dispatch [::stop-song-start]
+  {
+   :first-dispatch [::stop-song-start]
    :rules          [:when :seen-all-of?
                     :events [::audio-stopped ::audio-events-closed]
                     :dispatch-n [
@@ -46,13 +47,6 @@
     (async/close! e))
   (rf/dispatch [::audio-events-closed])
   {:db db}))
-
-;; (rf/reg-event-fx
-;;  ::trigger-load-song-flow
-;;  (fn-traced
-;;   [{:keys [db]} [_ song-name]]
-;;   {:db db
-;;    :async-flow (load-song-flow song-name)}))
 
 (rf/reg-event-fx
  ::update-song-hash
@@ -112,16 +106,12 @@
   (. js/console (log "setup audio complete!"))
   db))
 
-;; (rf/reg-event-db
-;;  ::set-player-status-id
-;;  (fn-traced [db [_ id]]
-;;     (-> db (assoc :player-status-id id))))
-
-;; (rf/reg-event-db
-;;  ::set-first-playback-position-updated?
-;;  (fn-traced
-;;   [db [_ updated?]]
-;;   (. js/console (log "Setting first position updated to " updated?))
-;;   (-> db (assoc :first-playback-position-updated? updated?))))
-
 (cljs-karaoke.events.common/reg-set-attr ::set-song-stream :song-stream)
+
+(rf/reg-event-fx
+ ::inc-current-song-delay
+ (fn-traced
+  [{:keys [db]} [_ delta]]
+  {:db (-> db
+           (update-in [:lyrics-delay] (partial + delta)))
+   :dispatch [::notification-events/add-notification (n/notification (str "sync'ed lyrics by " delta " ms"))]}))

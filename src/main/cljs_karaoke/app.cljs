@@ -18,7 +18,8 @@
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.subs.audio :as audio-subs]
-            [cljs-karaoke.utils :as utils :refer [icon-button show-export-sync-info-modal]]
+            [cljs-karaoke.modals :as modals :refer [show-export-sync-info-modal]]
+            [cljs-karaoke.utils :as utils :refer [icon-button]]
             [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
             [cljs.reader :as reader]
             [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
@@ -226,7 +227,7 @@
      [navbar/navbar-component])
    [toasty]
    [notifications/notifications-container-component]
-   [utils/modals-component]
+   [modals/modals-component]
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
    ;; [logo-animation]
@@ -310,7 +311,9 @@
   (key/bind! "t t" ::double-t #(trigger-toasty))
   (key/bind! "alt-x" ::alt-x #(remote-control/show-remote-control-id))
   (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings))
-  (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song])))
+  (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
+  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch [::song-events/inc-current-song-delay -250]))
+  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch [::song-events/inc-current-song-delay 250])))
 (defn mount-components! []
   (reagent/render
    [app]

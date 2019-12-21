@@ -3,6 +3,7 @@
             [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.playback :refer [play stop]]
             [cljs-karaoke.utils :as utils]
+            [cljs-karaoke.modals :as modals]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.events :as events]
@@ -49,7 +50,7 @@
 (defn export-sync-data-btn []
   [:button.button.is-info.tooltip
    {:on-click     (fn [_]
-                    (utils/show-export-sync-info-modal))
+                    (modals/show-export-sync-info-modal))
     :data-tooltip "EXPORT SYNC INFO"}
    [:span.icon
     [:i.fas.fa-file-export]]])
