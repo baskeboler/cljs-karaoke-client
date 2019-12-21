@@ -9,6 +9,7 @@
             [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events.billboards :as billboard-events]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.common :as common-events]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.song-list :as song-list-events]

@@ -203,7 +203,7 @@
   [{:keys [db]} _]
   {:db         db
    :http-xhrio {:method          :get
-                :uri             (str base-storage-url "/lyrics/delays.edn")
+                :uri             "/data/delays.edn"
                 :timeout         8000
                 :response-format (ajax/text-response-format)
                 :on-success      [::handle-fetch-delays-success]

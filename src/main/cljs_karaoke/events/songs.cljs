@@ -119,6 +119,15 @@
             :events   [::events/set-custom-song-delay]
             :dispatch [::events/save-custom-song-delays-to-localstorage]
             :halt?    true}]})
+
+
+(defn forget-delay-flow []
+  {:rules [{:when     :seen?
+            :events   [::forget-custom-song-delay]
+            :dispatch-n [[::events/save-custom-song-delays-to-localstorage]
+                         [:cljs-karaoke.events.playlists/build-verified-playlist]]
+            :halt?    true}]})
+
 (rf/reg-event-fx
  ::inc-current-song-delay
  (fn-traced
@@ -128,6 +137,14 @@
    :async-flow (save-delays-flow)
    :dispatch-n [[::events/set-custom-song-delay (:current-song db) (+ (:lyrics-delay db) delta)]
                 [::notification-events/add-notification (n/notification (str "sync'ed lyrics by " (+ (:lyrics-delay db) delta) " ms"))]]}))
+
+(rf/reg-event-fx
+ ::forget-custom-song-delay
+ (fn-traced
+  [{:keys [db]} [_ song-name]]
+  {:db (-> db
+           (update :custom-song-delay dissoc song-name))
+   :async-flow (forget-delay-flow)}))
 
 (rf/reg-event-fx
  ::navigate-to-song
