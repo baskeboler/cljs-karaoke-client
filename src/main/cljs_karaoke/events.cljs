@@ -18,6 +18,7 @@
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.notifications]
             [cljs-karaoke.events.audio :as audio-events]
+            [cljs-karaoke.events.user :as user-events]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.audio :as aud]))
 (defonce fetch-bg-from-web-enabled? true)
@@ -26,9 +27,15 @@
 
 (declare save-custom-delays-to-localstore)
 
+(rf/reg-event-db
+ ::init-flow
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db}))
+
 (defn init-flow []
   {
-   ;; :first-dispatch [::init-fetches]
+   :id    ::init-flow
    :rules [{:when     :seen?
             :events   [::handle-fetch-background-config-complete]
             :dispatch [::init-song-bg-cache]}
@@ -110,6 +117,8 @@
                           ;; :playlist (pl/build-playlist)
                           :navbar-menu-active?        false
                           :fetch-bg-from-web-enabled? true
+                          :user                       nil
+                          :billboards                 []
                           :modals                     []
                           :notifications              []}
              ;; :dispatch-n [[::fetch-custom-delays]
@@ -124,8 +133,8 @@
                           [::audio-events/init-audio-data]
                           [::views-events/init-views-state]
                           ;; [::http-relay-events/init-http-relay-listener]
-                          [::song-list-events/init-song-list-state]]}))
-
+                          [::song-list-events/init-song-list-state]
+                          [::user-events/init]]}))
 ;; (rf/reg-event-fx
 ;;  ::init-fetches
 ;;  (fn-traced
@@ -194,7 +203,7 @@
   [{:keys [db]} _]
   {:db         db
    :http-xhrio {:method          :get
-                :uri             (str base-storage-url "/lyrics/delays.edn")
+                :uri             "/data/delays.edn"
                 :timeout         8000
                 :response-format (ajax/text-response-format)
                 :on-success      [::handle-fetch-delays-success]
@@ -379,14 +388,6 @@
                 [::playlist-events/add-song song-name]
                 [::save-custom-song-delays-to-localstorage]]}))
 
-
-
-(rf/reg-event-fx
- ::print-arg
- (fn-traced
-  [{:keys [db]} [_ & opts]]
-  (cljs.pprint/pprint opts)
-  {:db db}))
 
 
 (rf/reg-event-fx

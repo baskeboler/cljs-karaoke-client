@@ -26,12 +26,12 @@
 
 (defn update-events-to-relative-offset [base-offset]
   (fn [events]
-    (map (to-relative-offset-events base-offset) events)))
+    (mapv (to-relative-offset-events base-offset) events)))
     ;; (s/transform [s/ALL] (to-relative-offset-events base-offset) events)))
 
 (defn update-events-to-relative-offset-with-id [base-offset]
   (fn [events]
-    (map (to-relative-offset-events-with-id base-offset) events)))
+    (mapv (to-relative-offset-events-with-id base-offset) events)))
     ;; (s/transform [s/ALL] (to-relative-offset-events-with-id base-offset) events)))
 
 (defn to-relative-frame-offsets [frames]
@@ -128,13 +128,18 @@
   #_(s/transform [s/ALL]
                  (fn [fr]
                    (s/setval [:id] (rand-uuid) fr)))
-  (map (fn [frame]
-         (-> frame
-             (update :events
-                     (fn [evt]
-                       (-> evt
-                           (assoc :id (rand-uuid)))))))
-       frames))
+  (mapv
+   (fn [frame]
+     (-> frame
+         (update
+          :events
+          (fn [evts]
+            (->> evts
+                 (mapv
+                  (fn [evt]
+                    (-> evt
+                        (assoc :id (rand-uuid))))))))))
+   frames))
   ;; (s/transform [s/ALL :events s/ALL]
                ;; (fn [evt]
                  ;; (assoc evt :id (rand-uuid))
@@ -234,12 +239,12 @@
       :else ""))
   (get-offset [this] (:offset this))
   (played? [this delta]
-     (cond
-       (= :frame-event (:type this)) (-> (map->LyricsFrame this)
+    (cond
+      (= :frame-event (:type this)) (-> (map->LyricsFrame this)
+                                        (played? delta))
+      (= :lyrics-event (:type this)) (-> (map->LyricsEvent this)
                                          (played? delta))
-       (= :lyrics-event (:type this)) (-> (map->LyricsEvent this)
-                                          (played? delta))
-       :else false)))
+      :else false)))
 
 (defn ^:export create-frame [obj]
   (->

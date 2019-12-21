@@ -7,7 +7,9 @@
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
             [cljs-karaoke.remote-control :as remote-control]
+            [cljs-karaoke.events.billboards :as billboard-events]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.common :as common-events]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.song-list :as song-list-events]
@@ -18,7 +20,8 @@
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.subs.audio :as audio-subs]
-            [cljs-karaoke.utils :as utils :refer [icon-button show-export-sync-info-modal]]
+            [cljs-karaoke.modals :as modals :refer [show-export-sync-info-modal]]
+            [cljs-karaoke.utils :as utils :refer [icon-button]]
             [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
             [cljs.reader :as reader]
             [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
@@ -28,11 +31,11 @@
             [goog.history.EventType :as EventType]
             [keybind.core :as key]
             [clojure.string :as str]
-            ;; ["bulma-extensions"]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.audio-input :refer [enable-audio-input-button spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
             [cljs-karaoke.remote-control :as remote-control]
+            [cljs-karaoke.views.billboards :refer [billboards-component]]
             [cljs-karaoke.views.page-loader :as page-loader]
             [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
             [cljs-karaoke.views.control-panel :refer [control-panel]]
@@ -145,8 +148,11 @@
 (defn playback-view []
   [:div.playback-view
    [spectro-overlay]
+
    [current-frame-display]
+
    [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
+   [billboards-component]
    (when (and
           @(rf/subscribe [::s/song-paused?])
           @(rf/subscribe [::s/can-play?]))
@@ -161,10 +167,13 @@
           [:i.fas.fa-cog.fa-3x]]])
       [:a
        (stylefy/use-style
-        centered
+        (merge
+         centered
+         {:z-index 500})
         {:on-click play})
        [:span.icon
-        [:i.fas.fa-play.fa-5x]]]])
+        [:i.fas.fa-play.fa-5x
+         (stylefy/use-style {:text-shadow "0px 0px 9px white"})]]]])
    (when-not @(rf/subscribe [::s/can-play?])
      [:a
       (stylefy/use-style
@@ -225,7 +234,7 @@
      [navbar/navbar-component])
    [toasty]
    [notifications/notifications-container-component]
-   [utils/modals-component]
+   [modals/modals-component]
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
    ;; [logo-animation]
@@ -309,7 +318,9 @@
   (key/bind! "t t" ::double-t #(trigger-toasty))
   (key/bind! "alt-x" ::alt-x #(remote-control/show-remote-control-id))
   (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings))
-  (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song])))
+  (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
+  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch [::song-events/inc-current-song-delay -250]))
+  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch [::song-events/inc-current-song-delay 250])))
 (defn mount-components! []
   (reagent/render
    [app]

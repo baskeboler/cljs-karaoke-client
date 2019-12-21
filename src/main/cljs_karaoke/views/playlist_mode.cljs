@@ -2,6 +2,7 @@
   (:require [re-frame.core :as rf]
             [cljs-karaoke.playlists :as playlists]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.subs :as subs]
             [cljs-karaoke.events.views :as view-events]
@@ -38,6 +39,12 @@
    {:on-click #(rf/dispatch [::playlist-events/move-song-down pos])}
    [:span.icon>i.fas.fa-fw.fa-arrow-down]])
 
+
+(defn forget-delay-btn [ song-name]
+  [:button.button.is-danger
+   {:on-click #(rf/dispatch [::song-events/forget-custom-song-delay song-name])}
+   [:span.icon>i.fas.fa-fw.fa-trash]])
+
 (defn playlist-component []
   (let [pl (rf/subscribe  [::subs/playlist])
         current (rf/subscribe [::subs/current-song])]
@@ -64,8 +71,9 @@
               [:div.control
                [move-song-down-btn (dec i)]]
               [:div.control
-               [play-song-btn (dec i)]]]]]))]]
-              
+               [play-song-btn (dec i)]]
+              [:div.control
+               [forget-delay-btn s]]]]]))]]
       [:div.playlist-unavailable.is-fullwidth
        [:h3 "Playlist is unavailable"]])))
 

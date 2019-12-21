@@ -16,6 +16,12 @@
 	  -webkit-animation: roll-in-blurred-top 0.6s cubic-bezier(0.230, 1.000, 0.320, 1.000) both;
 	  animation: roll-in-blurred-top 0.6s cubic-bezier(0.230, 1.000, 0.320, 1.000) both;
 }
+
+.jello-vertical {
+	  -webkit-animation: jello-vertical 0.9s both;
+	  animation: jello-vertical 0.9s both;
+}
+
 .current-frame  {
     position: fixed;
     display: block;
