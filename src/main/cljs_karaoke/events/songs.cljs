@@ -3,6 +3,7 @@
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [day8.re-frame.async-flow-fx]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.billboards :as billboard-events]
             [cljs-karaoke.events.common :as common-events]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.lyrics :as lyrics-events]
@@ -12,8 +13,7 @@
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]
             [cljs-karaoke.notifications :as n]
             [cljs-karaoke.events.notifications :as notification-events]))
-
-(defn load-song-flow []
+(defn load-song-flow [song-name]
   {
    ;; :first-dispatch [::load-song-start song-name]
    :rules [{:when       :seen-all-of?
@@ -22,7 +22,12 @@
                          ::bg-events/update-bg-image-flow-complete
                          ::setup-audio-complete]
             :dispatch-n [[::events/set-pageloader-active? false]
-                         [::events/set-can-play? true]]
+                         [::events/set-can-play? true]
+                         [::billboard-events/display-billboard {:id       (random-uuid)
+                                                                :type     :song-name-display
+                                                                :text     song-name
+                                                                :visible? true}
+                          5000]]
             :halt?      true}]})
 
 (defn stop-song-flow []
@@ -63,12 +68,12 @@
  (fn-traced
   [{:keys [db]} [_ song-name]]
   {:db         db
-   :async-flow (load-song-flow)
+   :async-flow (load-song-flow song-name)
    :dispatch-n [[::events/set-pageloader-active? true]
                 [::events/set-can-play? false]
                 [::events/set-playing? false]
                 [::setup-audio-events song-name]
-                [::update-song-hash song-name]
+                ;; [::update-song-hash song-name]
                 ;; [::set-first-playback-position-updated? false]
                 [::common-events/set-page-title (str "Karaoke :: " song-name)]
                 [::events/set-current-song song-name]
@@ -82,7 +87,7 @@
   [{:keys [db]} _]
   (let [song-name (->> db :available-songs rand-nth)]
     {:db       db
-     :dispatch [::trigger-load-song-flow song-name]})))
+     :dispatch [::navigate-to-song song-name]})))
 
 (rf/reg-event-fx
  ::setup-audio-events
@@ -123,3 +128,10 @@
    :async-flow (save-delays-flow)
    :dispatch-n [[::events/set-custom-song-delay (:current-song db) (+ (:lyrics-delay db) delta)]
                 [::notification-events/add-notification (n/notification (str "sync'ed lyrics by " (+ (:lyrics-delay db) delta) " ms"))]]}))
+
+(rf/reg-event-fx
+ ::navigate-to-song
+ (fn-traced
+  [{:keys [db]} [_ song-name]]
+  {:db db
+   :dispatch [::update-song-hash song-name]}))

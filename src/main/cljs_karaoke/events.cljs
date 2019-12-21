@@ -118,6 +118,7 @@
                           :navbar-menu-active?        false
                           :fetch-bg-from-web-enabled? true
                           :user                       nil
+                          :billboards                 []
                           :modals                     []
                           :notifications              []}
              ;; :dispatch-n [[::fetch-custom-delays]

@@ -20,7 +20,7 @@
   [{:keys [db]} _]
   {:db db
    :dispatch (if-not (nil? (:playlist db))
-               [:cljs-karaoke.events.songs/trigger-load-song-flow  (protocols/current (:playlist db))]
+               [:cljs-karaoke.events.songs/navigate-to-song  (protocols/current (:playlist db))]
                [::playlist-load])}))
 
 (rf/reg-event-fx
@@ -64,7 +64,7 @@
   (let [new-db (-> db
                    (update :playlist protocols/next-song))]
     {:db new-db
-     :dispatch [:cljs-karaoke.events.songs/trigger-load-song-flow
+     :dispatch [:cljs-karaoke.events.songs/navigate-to-song
                 (protocols/current (:playlist new-db))]})))
 
 (rf/reg-event-fx

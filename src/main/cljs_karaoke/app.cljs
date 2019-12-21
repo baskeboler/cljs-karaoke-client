@@ -7,6 +7,7 @@
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
             [cljs-karaoke.remote-control :as remote-control]
+            [cljs-karaoke.events.billboards :as billboard-events]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.songs :as song-events]
@@ -33,6 +34,7 @@
             [cljs-karaoke.audio-input :refer [enable-audio-input-button spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
             [cljs-karaoke.remote-control :as remote-control]
+            [cljs-karaoke.views.billboards :refer [billboards-component]]
             [cljs-karaoke.views.page-loader :as page-loader]
             [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
             [cljs-karaoke.views.control-panel :refer [control-panel]]
@@ -145,8 +147,11 @@
 (defn playback-view []
   [:div.playback-view
    [spectro-overlay]
+
    [current-frame-display]
+
    [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
+   [billboards-component]
    (when (and
           @(rf/subscribe [::s/song-paused?])
           @(rf/subscribe [::s/can-play?]))
@@ -166,7 +171,8 @@
          {:z-index 500})
         {:on-click play})
        [:span.icon
-        [:i.fas.fa-play.fa-5x]]]])
+        [:i.fas.fa-play.fa-5x
+         (stylefy/use-style {:text-shadow "0px 0px 9px white"})]]]])
    (when-not @(rf/subscribe [::s/can-play?])
      [:a
       (stylefy/use-style
