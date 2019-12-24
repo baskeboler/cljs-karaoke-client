@@ -156,8 +156,8 @@
    [spectro-overlay]
 
    [current-frame-display]
-   ;; (comment
-   [:div.debug-view
+   (comment
+     [:div.debug-view
       {:style {:background :white
                :border-radius "0.5em"}}
       (when-let [t @(rf/subscribe [::s/time-until-next-event])]
@@ -170,7 +170,7 @@
       (when-let [n @(rf/subscribe [::s/next-frame])]
         [:p (str (:offset n) " - " (protocols/get-text n))])
       (let [n @(rf/subscribe [::s/current-frame-done?])]
-        [:p (if n "done" "not done")])]
+        [:p (if n "done" "not done")])])
    [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
    [billboards-component]
    (when (and
