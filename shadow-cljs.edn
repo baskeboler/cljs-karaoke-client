@@ -22,6 +22,9 @@
   [day8.re-frame/http-fx "0.1.6"]
   [cider/cider-nrepl "0.22.4"]
   [day8.re-frame/tracing "0.5.1"]
+  [hiccup "1.0.5"]
+  [etaoin "0.3.6"]
+  ;; [asset-minifier "0.2.7"]
   [stylefy "1.10.1"]
   ;; [com.rpl/specter "1.1.2"]
   [bardo "0.1.2-SNAPSHOT"]]
@@ -31,7 +34,9 @@
 
  :builds
  {:app {:target           :browser
+        :build-hooks      [(build/setup-target-dir)]
         :asset-path       "js/."
+        :output-dir       "public/js"
         :build-options    {:cache-level :on}
         :compiler-options {:static-fns         true
                            :infer-externs      :auto
@@ -41,12 +46,12 @@
         :modules          {:main {:init-fn cljs-karaoke.app/init!}}
         :dev-http         {8089 "public/"}
         :devtools         {
-                           :http-port  8089
+                           :http-port    8089
                            :http-handler shadow.http.push-state/handle
-                           :http-root  "public"
-                           :preloads   [devtools.preload day8.re-frame-10x.preload
-                                        shadow.remote.runtime.cljs.browser]
-                           :after-load cljs-karaoke.app/init!}
+                           :http-root    "public"
+                           :preloads     [devtools.preload day8.re-frame-10x.preload
+                                          shadow.remote.runtime.cljs.browser]
+                           :after-load   cljs-karaoke.app/init!}
         :dev              {:compiler-options
                            {:closure-defines
                             {"re_frame.trace.trace_enabled_QMARK_"        true
