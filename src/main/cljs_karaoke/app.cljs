@@ -81,7 +81,7 @@
 
 
 (defn current-frame-display []
-  (let [frame (rf/subscribe [::s/current-frame])]
+  (let [frame (rf/subscribe [::s/frame-to-display])]
     (when (and
            ((comp not nil?) @frame)
            (not (str/blank? (frame-text-string @frame))))
@@ -150,7 +150,19 @@
    [spectro-overlay]
 
    [current-frame-display]
-
+   (comment
+    [:div.debug-view
+      {:style {:background :white
+               :border-radius "0.5em"}}
+      (when-let [evt @(rf/subscribe [::s/next-lyrics-event])]
+        [:p
+         (str (:offset evt) " - " (:text evt))])
+      (when-let [n @(rf/subscribe [::s/previous-frame])]
+        [:p (protocols/get-text n)])
+      (when-let [n @(rf/subscribe [::s/next-frame])]
+        [:p (str (:offset n) " - " (protocols/get-text n))])
+      (let [n @(rf/subscribe [::s/current-frame-done?])]
+        [:p (if n "done" "not done")])])
    [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
    [billboards-component]
    (when (and
