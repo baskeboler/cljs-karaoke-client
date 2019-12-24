@@ -229,6 +229,10 @@
                                  :offset
                                  (+ (:offset this)))]
       (<= last-event-offset delta)))
+  (get-next-event [this offset]
+    (->> (:events this)
+         (filterv #(< offset (+ (:offset this) (:offset %))))
+         first))
   object
   (get-text [this]
     (cond
