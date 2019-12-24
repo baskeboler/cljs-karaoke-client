@@ -11,8 +11,8 @@
 (defprotocol ^:export PLyrics
   (get-text [this])
   (get-offset [this])
-  (played? [this offset]))
-
+  (played? [this offset])
+  (get-next-event [this offset]))
 
 (defprotocol ^:export PSong
   (get-current-frame [this time] "returns the current frame a time miliseconds"))

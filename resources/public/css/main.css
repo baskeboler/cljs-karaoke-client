@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Chewy&display=swap');
 @import 'animista.css';
-
+@import url('https://fonts.googleapis.com/css?family=Playfair+Display:400,700&display=swap');
 .button, .navbar-item {
     text-transform: capitalize;
 }
@@ -20,6 +20,11 @@
 .jello-vertical {
 	  -webkit-animation: jello-vertical 0.9s both;
 	  animation: jello-vertical 0.9s both;
+}
+.text-pop-up-bottom {
+	  -webkit-animation: text-pop-up-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+	  animation: text-pop-up-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    animation-delay: 2s;
 }
 
 .current-frame  {
@@ -120,6 +125,16 @@
     width: 100%;
     padding: 0.2em 0.6em;
 }
+
+.edge-progress-bar .lyrics-timing {
+    position: fixed;
+    bottom: 0em;
+    left: 0;
+    width: 100%;
+    padding: 0em 0.6em;
+    /* transition: all 0.5s ease-in; */
+}
+
 .right-seek-component-wrapper {
     position: fixed;
     height: 100vh;
