@@ -117,7 +117,16 @@
     (not done?) frame
     (>= 1500 (-   next-offset position)) next-frame
     :otherwise frame)))
-  
+(rf/reg-sub
+ ::time-until-next-event
+ :<- [::frame-to-display]
+ :<- [::song-position-ms-adjusted]
+ :<- [::next-lyrics-event]
+ (fn-traced
+  [[frame position evt] _]
+  (-
+   (+ (:offset frame) (:offset evt))
+   position)))
 ;; (rf/reg-sub
  ;; ::player-status
  ;; (fn [db _]

@@ -125,6 +125,16 @@
     width: 100%;
     padding: 0.2em 0.6em;
 }
+
+.edge-progress-bar .lyrics-timing {
+    position: fixed;
+    bottom: 1em;
+    left: 0;
+    width: 100%;
+    padding: 0.2em 0.6em;
+    transition: all 0.5s ease-in;
+}
+
 .right-seek-component-wrapper {
     position: fixed;
     height: 100vh;

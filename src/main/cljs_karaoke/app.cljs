@@ -68,6 +68,12 @@
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
+(defn lyrics-timing-progress []
+  (let [time-remaining (rf/subscribe [::s/time-until-next-event])]
+    ;; (fn []
+      [:progress.progress.is-small.is-danger.lyrics-timing
+       {:max 3000
+        :value (- 3000 (if (> @time-remaining 3000) 3000 @time-remaining))}]))
 (defn song-progress []
   (let [dur (rf/subscribe [::s/song-duration])
         cur (rf/subscribe [::s/song-position])]
@@ -150,10 +156,12 @@
    [spectro-overlay]
 
    [current-frame-display]
-   (comment
-    [:div.debug-view
+   ;; (comment
+   [:div.debug-view
       {:style {:background :white
                :border-radius "0.5em"}}
+      (when-let [t @(rf/subscribe [::s/time-until-next-event])]
+        [:p t])
       (when-let [evt @(rf/subscribe [::s/next-lyrics-event])]
         [:p
          (str (:offset evt) " - " (:text evt))])
@@ -162,7 +170,7 @@
       (when-let [n @(rf/subscribe [::s/next-frame])]
         [:p (str (:offset n) " - " (protocols/get-text n))])
       (let [n @(rf/subscribe [::s/current-frame-done?])]
-        [:p (if n "done" "not done")])])
+        [:p (if n "done" "not done")])]
    [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
    [billboards-component]
    (when (and
@@ -200,6 +208,7 @@
    [seek-buttons/seek-component #(seek 10000) #(seek -10000)]
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.edge-progress-bar
+      [lyrics-timing-progress]
       [song-progress]])])
 
 (defn default-view []
