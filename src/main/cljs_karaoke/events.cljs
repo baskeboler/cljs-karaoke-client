@@ -89,6 +89,7 @@
  ;; ::init-fetches
  (fn-traced [_ _]
             {:db         {:current-frame              nil
+                          :app-name                   "Karaoke Party"
                           :lyrics                     nil
                           :lyrics-loaded?             false
                           :lyrics-fetching?           false
