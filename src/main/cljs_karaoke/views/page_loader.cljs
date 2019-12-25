@@ -37,14 +37,18 @@
 
 (def page-loader-logo-2-styles
   {:font-family               "'Frijole', cursive"
-   :font-size                 "5em"
+   :font-size                 "2em"
+   :text-align                :center
    :animation-name            "pulsate-bck"
    :animation-iteration-count :infinite
    :animation-duration        "1s"
    :animation-timing-function :ease-in-out
-   :animation-fill-mode       :both})
+   :animation-fill-mode       :both
+   ::stylefy/media            {{:min-width "320px"} {:font-size "3em"}
+                               {:min-width "640px"} {:font-size "4em"}
+                               {:min-width "992px"} {:font-size "5em"}}})
 (defn page-loader-logo-2 []
-  [:span
+  [:div
    (stylefy/use-style page-loader-logo-2-styles)
    @(rf/subscribe [::subscriptions/app-name])])
 (defn page-loader-component []
