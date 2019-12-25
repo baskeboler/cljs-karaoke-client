@@ -3,7 +3,7 @@
             [clojure.java.shell :refer [sh]])
   (:use [etaoin.api :as eta]))
 
-(def driver (chrome-headless))
+;; (def driver (chrome-headless))
 (defn sh! [command]
   (println command)
   (println (sh "bash" "-c" command)))
@@ -11,21 +11,20 @@
 (defn watch []
   (shadow/watch :app))
 
-(def songs (clojure.edn/read-string (slurp "resources/public/data/songs.edn")))
-
 (defn prerender []
-  (doall
-   (doseq [s    (take 200 songs)
-           :let [driver (chrome-headless)]]
-    (go driver (str "http://localhost:5000/#/songs/" s))
+  (let  [songs (clojure.edn/read-string (slurp "resources/public/data/songs.edn"))]
+    (doall
+     (doseq [s    (take 200 songs)
+             :let [driver (chrome-headless)]]
+       (go driver (str "http://localhost:5000/#/songs/" s))
    ;; (wait driver 15)
    ;; (js-execute driver (str " return window.cljs_karaoke.app.load_song_global(arguments[0])") s)
-    (spit (str "public/songs/" s) (->
-                                   (get-source driver)
-                                   (clojure.string/replace #"</body>"
-                                                           (clojure.core/format
-                                                            "<script>cljs_karaoke.app.load_song_global(\"%s\")</script></body>"
-                                                            s)))))))
+       (spit (str "public/songs/" s) (->
+                                      (get-source driver)
+                                      (clojure.string/replace #"</body>"
+                                                              (clojure.core/format
+                                                               "<script>cljs_karaoke.app.load_song_global(\"%s\")</script></body>"
+                                                               s))))))))
 (defn minify-css
   "Minifies the given CSS string, returning the result.
    If you're minifying static files, please use YUI."
@@ -57,7 +56,6 @@
   (->> files
        (map #(str target-dir "/" %))
        (map slurp)))
-
 
 (defn ^:export setup-target-dir
   {:shadow.build/stage :compile-prepare}
