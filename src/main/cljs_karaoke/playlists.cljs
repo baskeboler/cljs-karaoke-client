@@ -9,7 +9,9 @@
 (defrecord ^:export KaraokePlaylist [id created current songs]
   Playlist
   (songs [this] songs)
-  (add-song [this song] (-> this (update :songs conj song)))
+  (add-song [this song] (if-not (contains-song? this song)
+                          (-> this (update :songs conj song))
+                          this))
   (next-song [this]
     (if (has-next? this)
       (-> this
@@ -71,7 +73,7 @@
     this))
 
 (defn build-playlist
-  ([id created current songs] (->KaraokePlaylist id created current (vec songs)))
+  ([id created current songs] (->KaraokePlaylist id created current (into [] (dedupe songs))))
   ([created current songs] (build-playlist (str (random-uuid)) created current songs))
   ([current songs] (build-playlist (js/Date.) current songs))
   ([songs] (build-playlist 0 songs))

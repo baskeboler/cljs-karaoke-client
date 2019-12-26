@@ -1,4 +1,4 @@
 node_modules
 .shadow-cljs/
 .nrepl-port
-public/
+/public/

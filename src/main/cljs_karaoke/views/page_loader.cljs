@@ -35,6 +35,22 @@
      :animation-timing-function :ease-in-out}
     {:src "images/header-logo.svg"})])
 
+(def page-loader-logo-2-styles
+  {:font-family               "'Frijole', cursive"
+   :font-size                 "2em"
+   :text-align                :center
+   :animation-name            "pulsate-bck"
+   :animation-iteration-count :infinite
+   :animation-duration        "1s"
+   :animation-timing-function :ease-in-out
+   :animation-fill-mode       :both
+   ::stylefy/media            {{:min-width "320px"} {:font-size "3em"}
+                               {:min-width "640px"} {:font-size "4em"}
+                               {:min-width "992px"} {:font-size "5em"}}})
+(defn page-loader-logo-2 []
+  [:div
+   (stylefy/use-style page-loader-logo-2-styles)
+   @(rf/subscribe [::subscriptions/app-name])])
 (defn page-loader-component []
   [:div.pageloader
    (stylefy/use-style (merge
@@ -47,4 +63,5 @@
     (stylefy/use-style (merge
                         styles/centered
                         {:z-index 1000}))
-    [page-loader-logo]]])
+    [page-loader-logo-2]]])
+ 

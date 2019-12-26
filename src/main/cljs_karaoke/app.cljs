@@ -3,13 +3,13 @@
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
+            [cljs-karaoke.events.common :as common-events]
+            [cljs-karaoke.events :as events]
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
             [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events.billboards :as billboard-events]
-            [cljs-karaoke.events :as events]
-            [cljs-karaoke.events.common :as common-events]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.song-list :as song-list-events]
@@ -89,6 +89,7 @@
 (defn current-frame-display []
   (let [frame (rf/subscribe [::s/frame-to-display])]
     (when (and
+           @(rf/subscribe [::s/song-playing?])
            ((comp not nil?) @frame)
            (not (str/blank? (frame-text-string @frame))))
       [:div.current-frame
@@ -100,6 +101,7 @@
     ;; (when-not (nil? @player-status)
       ;; (async/close! @player-status)
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
+
 (defn song-time-display [^double ms]
   (let [secs  (-> ms
                   (/ 1000.0)
@@ -149,28 +151,37 @@
                                           (stop)
                                           (rf/dispatch [::playlist-events/playlist-next]))]]
    [:div.control
-    [icon-button "random" "warning" #(rf/dispatch [::song-events/trigger-load-random-song])]]])
+    [icon-button "random" "warning" #(rf/dispatch [::song-events/trigger-load-random-song])]]
+   [:div.control
+    [icon-button "trash" "danger" #(rf/dispatch [::bg-events/forget-cached-song-bg-image @(rf/subscribe [::s/current-song])])]]])
+(defn playback-debug-panel []
+  [:div.debug-view
+   {:style {:background :white
+            :border-radius "0.5em"}}
+   (when-let [t @(rf/subscribe [::s/time-until-next-event])]
+     [:p (str "time until: "
+              t)])
+   (when-let [evt @(rf/subscribe [::s/next-lyrics-event])]
+     [:p
+      (str "next event: " (:offset evt) " - " (:text evt))])
+   (when-let [n @(rf/subscribe [::s/previous-frame])]
+     [:p (str "previous frame: "
+              (protocols/get-text n))])
+   (when-let [n @(rf/subscribe [::s/current-frame])]
+     [:p (str "current frame: "(:offset n) " - " (protocols/get-text n))])
+   (when-let [n @(rf/subscribe [::s/frame-to-display])]
+     [:p (str "displayed frame: "(:offset n) " - " (protocols/get-text n))])
+   (when-let [n @(rf/subscribe [::s/next-frame])]
+     [:p (str "next frame: "(:offset n) " - " (protocols/get-text n))])
+   (let [n @(rf/subscribe [::s/current-frame-done?])]
+     [:p (if n "done" "not done")])])
 
 (defn playback-view []
   [:div.playback-view
    [spectro-overlay]
-
    [current-frame-display]
-   (comment
-     [:div.debug-view
-      {:style {:background :white
-               :border-radius "0.5em"}}
-      (when-let [t @(rf/subscribe [::s/time-until-next-event])]
-        [:p t])
-      (when-let [evt @(rf/subscribe [::s/next-lyrics-event])]
-        [:p
-         (str (:offset evt) " - " (:text evt))])
-      (when-let [n @(rf/subscribe [::s/previous-frame])]
-        [:p (protocols/get-text n)])
-      (when-let [n @(rf/subscribe [::s/next-frame])]
-        [:p (str (:offset n) " - " (protocols/get-text n))])
-      (let [n @(rf/subscribe [::s/current-frame-done?])]
-        [:p (if n "done" "not done")])])
+   (comment)
+   #_[playback-debug-panel]
    [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
    [billboards-component]
    (when (and
@@ -240,9 +251,9 @@
               (if @toasty {:bottom  "0px"
                            :opacity 1})))
        [:audio {:id    "toasty-audio"
-                :src   "media/toasty.mp3"
+                :src   "/media/toasty.mp3"
                 :style {:display :none}}]
-       [:img {:src "images/toasty.png" :alt "toasty"}]])))
+       [:img {:src "/images/toasty.png" :alt "toasty"}]])))
 
 (defn trigger-toasty []
   (let [a (.getElementById js/document "toasty-audio")]
@@ -267,7 +278,8 @@
          :home [default-view]
          :playback [playback-view]
          :playlist [playlist-view-component]))])
-
+(defn ^:export load-song-global [s]
+  (songs/load-song s))
 (defn init-routing! []
   (secretary/set-config! :prefix "#")
   (defroute "/" []
@@ -340,8 +352,8 @@
   (key/bind! "alt-x" ::alt-x #(remote-control/show-remote-control-id))
   (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings))
   (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
-  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch [::song-events/inc-current-song-delay -250]))
-  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch [::song-events/inc-current-song-delay 250])))
+  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch-sync [::song-events/inc-current-song-delay -250]))
+  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250])))
 (defn mount-components! []
   (reagent/render
    [app]
@@ -375,7 +387,7 @@
         ctx @(rf/subscribe [::audio-subs/audio-context])
         song-stream (capture-stream audio)
         song-paused? @(rf/subscribe [::s/song-paused?])]
-    (rf/dispatch [::song-events/set-song-stream song-stream])))
+    (rf/dispatch-sync [::song-events/set-song-stream song-stream])))
     ;; (play)))
 (defn ->ms [secs]
   (* 1000 secs))
@@ -403,5 +415,5 @@
   (println "processing ended event: " event)
   (rf/dispatch-sync [::events/set-playing? false])
   (when-let [_ @(rf/subscribe [::s/loop?])]
-    (rf/dispatch [::playlist-events/playlist-next])))
+    (rf/dispatch-sync [::playlist-events/playlist-next])))
 

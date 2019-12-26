@@ -148,17 +148,36 @@
     (. js/console (log "Generate bg css complete"))))
  (fn-traced [{:keys [db]} _] {:db db}))
 
+
+(rf/reg-event-fx
+ ::save-bg-cache-to-localstorage
+ (fn-traced
+  [{:keys [db] } [_ cb-event]]
+  {:db       db
+   :dispatch [::common-events/save-to-localstorage
+              "song-bg-cache"
+              (:song-backgrounds db)
+              cb-event]}))
+
 (rf/reg-event-fx
  ::cache-song-bg-image
  (fn-traced
   [{:keys [db]} [_ song-name image-url]]
   (let [new-db (-> db (assoc-in [:song-backgrounds song-name] image-url))]
     {:db new-db
-     :dispatch [::common-events/save-to-localstorage
-                "song-bg-cache"
-                (:song-backgrounds new-db)
-                ::cache-song-bg-complete]})))
+     :dispatch [::save-bg-cache-to-localstorage ::cache-song-bg-complete]})))
+     ;; :dispatch [::common-events/save-to-localstorage
+                ;; "song-bg-cache"
+                ;; (:song-backgrounds new-db)
+                ;; ::cache-song-bg-complete]})))
 
+(rf/reg-event-fx
+ ::forget-cached-song-bg-image
+ (fn-traced
+  [{:keys [db]} [_ song-name]]
+  {:db (-> db
+           (update :song-backgrounds dissoc song-name))
+   :dispatch [::save-bg-cache-to-localstorage ::cache-song-bg-complete]}))
 (rf/reg-event-fx
  ::cache-song-bg-complete
  (rf/after

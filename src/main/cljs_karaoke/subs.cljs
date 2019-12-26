@@ -36,17 +36,21 @@
  :<- [::song-position]
  :<- [::current-song-delay]
  (fn-traced [[lyrics song-position custom-song-delay] _]
-   (when-not (or
-              (empty? lyrics)
-              (nil? song-position)
-              (zero? song-position))
-     (last
-      (filterv
-       (fn [^cljs-karaoke.lyrics.LyricsFrame frame]
-         (< 
-          (protocols/get-offset frame)
-          (+ (* -1 custom-song-delay) (* 1000 song-position))))
-       lyrics)))))
+   (when-not (empty? lyrics)
+     (reduce
+      (fn [res frame]
+        (if (<= (protocols/get-offset frame) (+ (* -1 custom-song-delay) (* 1000 song-position)))
+          frame
+          res))
+      nil
+      (vec lyrics)))))
+     ;; (last
+      ;; (filterv
+       ;; (fn [^cljs-karaoke.lyrics.LyricsFrame frame]
+         ;; (<=
+          ;; (protocols/get-offset frame)
+          ;; (+ (* -1 custom-song-delay) (* 1000 song-position))
+       ;; lyrics))))
 
 (rf/reg-sub
  ::previous-frame
@@ -195,10 +199,12 @@
  ::song-position
  (fn-traced [db _]
    (:player-current-time db)))
+
 (rf/reg-sub
  ::song-paused?
  (fn-traced [db _]
    (not (:playing? db))))
+
 (rf/reg-sub
  ::song-duration
  (fn-traced [db _]
@@ -260,7 +266,7 @@
 (rf/reg-sub ::player-current-time (fn-traced [db _] (:player-current-time db)))
 (rf/reg-sub ::audio-events (fn-traced [db _] (:audio-events db)))
 (rf/reg-sub ::loop? (fn-traced [db _] (:loop? db)))
-
+(rf/reg-sub ::app-name (fn-traced [db _] (:app-name db)))
 
 (rf/reg-sub
  ::playlist

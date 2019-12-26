@@ -39,9 +39,6 @@
    :rules [{:when     :seen?
             :events   [::handle-fetch-background-config-complete]
             :dispatch [::init-song-bg-cache]}
-           ;; {:when :seen?
-           ;; :events [::handle-fetch-delays-complete]
-           ;; :dispatch [::init-song-delays]}
            {:when     :seen?
             :events   [::handle-fetch-delays-complete]
             :dispatch [::playlist-events/build-verified-playlist]}
@@ -89,6 +86,7 @@
  ;; ::init-fetches
  (fn-traced [_ _]
             {:db         {:current-frame              nil
+                          :app-name                   "Karaoke Party"
                           :lyrics                     nil
                           :lyrics-loaded?             false
                           :lyrics-fetching?           false
@@ -237,7 +235,12 @@
   {:db db
    :dispatch [::common-events/save-to-localstorage
               "custom-song-delays"
-              (:custom-song-delay db) nil]}))
+              (:custom-song-delay db)
+              ::save-custom-delays-to-localstorage-complete]}))
+
+(rf/reg-event-db
+ ::save-custom-song-delays-to-localstorage-complete
+ (fn-traced [db _] db))
 
 (rf/reg-event-fx
  ::handle-fetch-delays-complete
