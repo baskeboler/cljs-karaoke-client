@@ -34,7 +34,8 @@
 
  :builds
  {:app {:target           :browser
-        :build-hooks      [(build/setup-target-dir)]
+        :build-hooks      [(build/setup-target-dir)
+                           (build/generate-seo-pages)]
         :asset-path       "js/."
         :output-dir       "public/js"
         :build-options    {:cache-level :on}

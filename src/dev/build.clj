@@ -1,6 +1,7 @@
 (ns build
   (:require [shadow.cljs.devtools.api :as shadow]
-            [clojure.java.shell :refer [sh]])
+            [clojure.java.shell :refer [sh]]
+            [hiccup.page :refer [html5]])
   (:use [etaoin.api :as eta]))
 
 ;; (def driver (chrome-headless))
@@ -11,20 +12,24 @@
 (defn watch []
   (shadow/watch :app))
 
+(defn seo-page [song]
+ [:html
+   [:head
+    [:meta {:name :title :content (str "Karaoke - " song)}]
+    [:meta {:name :description :content "Karaoke Party"}]
+    [:title song]]
+   [:body
+    [:script
+     (str "location.assign('/#/songs/" song "');")]]])
+
 (defn prerender []
-  (let  [songs (clojure.edn/read-string (slurp "resources/public/data/songs.edn"))]
+  (let  [songs  (clojure.edn/read-string (slurp "resources/public/data/songs.edn"))]
     (doall
-     (doseq [s    (take 200 songs)
-             :let [driver (chrome-headless)]]
-       (go driver (str "http://localhost:5000/#/songs/" s))
-   ;; (wait driver 15)
-   ;; (js-execute driver (str " return window.cljs_karaoke.app.load_song_global(arguments[0])") s)
-       (spit (str "public/songs/" s) (->
-                                      (get-source driver)
-                                      (clojure.string/replace #"</body>"
-                                                              (clojure.core/format
-                                                               "<script>cljs_karaoke.app.load_song_global(\"%s\")</script></body>"
-                                                               s))))))))
+     (doseq [s    songs]
+       (println "Prerendering " s)
+       (spit (str "public/songs/" s)
+             (html5 (rest (seo-page s))))))))
+
 (defn minify-css
   "Minifies the given CSS string, returning the result.
    If you're minifying static files, please use YUI."
@@ -65,6 +70,13 @@
   (->> css-files
        (mapv #(str target-dir "/" %))
        (mapv minify-css-inplace))
+  build-state)
+
+(defn ^:export generate-seo-pages
+  {:shadow.build/stage :flush
+   :shadow.build/mode  :release}
+  [build-state & args]
+  (prerender)
   build-state)
 
 (defn create-docker-image []

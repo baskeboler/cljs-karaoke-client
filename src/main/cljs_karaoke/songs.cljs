@@ -1,6 +1,7 @@
 (ns cljs-karaoke.songs
   (:require [reagent.core :as reagent :refer [atom]]
             [clojure.string :as str]
+            [cljs-karaoke.events.common]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]

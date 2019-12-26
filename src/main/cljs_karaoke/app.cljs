@@ -3,13 +3,13 @@
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
+            [cljs-karaoke.events.common :as common-events]
+            [cljs-karaoke.events :as events]
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
             [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events.billboards :as billboard-events]
-            [cljs-karaoke.events :as events]
-            [cljs-karaoke.events.common :as common-events]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.song-list :as song-list-events]
@@ -151,8 +151,9 @@
                                           (stop)
                                           (rf/dispatch [::playlist-events/playlist-next]))]]
    [:div.control
-    [icon-button "random" "warning" #(rf/dispatch [::song-events/trigger-load-random-song])]]])
-
+    [icon-button "random" "warning" #(rf/dispatch [::song-events/trigger-load-random-song])]]
+   [:div.control
+    [icon-button "trash" "danger" #(rf/dispatch [::bg-events/forget-cached-song-bg-image @(rf/subscribe [::s/current-song])])]]])
 (defn playback-debug-panel []
   [:div.debug-view
    {:style {:background :white
