@@ -1,10 +1,8 @@
 (ns build
   (:require [shadow.cljs.devtools.api :as shadow]
             [clojure.java.shell :refer [sh]]
-            [hiccup.page :refer [html5]])
-  (:use [etaoin.api :as eta]))
+            [hiccup.page :refer [html5]]))
 
-;; (def driver (chrome-headless))
 (defn sh! [command]
   (println command)
   (println (sh "bash" "-c" command)))
@@ -12,12 +10,30 @@
 (defn watch []
   (shadow/watch :app))
 
+(defn- meta-tag [name content]
+  [:meta {:name name
+          :content content}])
+
 (defn seo-page [song]
- [:html
+  [:html
    [:head
-    [:meta {:name :title :content (str "Karaoke - " song)}]
-    [:meta {:name :description :content "Karaoke Party"}]
-    [:title song]]
+    [:meta {:charset :utf-8}]
+    (meta-tag
+     "twitter:image:src"
+     "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
+    (meta-tag "twitter:site" "@baskeboler")
+    (meta-tag "twitter:card" "summary_large_image")
+    (meta-tag :title  (str "Karaoke - " song))
+    (meta-tag :description  "Karaoke Party")
+    (meta-tag "twitter:title" (str "Karaoke Party :: " song))
+    (meta-tag "twitter:description" (str "Online Karaoke Player. Sing " song " online!"))
+    (meta-tag "og:image" "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
+    (meta-tag "og:site_name" "Karaoke Party")
+    (meta-tag "og:type" "object")
+    (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" song))
+    (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
+    [:title (str "Karaoke Party :: "
+                 song)]]
    [:body
     [:script
      (str "location.assign('/#/songs/" song "');")]]])
