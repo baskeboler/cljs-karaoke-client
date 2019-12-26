@@ -27,7 +27,7 @@
     (doall
      (doseq [s    songs]
        (println "Prerendering " s)
-       (spit (str "public/songs/" s)
+       (spit (str "public/songs/" s ".html")
              (html5 (rest (seo-page s))))))))
 
 (defn minify-css
