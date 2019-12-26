@@ -29,7 +29,7 @@
     (meta-tag "twitter:description" (str "Online Karaoke Player. Sing " song " online!"))
     (meta-tag "og:image" "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
     (meta-tag "og:site_name" "Karaoke Party")
-    (meta-tag "og:type" "object")
+    (meta-tag "og:type" "website")
     (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" song))
     (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
     [:title (str "Karaoke Party :: "
