@@ -18,6 +18,12 @@
       [db [_ obj]]
       (-> db
           (assoc-in attr-name obj))))))
+
+(defn reg-identity-event [evt-name]
+  (rf/reg-event-db
+   evt-name
+   (fn-traced [db _] db)))
+
 (defn save-to-localstorage [name obj]
   (when-not (or
              (nil? name)

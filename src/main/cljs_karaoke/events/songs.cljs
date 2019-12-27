@@ -8,6 +8,7 @@
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.lyrics :as lyrics-events]
             [cljs-karaoke.events.views :as views-events]
+            [cljs-karaoke.events.metrics :as metrics-events]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]
@@ -16,11 +17,15 @@
 (defn load-song-flow [song-name]
   {
    ;; :first-dispatch [::load-song-start song-name]
-   :rules [{:when       :seen-all-of?
-            :events     [
-                         ::lyrics-events/fetch-lyrics-complete
+   :rules [
+           ;; {:when     :seen?
+           ;;  :events   [::metrics-events/load-metrics-from-localstorage-complete]
+           ;;  :dispatch [::metrics-events/inc-song-play-count song-name]}
+           {:when       :seen-all-of?
+            :events     [::lyrics-events/fetch-lyrics-complete
                          ::bg-events/update-bg-image-flow-complete
-                         ::setup-audio-complete]
+                         ::setup-audio-complete
+                         ::metrics-events/save-user-metrics-to-localstorage-complete]
             :dispatch-n [[::events/set-pageloader-active? false]
                          [::events/set-can-play? true]
                          [::billboard-events/display-billboard {:id       (random-uuid)
@@ -72,6 +77,7 @@
    :dispatch-n [[::events/set-pageloader-active? true]
                 [::events/set-can-play? false]
                 [::events/set-playing? false]
+                [::metrics-events/load-user-metrics-from-localstorage]
                 [::setup-audio-events song-name]
                 ;; [::update-song-hash song-name]
                 ;; [::set-first-playback-position-updated? false]

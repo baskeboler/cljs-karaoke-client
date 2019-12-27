@@ -297,6 +297,11 @@ html {
     overflow-y: auto;
 }
 
+.editor .playback-controls {
+    position: relative;
+    top: unset;
+    right: unset;
+}
 @media screen and (min-width: 320px) {
     .current-frame {
         width: 90vw;

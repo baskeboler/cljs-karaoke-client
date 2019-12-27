@@ -283,7 +283,7 @@
  ::navbar-visible?
  :<- [::current-view]
  (fn-traced [view _]
-   (#{:playlist :home} view)))
+   (#{:playlist :home :editor} view)))
 ;; (rf/reg-sub
  ;; ::initialized?
  ;; :<- [::views]

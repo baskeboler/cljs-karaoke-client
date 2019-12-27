@@ -42,6 +42,8 @@
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
             [cljs-karaoke.views.navbar :as navbar]
+            [cljs-karaoke.views.editor  :refer [editor-component]]
+            [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.animation :refer [logo-animation]]
             [cljs-karaoke.svg.waveform :as waves]
@@ -68,22 +70,6 @@
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
-(defn lyrics-timing-progress []
-  (let [time-remaining (rf/subscribe [::s/time-until-next-event])]
-    ;; (fn []
-      [:progress.progress.is-small.is-danger.lyrics-timing
-       {:max 3000
-        :value (- 3000 (if (> @time-remaining 3000) 3000 @time-remaining))}]))
-(defn song-progress []
-  (let [dur (rf/subscribe [::s/song-duration])
-        cur (rf/subscribe [::s/song-position])]
-    (fn []
-      [:progress.progress.is-small.is-primary.song-progress
-       {:max (if (number? @dur) @dur 0)
-        :value (if (number? @cur) @cur 0)}
-       (str (if (pos? @dur)
-              (long (* 100 (/ @cur @dur)))
-              0) "%")])))
 
 
 (defn current-frame-display []
@@ -95,65 +81,7 @@
       [:div.current-frame
        [frame-text @frame]])))
 
-(defn seek [offset]
-  (let [audio            (rf/subscribe [::s/audio])
-        pos              (rf/subscribe [::s/player-current-time])]
-    ;; (when-not (nil? @player-status)
-      ;; (async/close! @player-status)
-    (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
 
-(defn song-time-display [^double ms]
-  (let [secs  (-> ms
-                  (/ 1000.0)
-                  (mod 60.0)
-                  long)
-        mins  (-> ms
-                  (/ 1000.0)
-                  (/ (* 60.0 1.0))
-                  (mod 60.0)
-                  long)
-        hours (-> ms
-                  (/ 1000.0)
-                  (/ (* 60.0 60.0 1.0))
-                  (mod 60.0)
-                  long)]
-    ;; (println  hours ":" mins ":" secs)
-    [:div.time-display
-     (stylefy/use-style time-display-style
-                        (merge
-                         {}
-                         (if @(rf/subscribe [::audio-subs/recording?])
-                           {:class "has-text-danger has-background-light"} {})))
-     [:span.hours hours] ":"
-     [:span.minutes mins] ":"
-     [:span.seconds secs] "."
-     [:span.milis (-> ms (mod 1000) long)]]))
-
-(defn playback-controls []
-  [:div.playback-controls.field.has-addons
-   (stylefy/use-style top-right)
-   [:div.control
-    [enable-audio-input-button]]
-
-   (when @(rf/subscribe [::s/display-home-button?])
-     [:div.control
-      [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])]])
-   (when-not @(rf/subscribe [::s/song-paused?])
-     [:div.control
-      [icon-button "stop" "danger" stop]])
-   (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
-              @(rf/subscribe [::audio-subs/recording-enabled?]))
-     [:div.control
-      [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
-       (rf/subscribe [::audio-subs/recording-button-enabled?])]])
-   [:div.control
-    [icon-button "step-forward" "info" #(do
-                                          (stop)
-                                          (rf/dispatch [::playlist-events/playlist-next]))]]
-   [:div.control
-    [icon-button "random" "warning" #(rf/dispatch [::song-events/trigger-load-random-song])]]
-   [:div.control
-    [icon-button "trash" "danger" #(rf/dispatch [::bg-events/forget-cached-song-bg-image @(rf/subscribe [::s/current-song])])]]])
 (defn playback-debug-panel []
   [:div.debug-view
    {:style {:background :white
@@ -272,12 +200,13 @@
    ;; [logo-animation]
    ;; [:div.page-content.roll-in-blurred-top
    (when-let [_ (and
-                   @(rf/subscribe [::s/initialized?])
-                   @(rf/subscribe [::s/current-view]))]
+                 @(rf/subscribe [::s/initialized?])
+                 @(rf/subscribe [::s/current-view]))]
        (condp = @(rf/subscribe [::s/current-view])
-         :home [default-view]
+         :home     [default-view]
          :playback [playback-view]
-         :playlist [playlist-view-component]))])
+         :playlist [playlist-view-component]
+         :editor   [editor-component]))])
 (defn ^:export load-song-global [s]
   (songs/load-song s))
 (defn init-routing! []
@@ -304,6 +233,8 @@
     (rf/dispatch [::playlist-events/playlist-load]))
   (defroute "/playlist" []
     (rf/dispatch-sync [::views-events/set-current-view :playlist]))
+  (defroute "/editor" []
+    (rf/dispatch [::views-events/view-action-transition :go-to-editor]))
   (let [h (History.)]
     (gevents/listen h ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
     (doto h (.setEnabled true))))

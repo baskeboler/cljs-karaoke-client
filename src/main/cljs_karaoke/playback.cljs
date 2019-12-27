@@ -10,8 +10,8 @@
 (defn play []
   (let [audio (rf/subscribe [::s/audio])]
         ;; lyrics (rf/subscribe [::s/lyrics])]
-    (rf/dispatch [::views-events/set-current-view :playback])
-    (set! (.-currentTime @audio) 0)
+    ;; (rf/dispatch [::views-events/set-current-view :playback])
+    ;; (set! (.-currentTime @audio) 0)
     (.play @audio)
     (rf/dispatch [::events/play])))
 
@@ -42,3 +42,9 @@
     ;; (rf/dispatch-sync [::events/set-player-status nil])
     ;; (rf/dispatch [::song-events/set-first-playback-position-updated? false])))
     ;; (songs/load-song @current)))
+
+(defn pause []
+  (let [audio (rf/subscribe [::s/audio])]
+    (when @audio
+      (.pause @audio))))
+      

@@ -19,6 +19,7 @@
             [cljs-karaoke.events.notifications]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.user :as user-events]
+            [cljs-karaoke.events.metrics :as metrics-events]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.audio :as aud]))
 (defonce fetch-bg-from-web-enabled? true)
@@ -58,6 +59,7 @@
                          ::set-audio
                          ;; ::http-relay-events/init-http-relay-listener
                          ::set-audio-events
+                         ::metrics-events/load-metrics-from-localstorage-complete
                          ::initial-audio-setup-complete
                          ::playlist-events/playlist-ready
                          ::views-events/views-state-ready
@@ -105,6 +107,7 @@
                           :song-duration              0
                           :custom-song-delay          {}
                           :song-backgrounds           {}
+                          :metrics                    {}
                           :stop-channel               (chan)
                           :loop?                      true
                           :initialized?               false
@@ -125,6 +128,7 @@
              :async-flow (init-flow)
 
              :dispatch-n [[::fetch-custom-delays]
+                          [::metrics-events/load-user-metrics-from-localstorage]
                           [::fetch-song-list]
                           [::fetch-song-background-config]
                           [::initial-audio-setup]
