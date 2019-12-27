@@ -15,10 +15,8 @@
             [cljs-karaoke.notifications :as n]
             [cljs-karaoke.events.notifications :as notification-events]))
 (defn load-song-flow [song-name]
-  {
-   ;; :first-dispatch [::load-song-start song-name]
-   :rules [
-           ;; {:when     :seen?
+  {;; :first-dispatch [::load-song-start song-name]
+   :rules [;; {:when     :seen?
            ;;  :events   [::metrics-events/load-metrics-from-localstorage-complete]
            ;;  :dispatch [::metrics-events/inc-song-play-count song-name]}
            {:when       :seen-all-of?
@@ -36,12 +34,10 @@
             :halt?      true}]})
 
 (defn stop-song-flow []
-  {
-   :first-dispatch [::stop-song-start]
+  {:first-dispatch [::stop-song-start]
    :rules          [:when :seen-all-of?
                     :events [::audio-stopped ::audio-events-closed]
-                    :dispatch-n [
-                                 ;; [::events/set-audio-events nil]
+                    :dispatch-n [;; [::events/set-audio-events nil]
                                  ;; [::events/set-current-frame nil]
                                  [::events/set-lyrics nil]
                                  [::events/set-lyrics-loaded?false]]]})
@@ -68,7 +64,7 @@
 
 (rf/reg-event-fx
  ::trigger-load-song-flow
- 
+
  ;; ::load-song-start
  (fn-traced
   [{:keys [db]} [_ song-name]]
@@ -81,11 +77,11 @@
                 [::setup-audio-events song-name]
                 ;; [::update-song-hash song-name]
                 ;; [::set-first-playback-position-updated? false]
-                [::common-events/set-page-title (str "Karaoke :: " song-name)]
+                ;; [::common-events/set-page-title (str "Karaoke :: " song-name)]
                 [::events/set-current-song song-name]
                 [::bg-events/init-update-bg-image-flow song-name]
                 [::lyrics-events/fetch-lyrics song-name preprocess-frames]
-                [::views-events/view-action-transition :load-song]]})) 
+                [::views-events/view-action-transition :load-song]]}))
 
 (rf/reg-event-fx
  ::trigger-load-random-song
@@ -119,13 +115,11 @@
 
 (cljs-karaoke.events.common/reg-set-attr ::set-song-stream :song-stream)
 
-
 (defn save-delays-flow []
   {:rules [{:when     :seen?
             :events   [::events/set-custom-song-delay]
             :dispatch [::events/save-custom-song-delays-to-localstorage]
             :halt?    true}]})
-
 
 (defn forget-delay-flow []
   {:rules [{:when     :seen?
@@ -158,3 +152,12 @@
   [{:keys [db]} [_ song-name]]
   {:db db
    :dispatch [::update-song-hash song-name]}))
+
+(rf/reg-event-fx
+ ::set-audio-playback-rate
+ (rf/after
+  (fn [db [_ rate]]
+    (set! (. (-> db :audio) -playbackRate) rate)))
+ (fn-traced
+  [{:keys [db]} [_ rate]]
+  {:db db}))

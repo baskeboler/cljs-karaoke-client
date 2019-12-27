@@ -13,22 +13,29 @@
 (rf/reg-sub
  ::audio
  (fn-traced [db _]
-   (:audio db)))
+            (:audio db)))
+
+(rf/reg-sub
+ ::audio-playback-rate
+ :<- [::audio]
+ (fn-traced
+  [audio _]
+  (.-playbackRate audio)))
 
 (rf/reg-sub
  ::lyrics
  (fn-traced [db _]
-   (:lyrics db)))
+            (:lyrics db)))
 
 (rf/reg-sub
  ::lyrics-loaded?
  (fn-traced [db _]
-   (:lyrics-loaded? db)))
+            (:lyrics-loaded? db)))
 
 (rf/reg-sub
  ::current-song-delay
  (fn-traced [db _]
-   (get-in db [:custom-song-delay (:current-song db)])))
+            (get-in db [:custom-song-delay (:current-song db)])))
 
 (rf/reg-sub
  ::current-frame
@@ -36,14 +43,14 @@
  :<- [::song-position]
  :<- [::current-song-delay]
  (fn-traced [[lyrics song-position custom-song-delay] _]
-   (when-not (empty? lyrics)
-     (reduce
-      (fn [res frame]
-        (if (<= (protocols/get-offset frame) (+ (* -1 custom-song-delay) (* 1000 song-position)))
-          frame
-          res))
-      nil
-      (vec lyrics)))))
+            (when-not (empty? lyrics)
+              (reduce
+               (fn [res frame]
+                 (if (<= (protocols/get-offset frame) (+ (* -1 custom-song-delay) (* 1000 song-position)))
+                   frame
+                   res))
+               nil
+               (vec lyrics)))))
      ;; (last
       ;; (filterv
        ;; (fn [^cljs-karaoke.lyrics.LyricsFrame frame]
@@ -102,11 +109,11 @@
  (fn-traced
   [[{:keys [events offset] :as frame} evt] _]
   (not ((set events) evt))))
- 
+
 (rf/reg-sub
  ::current-song
  (fn-traced [db _]
-   (:current-song db)))
+            (:current-song db)))
 
 (rf/reg-sub
  ::frame-to-display
@@ -139,119 +146,118 @@
 (rf/reg-sub
  ::highlight-status
  (fn-traced [db _]
-   (:highlight-status db)))
+            (:highlight-status db)))
 
 (rf/reg-sub
  ::lyrics-delay
  (fn-traced [db _]
-   (:lyrics-delay db)))
-
+            (:lyrics-delay db)))
 
 (rf/reg-sub
  ::available-songs
  (fn-traced [db _]
-   (:available-songs db)))
+            (:available-songs db)))
 
 (rf/reg-sub
  ::song-list
  (fn-traced [db _]
-   (:song-list db)))
+            (:song-list db)))
 
 (rf/reg-sub
  ::song-list-page-size
  :<- [::song-list]
  (fn-traced [song-list _]
-   (:page-size song-list)))
+            (:page-size song-list)))
 
 (rf/reg-sub
  ::song-list-current-page
  :<- [::song-list]
  (fn-traced [song-list _]
-   (:current-page song-list)))
+            (:current-page song-list)))
 
 (rf/reg-sub
  ::song-list-filter
  :<- [::song-list]
  (fn-traced [song-list _]
-   (:filter song-list)))
+            (:filter song-list)))
 
 (rf/reg-sub
  ::song-list-offset
  :<- [::song-list-current-page]
  :<- [::song-list-page-size]
  (fn-traced [[page size] _]
-   (* page size)))
+            (* page size)))
 
 (rf/reg-sub
  ::song-list-visible?
  :<- [::song-list]
  (fn-traced [song-list _]
-   (:visible? song-list)))
+            (:visible? song-list)))
 
 (rf/reg-sub
  ::song-list-filter-verified?
  :<- [::song-list]
  :<- [::verified-songs]
  (fn-traced [[song-list verified] _]
-   (filter verified song-list)))
+            (filter verified song-list)))
 
 (rf/reg-sub
  ::song-position
  (fn-traced [db _]
-   (:player-current-time db)))
+            (:player-current-time db)))
 
 (rf/reg-sub
  ::song-paused?
  (fn-traced [db _]
-   (not (:playing? db))))
+            (not (:playing? db))))
 
 (rf/reg-sub
  ::song-duration
  (fn-traced [db _]
-   (:song-duration db)))
+            (:song-duration db)))
 
 (rf/reg-sub
  ::song-playing?
  (fn-traced [db _]
-   (:playing? db)))
+            (:playing? db)))
 
 (rf/reg-sub
  ::custom-song-delay
  (fn-traced [db [_ song-name]]
-   (get-in db [:custom-song-delay song-name] (:lyrics-delay db))))
+            (get-in db [:custom-song-delay song-name] (:lyrics-delay db))))
 
 (rf/reg-sub
  ::verified-songs
  (fn-traced [db _]
-   (->> (keys (:custom-song-delay db))
-        (into #{}))))
+            (->> (keys (:custom-song-delay db))
+                 (into #{}))))
 
 (rf/reg-sub
  ::custom-song-delay-for-export
  (fn-traced [db _]
-   (-> db
-       :custom-song-delay
-       (pr-str))))
+            (-> db
+                :custom-song-delay
+                (pr-str))))
 
 (rf/reg-sub
  ::modals
  (fn-traced [db _]
-   (:modals db)))
+            (:modals db)))
 
 (rf/reg-sub
  ::bg-style
  (fn-traced [db _]
-   (:bg-style db)))
+            (:bg-style db)))
 
 (rf/reg-sub
  ::can-play?
  (fn-traced [db _]
-   (:can-play? db)))
+            (:can-play? db)))
 
 (rf/reg-sub
  ::current-view
  (fn-traced [db _]
-   (:current-view db)))
+            (:current-view db)))
 
 (rf/reg-sub
  ::views
@@ -261,7 +267,7 @@
  ::view-property
  :<- [::views]
  (fn-traced [views [_ view property]]
-   (get-in views [view property])))
+            (get-in views [view property])))
 
 (rf/reg-sub ::player-current-time (fn-traced [db _] (:player-current-time db)))
 (rf/reg-sub ::audio-events (fn-traced [db _] (:audio-events db)))
@@ -271,19 +277,19 @@
 (rf/reg-sub
  ::playlist
  (fn-traced [db _]
-   (some-> db
-           :playlist)))
+            (some-> db
+                    :playlist)))
 (rf/reg-sub
  ::playlist-current
  :<- [::playlist]
  (fn-traced [playlist _]
-   (some-> playlist
-           (protocols/current))))
+            (some-> playlist
+                    (protocols/current))))
 (rf/reg-sub
  ::navbar-visible?
  :<- [::current-view]
  (fn-traced [view _]
-   (#{:playlist :home :editor} view)))
+            (#{:playlist :home :editor} view)))
 ;; (rf/reg-sub
  ;; ::initialized?
  ;; :<- [::views]
@@ -297,27 +303,27 @@
 (rf/reg-sub
  ::initialized?
  (fn-traced [db _]
-   (:initialized? db)))
+            (:initialized? db)))
 
 (rf/reg-sub
  ::pageloader-active?
  (fn-traced [db _]
-   (:pageloader-active? db)))
+            (:pageloader-active? db)))
 
 (rf/reg-sub
  ::toasty?
  (fn-traced [db _]
-   (:toasty? db)))
+            (:toasty? db)))
 
 (rf/reg-sub
  ::stop-channel
  (fn-traced [db _]
-   (:stop-channel db)))
+            (:stop-channel db)))
 
 (rf/reg-sub
  ::player-status-id
  (fn-traced [db _]
-   (:player-status-id db)))
+            (:player-status-id db)))
 
 (rf/reg-sub
  ::seek-buttons-visible?
@@ -334,12 +340,12 @@
 (rf/reg-sub
  ::notifications
  (fn-traced [db _]
-   (:notifications db)))
+            (:notifications db)))
 
 (rf/reg-sub
  ::navbar-menu-active?
  (fn-traced [db _]
-   (:navbar-menu-active? db)))
+            (:navbar-menu-active? db)))
 
 (rf/reg-sub
  ::song-frames-relative-positions
@@ -347,8 +353,8 @@
  :<- [::lyrics]
  :<- [::current-song-delay]
  (fn  [[duration frames delay] _]
-  (let [duration-ms (* duration 1000)]
-    (map (comp (partial * (/ 1.0 duration-ms))
-            (partial + delay)
-            protocols/get-offset)
-         frames))))
+   (let [duration-ms (* duration 1000)]
+     (map (comp (partial * (/ 1.0 duration-ms))
+                (partial + delay)
+                protocols/get-offset)
+          frames))))

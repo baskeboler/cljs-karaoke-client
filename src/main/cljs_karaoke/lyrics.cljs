@@ -1,7 +1,6 @@
 (ns cljs-karaoke.lyrics
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
-            ;; [com.rpl.specter :as s :include-macros true]
             [cljs.core :as core :refer [random-uuid]]
             [cljs-karaoke.protocols :as protocols
              :refer [set-text reset-progress inc-progress
@@ -201,6 +200,7 @@
 ;;     (last))
 (defrecord ^:export LyricsEvent [id text ticks offset type])
 
+
 (extend-protocol protocols/PLyrics
   LyricsEvent
   (get-text [this]
@@ -249,7 +249,13 @@
       (= :lyrics-event (:type this)) (-> (map->LyricsEvent this)
                                          (played? delta))
       :else false)))
-
+(defn ^:export create-lyrics-event [{:keys [offset text]}]
+  (map->LyricsEvent
+   {:id     (str (random-uuid))
+    :type   :lyrics-event
+    :text   text
+    :offset offset
+    :ticks  -1}))
 (defn ^:export create-frame [obj]
   (->
    (->> obj

@@ -37,7 +37,9 @@
 
 (def initial-views-state
   {:home {}
-   :playback {:options-enabled? false}})
+   :playback {:options-enabled? false}
+   :editor {}
+   :playlist {}})
 
 (rf/reg-event-fx
  ::init-views-state

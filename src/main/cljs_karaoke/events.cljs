@@ -20,6 +20,7 @@
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.user :as user-events]
             [cljs-karaoke.events.metrics :as metrics-events]
+            [cljs-karaoke.events.editor :as editor-events]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.audio :as aud]))
 (defonce fetch-bg-from-web-enabled? true)
@@ -130,6 +131,7 @@
              :dispatch-n [[::fetch-custom-delays]
                           [::metrics-events/load-user-metrics-from-localstorage]
                           [::fetch-song-list]
+                          [::editor-events/init]
                           [::fetch-song-background-config]
                           [::initial-audio-setup]
                           [::audio-events/init-audio-data]
