@@ -17,33 +17,34 @@
 
 (defn update-song-bg-flow []
   {;; :first-dispatch [::update-bg-image song-name]
-   :rules [{:when :seen-all-of?
-            :events [::search-images
-                     ::handle-fetch-bg-success
-                     ::cache-song-bg-complete
-                     ::set-bg-image
-                     ::generate-bg-css-complete]
+   :rules [
+           ;; {:when     :seen-all-of?
+            ;; :events   [::search-images
+                       ;; ::handle-fetch-bg-success
+                       ;; ::cache-song-bg-complete
+                       ;; ::set-bg-image
+                       ;; ::generate-bg-css-complete
+            ;; :dispatch [::update-bg-image-complete]
+           {:when     :seen-all-of?
+            :events   [
+                       ::set-bg-image
+                       ::generate-bg-css-complete]
             :dispatch [::update-bg-image-complete]}
-           {:when :seen-all-of?
-            :events [::set-random-bg-image
-                     ::set-bg-image
-                     ::generate-bg-css-complete]
-            :dispatch [::update-bg-image-complete]}
-           {:when :seen-all-of?
-            :events [::set-cached-bg
-                     ::generate-bg-css-complete
-                     ::set-bg-image
-                     ::generate-bg-css-complete]
-            :dispatch [::update-bg-image-complete]}
-           {:when :seen-any-of?
-            :events [::set-cached-bg
-                     ::generate-bg-css
-                     ::handle-fetch-bg-failure
-                     ::cache-song-bg-image]}
-           {:when :seen?
-            :events ::update-bg-image-complete
+           ;; {:when     :seen-all-of?
+            ;; :events   [::set-cached-bg
+                       ;; ::set-bg-image
+                       ;; ::generate-bg-css-complete]
+            ;; :dispatch [::update-bg-image-complete]}
+           ;; {:when   :seen-any-of?
+            ;; :events [::set-cached-bg
+                     ;; ::generate-bg-css
+                     ;; ::handle-fetch-bg-failure
+                     ;; ::cache-song-bg-image
+            ;; :dispatch [::update-bg-image-complete]}
+           {:when     :seen-all-of?
+            :events   [::update-bg-image-complete]
             :dispatch [::update-bg-image-flow-complete]
-            :halt? true}]})
+            :halt?    true}]})
 
 (rf/reg-event-fx
  ::search-images

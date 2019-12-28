@@ -39,6 +39,15 @@
       ;; (async/close! @player-status)
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
 
+
+(defn increase-playback-rate-btn []
+  (let [r (rf/subscribe [::s/audio-playback-rate])]
+    [icon-button "plus" "default" #(rf/dispatch [::song-events/set-audio-playback-rate (if (>= @r 2) 2 (+ @r 0.1))])]))
+
+(defn decrease-playback-rate-btn []
+  (let [r (rf/subscribe [::s/audio-playback-rate])]
+    [icon-button "minus" "default" #(rf/dispatch [::song-events/set-audio-playback-rate (if (<= @r 0.1) 0.1 (- @r 0.1))])]))
+
 (defn song-time-display [^double ms]
   (let [secs  (-> ms
                   (/ 1000.0)
@@ -95,4 +104,8 @@
    [:div.control
     [icon-button "random" "warning" #(rf/dispatch [::song-events/trigger-load-random-song])]]
    [:div.control
-    [icon-button "trash" "danger" #(rf/dispatch [::bg-events/forget-cached-song-bg-image @(rf/subscribe [::s/current-song])])]]])
+    [icon-button "trash" "danger" #(rf/dispatch [::bg-events/forget-cached-song-bg-image @(rf/subscribe [::s/current-song])])]]
+   [:div.control
+    [increase-playback-rate-btn]]
+   [:div.control
+    [decrease-playback-rate-btn]]])

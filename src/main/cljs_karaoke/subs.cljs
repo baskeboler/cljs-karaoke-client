@@ -78,13 +78,21 @@
     (second frs))))
 
 (rf/reg-sub
- ::song-position-ms-adjusted
+ ::song-position-ms
  :<- [::song-position]
+ (fn-traced
+  [position _]
+  (* 1000 position)))
+
+(rf/reg-sub
+ ::song-position-ms-adjusted
+ :<- [::song-position-ms]
  :<- [::current-song-delay]
  (fn-traced
   [[position delay] _]
   (+ (* -1 delay)
-     (* 1000 position))))
+     position)))
+
 
 (rf/reg-sub
  ::next-lyrics-event
@@ -102,6 +110,7 @@
     (if (some? next-in-frame)
       next-in-frame
       (first (:events next-frame))))))
+
 (rf/reg-sub
  ::current-frame-done?
  :<- [::current-frame]
@@ -128,6 +137,7 @@
     (not done?) frame
     (>= 1500 (-   next-offset position)) next-frame
     :otherwise (if (some? frame) frame next-frame))))
+
 (rf/reg-sub
  ::time-until-next-event
  :<- [::frame-to-display]
@@ -138,10 +148,6 @@
   (-
    (+ (:offset frame) (:offset evt))
    position)))
-;; (rf/reg-sub
- ;; ::player-status
- ;; (fn [db _]
-   ;; (:player-status db)))
 
 (rf/reg-sub
  ::highlight-status
@@ -290,16 +296,7 @@
  :<- [::current-view]
  (fn-traced [view _]
             (#{:playlist :home :editor} view)))
-;; (rf/reg-sub
- ;; ::initialized?
- ;; :<- [::views]
- ;; :<- [::song-list]
- ;; (fn [[views songs] _]
-   ;; (and
-    ;; (not (empty? @re-frame.db/app-db))
-    ;; (not (empty? views))
-    ;; (not (empty? songs)))))
-    ;; (not (nil? (:playlist @re-frame.db/app-db))))))
+
 (rf/reg-sub
  ::initialized?
  (fn-traced [db _]

@@ -44,9 +44,11 @@
             [cljs-karaoke.views.navbar :as navbar]
             [cljs-karaoke.views.editor  :refer [editor-component]]
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
+            [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.animation :refer [logo-animation]]
             [cljs-karaoke.svg.waveform :as waves]
+            [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
              :refer [time-display-style centered
                      top-left parent-style
@@ -164,31 +166,10 @@
      [:div.edge-progress-bar
       [song-progress]])])
 
-(defn toasty []
-  (when-let [toasty (rf/subscribe [::s/toasty?])]
-    (when-let [_ (rf/subscribe [::s/initialized?])]
-      [:div (stylefy/use-style
-             (merge
-              {:position   :fixed
-               :bottom     "-474px"
-               :left       "0"
-               :opacity    0
-               :z-index    2
-               :display    :block
-               :transition "all 0.5s ease-in-out"}
-              (if @toasty {:bottom  "0px"
-                           :opacity 1})))
-       [:audio {:id    "toasty-audio"
-                :src   "/media/toasty.mp3"
-                :style {:display :none}}]
-       [:img {:src "/images/toasty.png" :alt "toasty"}]])))
 
-(defn trigger-toasty []
-  (let [a (.getElementById js/document "toasty-audio")]
-    (.play a)
-    (rf/dispatch [::events/trigger-toasty])))
-
-(defn app []
+(defn app
+  "main app component"
+  []
   [:div.app
    (when @(rf/subscribe [::s/navbar-visible?])
      [navbar/navbar-component])
@@ -207,8 +188,10 @@
          :playback [playback-view]
          :playlist [playlist-view-component]
          :editor   [editor-component]))])
+
 (defn ^:export load-song-global [s]
   (songs/load-song s))
+
 (defn init-routing! []
   (secretary/set-config! :prefix "#")
   (defroute "/" []
@@ -220,9 +203,10 @@
     (println "song: " song)
     (println "query params: " query-params)
     (songs/load-song song)
-    (when-some [offset (:offset query-params)]
-      (rf/dispatch-sync [::events/set-lyrics-delay (long offset)]))
-      ;; (rf/dispatch [::events/set-custom-song-delay song (long offset)]))
+    (if-some [offset (:offset query-params)]
+      (rf/dispatch-sync [::events/set-lyrics-delay (long offset)])
+      (rf/dispatch [::song-events/update-song-hash song]))
+    ;; (rf/dispatch [::events/set-custom-song-delay song (long offset)]))
     (when-some [show-opts? (:show-opts query-params)]
       (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
 
@@ -249,42 +233,7 @@
      (str protocol "//" host "/#/songs/" song "?lyrics-delay=" delay)
      (js/encodeURI))))
 
-(defn init-keybindings! []
-  (key/bind! "ctrl-space"
-             ::ctrl-space-kb
-             (fn []
-               (println "ctrl-s pressed!")
-               false))
-  (key/bind! "esc"
-             ::esc-kb
-             (fn []
-               (println "esc pressed!")
-               (cond
-                 (not (empty? @(rf/subscribe [::s/modals]))) (rf/dispatch [::modal-events/modal-pop])
-                 :else
-                 (do
-                   (when-let [_ @(rf/subscribe [::s/loop?])]
-                     (rf/dispatch-sync [::events/set-loop? false]))
-                   (when  @(rf/subscribe [::s/song-playing?])
-                     (stop))))))
-  (key/bind! "l r" ::l-r-kb #(songs/load-song))
-  (key/bind! "alt-o" ::alt-o #(rf/dispatch [::views-events/set-view-property :playback :options-enabled? true]))
-  (key/bind! "alt-h" ::alt-h #(rf/dispatch [::views-events/view-action-transition :go-to-home]))
-  (key/bind! "left" ::left #(seek -10000.0))
-  (key/bind! "right" ::right #(seek 10000.0))
-  (key/bind! "meta-shift-l" ::loop-mode #(do
-                                           (rf/dispatch [::events/set-loop? true])
-                                           (rf/dispatch [::playlist-events/playlist-load])))
-  (key/bind! "alt-shift-p" ::alt-meta-play #(play))
-  (key/bind! "shift-right" ::shift-right #(do
-                                            (stop)
-                                            (rf/dispatch-sync [::playlist-events/playlist-next])))
-  (key/bind! "t t" ::double-t #(trigger-toasty))
-  (key/bind! "alt-x" ::alt-x #(remote-control/show-remote-control-id))
-  (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings))
-  (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
-  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch-sync [::song-events/inc-current-song-delay -250]))
-  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250])))
+
 (defn mount-components! []
   (reagent/render
    [app]

@@ -278,3 +278,20 @@
   (map->Song
    {:name   name
     :frames (map create-frame frame-seq)}))
+
+(defprotocol ToMap
+  (->map [this]))
+
+(extend-protocol ToMap
+  LyricsEvent
+  (->map [{:keys [text offset id type  ] :as this}]
+    {:text   text
+     :offset offset
+     :id     id
+     :type   type})
+  LyricsFrame
+  (->map [{:keys [id events offset type ] :as this}]
+    {:id     id
+     :events (map ->map events)
+     :offset offset
+     :type   type}))

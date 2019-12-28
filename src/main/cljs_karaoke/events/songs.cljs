@@ -70,7 +70,8 @@
   [{:keys [db]} [_ song-name]]
   {:db         db
    :async-flow (load-song-flow song-name)
-   :dispatch-n [[::events/set-pageloader-active? true]
+   :dispatch-n [
+                ;; [::events/set-pageloader-active? true]
                 [::events/set-can-play? false]
                 [::events/set-playing? false]
                 [::metrics-events/load-user-metrics-from-localstorage]

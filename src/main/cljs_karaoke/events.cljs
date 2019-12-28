@@ -114,7 +114,7 @@
                           :initialized?               false
                           :base-storage-url           "https://karaoke-files.uyuyuy.xyz"
                           :current-view               :home
-                          ;; :pageloader-active?         true
+                          :pageloader-active?         true
                           :display-home-button?       true
                           ;; :playlist (pl/build-playlist)
                           :navbar-menu-active?        false

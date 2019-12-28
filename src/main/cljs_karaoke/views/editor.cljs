@@ -41,6 +41,8 @@
   (repeatedly #(-> (color/random-rgb)
                    color/as-css)))
 
+(defn frames-table []
+  [:table.table])
 (defn segments-display [{:keys [result done? text remaining-text]}]
   [:div.is-size-2
    (doall
@@ -77,8 +79,8 @@
        [:div.title "Lyrics Editor"]
        [:div.columns>div.column.is-12
         [song-progress]
-        [playback/playback-controls]
-        [autocomplete-input identity (take 10 @(rf/subscribe [::s/available-songs]))]]
+        [playback/playback-controls]]
+        ;; [autocomplete-input identity (take 10 @(rf/subscribe [::s/available-songs]))]]
        (when-not @text-done?
          [:div.columns
           [:div.column.is-full
@@ -170,8 +172,7 @@
        [:button.button.is-fullwidth
         {:on-click #(do
                       (rf/dispatch [::editor-events/reset-frame]))}
-
-                      ;; (reset! text-done? false)
-                      ;; (reset! segments-done? false)
-                      ;; (reset! offsets-done? false))}
         "reset"]])))
+
+(defn print-frames [frames]
+  (pr-str (map lyrics/->map frames)))
