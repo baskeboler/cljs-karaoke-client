@@ -224,11 +224,11 @@
     (doto h (.setEnabled true))))
 
 (defn get-sharing-url []
-  (let [l js/location
+  (let [l        js/location
         protocol (. l -protocol)
-        host (. l -host)
-        song @(rf/subscribe [::s/current-song])
-        delay @(rf/subscribe [::s/custom-song-delay])]
+        host     (. l -host)
+        song     @(rf/subscribe [::s/current-song])
+        delay    @(rf/subscribe [::s/custom-song-delay])]
     (->
      (str protocol "//" host "/#/songs/" song "?lyrics-delay=" delay)
      (js/encodeURI))))

@@ -42,7 +42,22 @@
                    color/as-css)))
 
 (defn frames-table []
-  [:table.table])
+  [:table.table.is-fullwidth
+   [:thead
+    [:tr
+     [:th "id"]
+     [:th "text"]
+     [:th "offset"]]]
+   [:tbody
+    (doall
+     (for [{:keys [id events offset]} (-> @(rf/subscribe [::editor-subs/editor-state]) :frames)]
+       ^{:key (str "frame_row_" id)}
+       [:tr
+        [:td id]
+        [:td (apply str (map :text events))]
+        [:td offset]]))]])
+
+
 (defn segments-display [{:keys [result done? text remaining-text]}]
   [:div.is-size-2
    (doall
@@ -79,8 +94,9 @@
        [:div.title "Lyrics Editor"]
        [:div.columns>div.column.is-12
         [song-progress]
-        [playback/playback-controls]]
-        ;; [autocomplete-input identity (take 10 @(rf/subscribe [::s/available-songs]))]]
+        [playback/playback-controls]
+       ;; [autocomplete-input identity (take 10 @(rf/subscribe [::s/available-songs]))]]
+        [frames-table]]
        (when-not @text-done?
          [:div.columns
           [:div.column.is-full
@@ -131,7 +147,7 @@
 
               "remove segment"]]]
            [:div (pr-str @segment-sizes)]
-           [segment-table (editor-events/get-segments @segment-sizes @text)]
+           ;; [segment-table (editor-events/get-segments @segment-sizes @text)]
            [:button.button.is-primary.is-fullwidth
             {:on-click #(do
                           (rf/dispatch [::editor-events/set-current-frame-property :segments-done? true])
