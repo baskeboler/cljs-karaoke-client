@@ -91,8 +91,14 @@
 (defn frame-text-editor []
   [:div.columns
    [:div.column.is-full
-    [:input.input {:type :file
-                   :on-change #(load-local-audio %)}]
+    [:div.file.has-name>label.file-label
+     [:input.file-input
+      {:type :file
+       :on-change #(load-local-audio %)}]
+     [:span.file-cta
+      [:span.file-icon>i.fas.fa-upload]
+      [:span.file-label "choose a file"]]]
+     ;; [:span.file-name "file name"]]
     [:textarea.textarea.is-primary.is-full
      {:value     @(rf/subscribe [::editor-subs/current-frame-property :text])
       :lines     10
