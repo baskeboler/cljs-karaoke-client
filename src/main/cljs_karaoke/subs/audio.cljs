@@ -45,7 +45,8 @@
  (fn [mix _]
    (not (nil? mix))))
 
-(rf/reg-sub
- ::song-stream
- (fn [db _]
-    (:song-stream db)))
+(cljs-karaoke.subs/reg-attr-sub ::song-stream :song-stream)
+;; (rf/reg-sub
+ ;; ::song-stream
+ ;; (fn [db _]
+    ;; (:song-stream db))

@@ -5,6 +5,12 @@
             [cljs-karaoke.lyrics :as lyrics]
             [cljs-karaoke.protocols :as protocols]))
 
+(defn reg-attr-sub [name key]
+  (rf/reg-sub
+   name
+   (fn [db _]
+     (get db key))))
+
 (rf/reg-sub
  ::display-lyrics?
  (fn [db _]
@@ -306,6 +312,11 @@
  ::pageloader-active?
  (fn-traced [db _]
             (:pageloader-active? db)))
+
+(rf/reg-sub
+ ::pageloader-exiting?
+ (fn-traced [db _]
+            (:pageloader-exiting? db)))
 
 (rf/reg-sub
  ::toasty?

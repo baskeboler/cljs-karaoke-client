@@ -8,12 +8,14 @@
   {:frames        []
    :current-frame {:text            "hola como te va?"
                    :text-done?      false
+                   :mode            :creating
+                   :id              nil
                    :segments-done?  false
                    :offsets-done?   false
                    :segment-sizes   []
                    :segment-offsets []
                    :segments        []
-                   :segment-size     0}})
+                   :segment-size    0}})
 
 (rf/reg-event-db
  ::init
@@ -33,8 +35,16 @@
  ::add-frame
  (fn-traced
   [{:keys [db]} _]
-  (let [events (map lyrics/create-lyrics-event (-> db :editor-state :current-frame :segments vals))
-        frame  (lyrics/->LyricsFrame (str (random-uuid)) events :frame-event -1 (-> events first :offset))]
+  (let [offsets (get-in db [:editor-state :current-frame :segment-offsets] [])
+        segments (vals (get-in db [:editor-state :current-frame :segments]))
+        segments (map merge segments (map (fn [o] {:offset o}) offsets))
+        events (map lyrics/create-lyrics-event segments)
+        frame-offset (-> events first :offset)
+        frame  (lyrics/->LyricsFrame (str (random-uuid))
+                                     (map #(update % :offset (fn [off] (- off frame-offset))) events)
+                                     :frame-event
+                                     -1
+                                     frame-offset)]
     {:db       (-> db
                    (update-in [:editor-state :frames] conj frame))
      :dispatch [::reset-frame]})))

@@ -55,12 +55,12 @@
 
 (rf/reg-event-fx
  ::save-to-localstorage
- (rf/after
-  (fn [_ [_ name obj cbevent]]
-    (. js/console (log "Saving to localstorage: " name " - " (clj->js obj)))
-    (save-to-localstorage name obj)))
+ ;; (rf/after
+  ;; (fn [_ [_ name obj cbevent]])
  (fn-traced
   [{:keys [db]} [_ name obj callback-event]]
+  (. js/console (log "Saving to localstorage: " name " - " (clj->js obj)))
+  (save-to-localstorage name obj)
   (merge
    {:db db}
    (if-not (nil? callback-event)

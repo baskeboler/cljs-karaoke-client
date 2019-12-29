@@ -24,14 +24,30 @@
      m)])
 
 
-(defn show-export-sync-info-modal []
-  (let [data @(rf/subscribe [::s/custom-song-delay-for-export])
-        modal (modal-card-dialog
-               {:title "Export sync data"
-                :content [:div.export-sync-data-content
+(defn ^:export show-export-text-info-modal
+  [{:keys [title text]}]
+  (let [modal (modal-card-dialog
+               {:title   title
+                :content [:div.export-text-data-content
                           [:div.field>div.control
                            [:textarea.textarea.is-primary
-                            {:id "sync-info-textarea"
-                             :value data}]]]
-                :footer nil})]
-    (rf/dispatch [::modal-events/modal-push modal])))
+                            {:id        (gensym ::export-text-info-modal)
+                             :value     text
+                             :read-only true}]]]
+                :footer  nil})]
+   (rf/dispatch [::modal-events/modal-push modal])))
+
+(defn show-export-sync-info-modal []
+  (let [data @(rf/subscribe [::s/custom-song-delay-for-export])]
+    ;;     modal (modal-card-dialog
+    ;;            {:title "Export sync data"
+    ;;             :content [:div.export-sync-data-content
+    ;;                       [:div.field>div.control
+    ;;                        [:textarea.textarea.is-primary
+    ;;                         {:id "sync-info-textarea"
+    ;;                          :value data}]]]
+    ;;             :footer nil})]
+    ;; (rf/dispatch [::modal-events/modal-push modal])
+    (show-export-text-info-modal
+     {:title "Export sync data"
+      :text data})))

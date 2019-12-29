@@ -29,15 +29,10 @@
 
 (declare save-custom-delays-to-localstore)
 
-(rf/reg-event-db
- ::init-flow
- (fn-traced
-  [{:keys [db]} _]
-  {:db db}))
 
 (defn init-flow []
   {
-   :id    ::init-flow
+   ;; :id    (gensym ::init-flow)
    :rules [{:when     :seen?
             :events   [::handle-fetch-background-config-complete]
             :dispatch [::init-song-bg-cache]}
@@ -206,11 +201,11 @@
  ::pageloader-exit-transition
  (fn-traced
   [{:keys [db] } _]
-  {:db (-> db
-           (assoc :pageloader-exiting? true))
-   :dispatch-later [{:ms 1000
+  {:db db
+   :dispatch [::set-pageloader-exiting? true]
+   :dispatch-later [{:ms 3000
                      :dispatch [::set-pageloader-active? false]}
-                    {:ms 1000
+                    {:ms 3000
                      :dispatch [::set-pageloader-exiting? false]}]}))
 (rf/reg-event-fx
  ::fetch-custom-delays
@@ -394,8 +389,8 @@
  ::play
  (fn-traced
   [{:keys [db]} _]
-  {:db (-> db
-           (assoc :playing? true))}))
+  {:db       db
+   :dispatch [::set-playing? true]}))
 
 
 

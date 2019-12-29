@@ -2,27 +2,6 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
-            [ajax.core :as ajax]
-            [cljs-karaoke.events.common :as common-events]
-            [cljs-karaoke.events :as events]
-            [cljs-karaoke.protocols :as protocols]
-            [cljs-karaoke.songs :as songs :refer [song-table-component]]
-            [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
-            [cljs-karaoke.remote-control :as remote-control]
-            [cljs-karaoke.events.billboards :as billboard-events]
-            [cljs-karaoke.events.backgrounds :as bg-events]
-            [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.events.song-list :as song-list-events]
-            [cljs-karaoke.events.views :as views-events]
-            [cljs-karaoke.events.playlists :as playlist-events]
-            [cljs-karaoke.events.http-relay :as http-relay-events]
-            [cljs-karaoke.events.modals :as modal-events]
-            [cljs-karaoke.events.audio :as audio-events]
-            [cljs-karaoke.subs :as s]
-            [cljs-karaoke.subs.audio :as audio-subs]
-            [cljs-karaoke.modals :as modals :refer [show-export-sync-info-modal]]
-            [cljs-karaoke.utils :as utils :refer [icon-button]]
-            [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
             [cljs.reader :as reader]
             [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
             [stylefy.core :as stylefy]
@@ -31,6 +10,32 @@
             [goog.history.EventType :as EventType]
             [keybind.core :as key]
             [clojure.string :as str]
+            [ajax.core :as ajax]
+            [cljs-karaoke.protocols :as protocols]
+            [cljs-karaoke.songs :as songs :refer [song-table-component]]
+            [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
+            [cljs-karaoke.remote-control :as remote-control]
+            [cljs-karaoke.events.common :as common-events]
+            [cljs-karaoke.events.billboards :as billboard-events]
+            [cljs-karaoke.events.backgrounds :as bg-events]
+            [cljs-karaoke.events.lyrics :as lyrics-events]
+            [cljs-karaoke.events.songs :as song-events]
+            [cljs-karaoke.events.editor :as editor-events]
+            [cljs-karaoke.events.metrics :as metrics-events]
+            [cljs-karaoke.events.song-list :as song-list-events]
+            [cljs-karaoke.events.views :as views-events]
+            [cljs-karaoke.events.playlists :as playlist-events]
+            [cljs-karaoke.events.user :as user-events]
+            [cljs-karaoke.events.http-relay :as http-relay-events]
+            [cljs-karaoke.events.modals :as modal-events]
+            [cljs-karaoke.events.audio :as audio-events]
+            [cljs-karaoke.events.notifications :as notifications-events]
+            [cljs-karaoke.events :as events]
+            [cljs-karaoke.subs :as s]
+            [cljs-karaoke.subs.audio :as audio-subs]
+            [cljs-karaoke.modals :as modals :refer [show-export-sync-info-modal]]
+            [cljs-karaoke.utils :as utils :refer [icon-button]]
+            [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.audio-input :refer [enable-audio-input-button spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
@@ -196,12 +201,14 @@
   (secretary/set-config! :prefix "#")
   (defroute "/" []
     (println "home path")
-    (rf/dispatch-sync [::playlist-events/playlist-load])
+    ;; (rf/dispatch-sync [::playlist-events/playlist-load])
     (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
   (defroute "/songs/:song"
     [song query-params]
     (println "song: " song)
     (println "query params: " query-params)
+    ;; (rf/dispatch [::events/set-pageloader-active? true])
+    (rf/dispatch [::events/set-pageloader-exiting? false])
     (songs/load-song song)
     (if-some [offset (:offset query-params)]
       (rf/dispatch-sync [::events/set-lyrics-delay (long offset)])
@@ -243,8 +250,8 @@
 
 (defn init! []
   (println "init!")
-  (mount-components!)
   (rf/dispatch-sync [::events/init-db])
+  (mount-components!)
   (init-routing!)
   (init-keybindings!)
   (when (ios?)
@@ -261,13 +268,13 @@
 (defmethod aud/process-audio-event :canplaythrough
   [event]
   (println "handling canplaythrough event")
-  (rf/dispatch-sync [::events/set-can-play? true])
   (let [audio @(rf/subscribe [::s/audio])
         output-mix @(rf/subscribe [::audio-subs/output-mix])
         ctx @(rf/subscribe [::audio-subs/audio-context])
         song-stream (capture-stream audio)
         song-paused? @(rf/subscribe [::s/song-paused?])]
-    (rf/dispatch-sync [::song-events/set-song-stream song-stream])))
+    (rf/dispatch-sync [::song-events/set-song-stream song-stream])
+    (rf/dispatch-sync [::events/set-can-play? true])))
     ;; (play)))
 (defn ->ms [secs]
   (* 1000 secs))

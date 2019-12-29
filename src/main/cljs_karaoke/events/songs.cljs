@@ -1,31 +1,30 @@
 (ns cljs-karaoke.events.songs
   (:require [re-frame.core :as rf]
-            [day8.re-frame.tracing :refer-macros [fn-traced]]
             [day8.re-frame.async-flow-fx]
-            [cljs-karaoke.events :as events]
+            [day8.re-frame.tracing :refer-macros [fn-traced]]
             [cljs-karaoke.events.billboards :as billboard-events]
             [cljs-karaoke.events.common :as common-events]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.events.lyrics :as lyrics-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.metrics :as metrics-events]
+            [cljs-karaoke.events.notifications :as notification-events]
+            [cljs-karaoke.events :as events]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]
-            [cljs-karaoke.notifications :as n]
-            [cljs-karaoke.events.notifications :as notification-events]))
+            [cljs-karaoke.notifications :as n]))
+
 (defn load-song-flow [song-name]
   {;; :first-dispatch [::load-song-start song-name]
-   :rules [;; {:when     :seen?
-           ;;  :events   [::metrics-events/load-metrics-from-localstorage-complete]
-           ;;  :dispatch [::metrics-events/inc-song-play-count song-name]}
-           {:when       :seen-all-of?
+   ;; :id    (gensym ::load-song-flow)
+   :rules [{:when       :seen-all-of?
             :events     [::lyrics-events/fetch-lyrics-complete
                          ::bg-events/update-bg-image-flow-complete
                          ::setup-audio-complete
                          ::metrics-events/save-user-metrics-to-localstorage-complete]
-            :dispatch-n [[::events/set-pageloader-active? false]
-                         [::events/set-can-play? true]
+            :dispatch-n [[::events/set-can-play? true]
+                         [::events/pageloader-exit-transition]
                          [::billboard-events/display-billboard {:id       (random-uuid)
                                                                 :type     :song-name-display
                                                                 :text     song-name
@@ -33,26 +32,26 @@
                           5000]]
             :halt?      true}]})
 
-(defn stop-song-flow []
-  {:first-dispatch [::stop-song-start]
-   :rules          [:when :seen-all-of?
-                    :events [::audio-stopped ::audio-events-closed]
-                    :dispatch-n [;; [::events/set-audio-events nil]
-                                 ;; [::events/set-current-frame nil]
-                                 [::events/set-lyrics nil]
-                                 [::events/set-lyrics-loaded?false]]]})
+;; (defn stop-song-flow []
+;;   {:first-dispatch [::stop-song-start]
+;;    :rules          [:when :seen-all-of?
+;;                     :events [::audio-stopped ::audio-events-closed]
+;;                     :dispatch-n [;; [::events/set-audio-events nil]
+;;                                  ;; [::events/set-current-frame nil]
+;;                                  [::events/set-lyrics nil]
+;;                                  [::events/set-lyrics-loaded? false]]]})
 
-(rf/reg-event-fx
- ::stop-song-start
- (fn-traced
-  [{:keys [db]} _]
-  (when-let [a (get db :audio)]
-    (.pause a))
-  (rf/dispatch [::audio-stopped])
-  (when-let [e (get db :audio-events)]
-    (async/close! e))
-  (rf/dispatch [::audio-events-closed])
-  {:db db}))
+;; (rf/reg-event-fx
+;;  ::stop-song-start
+;;  (fn-traced
+;;   [{:keys [db]} _]
+;;   (when-let [a (get db :audio)]
+;;     (.pause a))
+;;   (rf/dispatch [::audio-stopped])
+;;   (when-let [e (get db :audio-events)]
+;;     (async/close! e))
+;;   (rf/dispatch [::audio-events-closed])
+;;   {:db db}))
 
 (rf/reg-event-fx
  ::update-song-hash
@@ -71,6 +70,7 @@
   {:db         db
    :async-flow (load-song-flow song-name)
    :dispatch-n [
+                ;; [::events/set-pageloader-exiting? false]
                 ;; [::events/set-pageloader-active? true]
                 [::events/set-can-play? false]
                 [::events/set-playing? false]
@@ -92,20 +92,24 @@
     {:db       db
      :dispatch [::navigate-to-song song-name]})))
 
+
+(defn setup-audio-flow [song-name]
+  {:rules [{:when :seen-all-of?
+            :events [::events/set-player-current-time]
+            :dispatch [::setup-audio-complete]
+            :halt? true}]})
 (rf/reg-event-fx
  ::setup-audio-events
- (rf/after
-  (fn [db [_ song-name]]
-    (. js/console (log "setup audio: " song-name  ", storage: " (get db :base-storage-url "")))
-    (let [base-storage-url (get db :base-storage-url "")
-          audio-path       (str events/base-storage-url "/mp3/" song-name ".mp3")
-          audio            (.  js/document (getElementById "main-audio"))]
-      (set! (.-src audio) audio-path)
-      (rf/dispatch [::events/set-player-current-time 0])
-      (rf/dispatch [::setup-audio-complete]))))
  (fn-traced
   [{:keys [db]} [_ song-name]]
-  {:db db}))
+  (. js/console (log "setup audio: " song-name  ", storage: " (get db :base-storage-url "")))
+  (let [base-storage-url (get db :base-storage-url "")
+        audio-path       (str base-storage-url "/mp3/" song-name ".mp3")
+        audio            (.  js/document (getElementById "main-audio"))]
+    (set! (.-src audio) audio-path)
+    {:db db
+     :async-flow (setup-audio-flow song-name)
+     :dispatch [::events/set-player-current-time 0]})))
 
 (rf/reg-event-db
  ::setup-audio-complete
@@ -117,7 +121,8 @@
 (cljs-karaoke.events.common/reg-set-attr ::set-song-stream :song-stream)
 
 (defn save-delays-flow []
-  {:rules [{:when     :seen?
+  {:id (gensym ::save-delays-flow)
+   :rules [{:when     :seen?
             :events   [::events/set-custom-song-delay]
             :dispatch [::events/save-custom-song-delays-to-localstorage]
             :halt?    true}]})
