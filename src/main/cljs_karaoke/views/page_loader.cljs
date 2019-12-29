@@ -55,7 +55,7 @@
   [:div.pageloader
    (stylefy/use-style (merge
                        pageloader-styles
-                       (if-not @(rf/subscribe [::subscriptions/pageloader-active?])
+                       (if @(rf/subscribe [::subscriptions/pageloader-exiting?])
                          {:animation "slide-out-blurred-bottom 1s ease both"
                           :animation-delay "1s"
                           :z-index 100})))

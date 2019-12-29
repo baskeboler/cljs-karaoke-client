@@ -28,14 +28,17 @@
   [db _]
   (-> db
       (assoc-in [:editor-state :current-frame] (:current-frame initial-state)))))
-(rf/reg-event-db
+
+(rf/reg-event-fx
  ::add-frame
  (fn-traced
-  [db _]
+  [{:keys [db]} _]
   (let [events (map lyrics/create-lyrics-event (-> db :editor-state :current-frame :segments vals))
-        frame (lyrics/->LyricsFrame (str (random-uuid)) events :frame-event -1 (-> events first :offset))]
-   (-> db
-       (update-in [:editor-state :frames] conj frame)))))
+        frame  (lyrics/->LyricsFrame (str (random-uuid)) events :frame-event -1 (-> events first :offset))]
+    {:db       (-> db
+                   (update-in [:editor-state :frames] conj frame))
+     :dispatch [::reset-frame]})))
+
 (rf/reg-event-db
  ::set-current-frame-property
  (fn-traced

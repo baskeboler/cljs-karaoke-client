@@ -17,3 +17,9 @@
  :<- [::current-frame]
  (fn [current-frame [_ k]]
    (get current-frame k)))
+
+(rf/reg-sub
+ ::frames
+ :<- [::editor-state]
+ (fn [editor-state _]
+   (:frames editor-state)))

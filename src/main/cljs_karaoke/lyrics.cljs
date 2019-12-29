@@ -199,7 +199,24 @@
 ;;     (take 5)
 ;;     (last))
 (defrecord ^:export LyricsEvent [id text ticks offset type])
-
+  ;; IEquiv
+  ;; (-equiv [_ other]
+  ;;   (and (instance? LyricsEvent other)
+  ;;        (= id (:id other))))
+         
+  ;; IPrintWithWriter
+  ;; (-pr-writer [a writer _]
+  ;;   (-write writer (str "#lyrics-event \""
+  ;;                       (pr-str {:id     id
+  ;;                                :text   text
+  ;;                                :ticks  ticks
+  ;;                                :offset offset
+  ;;                                :type   type})
+  ;;                       "\""))))
+(defn read-lyrics-event [e]
+  (let [values (cljs.reader/read-string e)]
+    (map->LyricsEvent values)))
+(cljs.reader/register-tag-parser! "cljs-karaoke.lyrics.LyricsEvent" read-lyrics-event)
 
 (extend-protocol protocols/PLyrics
   LyricsEvent

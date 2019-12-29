@@ -47,7 +47,8 @@
            {:when       :seen-any-of?
             :events     [::handle-fetch-background-config-failure
                          ::handle-fetch-delays-failure]
-            :dispatch-n [[::set-pageloader-active? false]
+            :dispatch-n [[::pageloader-exit-transition]
+                         ;; [::set-pageloader-active? false]
                          [::boot-failure]]
             :halt?      true}
            {:when       :seen?
@@ -66,7 +67,8 @@
                          ::views-events/views-state-ready
                          ::song-list-events/song-list-ready
                          ::fetch-song-list-complete]
-            :dispatch-n [[::set-pageloader-active? false]
+            :dispatch-n [[::pageloader-exit-transition]
+                         ;; [::set-pageloader-active? false]
                          [::initialized]]
             :halt?      true}]})
 (rf/reg-event-db
@@ -115,6 +117,7 @@
                           :base-storage-url           "https://karaoke-files.uyuyuy.xyz"
                           :current-view               :home
                           :pageloader-active?         true
+                          :pageloader-exiting?        false
                           :display-home-button?       true
                           ;; :playlist (pl/build-playlist)
                           :navbar-menu-active?        false
@@ -199,8 +202,16 @@
   (println "fetch song list complete!")
   db))
 
-
-
+(rf/reg-event-fx
+ ::pageloader-exit-transition
+ (fn-traced
+  [{:keys [db] } _]
+  {:db (-> db
+           (assoc :pageloader-exiting? true))
+   :dispatch-later [{:ms 1000
+                     :dispatch [::set-pageloader-active? false]}
+                    {:ms 1000
+                     :dispatch [::set-pageloader-exiting? false]}]}))
 (rf/reg-event-fx
  ::fetch-custom-delays
  (fn-traced
@@ -356,6 +367,7 @@
 (reg-set-attr ::set-player-current-time :player-current-time)
 (reg-set-attr ::set-playing? :playing?)
 (reg-set-attr ::set-pageloader-active? :pageloader-active?)
+(reg-set-attr ::set-pageloader-exiting? :pageloader-exiting?)
 (reg-set-attr ::set-navbar-menu-active? :navbar-menu-active?)
 
 (rf/reg-event-db
