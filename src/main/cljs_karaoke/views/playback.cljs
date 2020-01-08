@@ -108,7 +108,7 @@
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.control
       [icon-button "stop" "danger" stop]])
-   #_(when (and @(rf/subscribe [::audio-subs/audio-input-available?])
+   (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
               @(rf/subscribe [::audio-subs/recording-enabled?]))
       [:div.control
        [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
@@ -119,9 +119,9 @@
                                           (rf/dispatch [::playlist-events/playlist-next]))]]
    [:div.control
     [icon-button "random" "warning" load-random-song]]
-   #_[:div.control
+   [:div.control
       [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]]
-   #_[:div.control
+   [:div.control
       [increase-playback-rate-btn]]
-   #_[:div.control
+   [:div.control
       [decrease-playback-rate-btn]]])
