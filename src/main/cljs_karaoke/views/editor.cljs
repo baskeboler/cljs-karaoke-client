@@ -3,7 +3,7 @@
             [goog.string :as gstr]
             [reagent.core :as reagent :refer [atom]]
             [stylefy.core :as stylefy]
-            [cljs-karaoke.components.autocomplete :refer [autocomplete-input]]
+            ;; [cljs-karaoke.components.autocomplete :refer [autocomplete-input]]
             [cljs-karaoke.events.editor :as editor-events]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.songs :as song-events]

@@ -17,11 +17,18 @@
 
 (defn- leading? [t]
   (or (str/starts-with? t "/")
-      (str/starts-with? t "\\")))
+      (str/starts-with? t "\\")
+      (str/starts-with? t "\n")
+      (str/ends-with? t "\n")))
+
+(def leading-icons
+  #{"fa-music" "fa-fire" "fa-bolt" "fa-skull-crossbones" "fa-meteor" "fa-radiation" "fa-skull"})
+
 
 (defn leading-icon []
   [:span.icon (stylefy/use-style {:margin "0 0.5em"})
-   [:i.fas.fa-music.fa-fw]])
+   [:i.fas.fa-fw
+    {:class (->> leading-icons (into []) rand-nth)}]])
 
 (defn- neg [n]
   (* -1 n))
