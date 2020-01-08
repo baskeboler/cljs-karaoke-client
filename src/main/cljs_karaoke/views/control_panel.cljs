@@ -128,17 +128,51 @@
       "hide lyrics"
       "show lyrics")]])
 
+(defn- control-panel-button-bar
+  []
+  (let [current-song            (rf/subscribe [::s/current-song])
+        can-play?               (rf/subscribe [::s/can-play?])
+        input-available?        (rf/subscribe [::audio-subs/audio-input-available?])]
+    [:div.field.has-addons
+      [:div.control
+       [:button.button.is-primary {:on-click #(songs/load-song @current-song)}
+        [:span.icon
+         [:i.fas.fa-folder-open]]]]
+      [:div.control
+       [:button.button.is-info.tooltip
+        (if @can-play?
+          {:on-click     play
+           :data-tooltip "PLAY"}
+          {:disabled true})
+        [:span.icon
+         [:i.fas.fa-play]]]]
+      [:div.control
+       [:button.button.is-warning.stop-btn.tooltip
+        {:on-click     stop
+         :data-tooltip "STOP"}
+        [:span.icon
+         [:i.fas.fa-stop]]]]
+      [:div.control
+       [export-sync-data-btn]]
+      [:div.control
+       [toggle-song-list-btn]]
+      [:div.control
+       [enable-remote-control-btn]]
+      [:div.control
+       [remote-control-btn]]
+      (when @input-available?
+        [:div.control
+         [enable-audio-input-button]])]))
+
 (defn control-panel []
   (let [lyrics                  (rf/subscribe [::s/lyrics])
         display-lyrics?         (rf/subscribe [::s/display-lyrics?])
         current-song            (rf/subscribe [::s/current-song])
         lyrics-loaded?          (rf/subscribe [::s/lyrics-loaded?])
         song-list-visible?      (rf/subscribe [::s/song-list-visible?])
-        can-play?               (rf/subscribe [::s/can-play?])
         remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])
-        input-available?        (rf/subscribe [::audio-subs/audio-input-available?])
-        recording-enabled?      (rf/subscribe [::audio-subs/recording-enabled?])]
-    [:div.control-panel.container-fluid.jello-vertical
+        input-available?        (rf/subscribe [::audio-subs/audio-input-available?])]
+   [:div.control-panel.container-fluid.jello-vertical
      (stylefy/use-style
       default-page-styles
       {:class (if @(rf/subscribe [::s/song-paused?])
@@ -146,41 +180,12 @@
                 ["song-playing"])})
      [:div.columns>div.column.is-12>div.title "Control Panel"]
      [:div.columns>div.column.is-12 (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
-      [toggle-display-lyrics-link]
-      [delay-select]
-      [info-table]
       [:div.columns
        [:div.column
-         [:div.field.has-addons
-          [:div.control
-           [:button.button.is-primary {:on-click #(songs/load-song @current-song)}
-            [:span.icon
-             [:i.fas.fa-folder-open]]]]
-          [:div.control
-           [:button.button.is-info.tooltip
-            (if @can-play?
-              {:on-click     play
-               :data-tooltip "PLAY"}
-              {:disabled true})
-            [:span.icon
-             [:i.fas.fa-play]]]]
-          [:div.control
-           [:button.button.is-warning.stop-btn.tooltip
-            {:on-click     stop
-             :data-tooltip "STOP"}
-            [:span.icon
-             [:i.fas.fa-stop]]]]
-          [:div.control
-           [export-sync-data-btn]]
-          [:div.control
-           [toggle-song-list-btn]]
-          [:div.control
-           [enable-remote-control-btn]]
-          [:div.control
-           [remote-control-btn]]
-          (when @input-available?
-            [:div.control
-               [enable-audio-input-button]])]
+         [toggle-display-lyrics-link]
+         [delay-select]
+         [info-table]
+         [control-panel-button-bar]
          [:div.field
           [:div.control
            [save-custom-delay-btn]]]

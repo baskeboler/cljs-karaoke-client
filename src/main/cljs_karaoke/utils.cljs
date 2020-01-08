@@ -39,8 +39,8 @@
   ([icon button-type callback enabled?]
    [:div.control
     [:p.control
-     [:a.button
-      {:class      ["button" (str "is-" button-type)]
+     [:a.button.is-small
+      {:class      [ (str "is-" button-type)]
        :disabled   (not @enabled?)
        :on-click   callback
        :aria-label icon
