@@ -10,7 +10,9 @@
             [cljs-karaoke.subs :as subs]
             [cljs-karaoke.utils :as utils :refer [icon-button]]
             [cljs-karaoke.notifications :as notifications]
-            [cljs-karaoke.protocols :as protocols]))
+            [cljs-karaoke.protocols :as protocols]
+            [cljs-karaoke.styles :refer [default-page-styles]]
+            [stylefy.core :as stylefy]))
 (defn playlist-controls [i song]
   [:div.playlist-controls.field.has-addons])
 
@@ -79,6 +81,7 @@
 
 (defn ^:export playlist-view-component []
   [:div.playlist-view.container-fluid.slide-in-bck-center>div.columns
+   (stylefy/use-style default-page-styles)
    [:div.column
     [:p.title "Playlist Mode"]
     [playlist-component]]])

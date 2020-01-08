@@ -5,6 +5,13 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.subs.user :as user-subs]))
+
+(defn navbar-item [path name]
+  [:a.navbar-item
+   {:href path
+    :on-click #(rf/dispatch [::events/set-navbar-menu-active? false])}
+   name])
+
 (defn navbar-component []
   (let [is-active? (rf/subscribe [::s/navbar-menu-active?])]
     [:nav.navbar.is-fixed-top.is-transparent
@@ -29,19 +36,22 @@
                ["navbar-menu"]
                (if @is-active? ["is-active"] []))}
       [:div.navbar-start
-       [:a.navbar-item
-        {:href "#/"
-         :on-click #(rf/dispatch [::events/set-navbar-menu-active? false])}
-        "control"]
-       [:a.navbar-item
-        {:href "#/playlist"
-         :on-click #(rf/dispatch [::events/set-navbar-menu-active? false])}
-        "playlist"]
+       ;; [:a.navbar-item
+        ;; {:href "#/"
+         ;; :on-click #(rf/dispatch [::events/set-navbar-menu-active? false])
+        ;; "control"
+       [navbar-item "#/" "control"]
+       ;; [:a.navbar-item
+        ;; {:href "#/playlist"
+         ;; :on-click #(rf/dispatch [::events/set-navbar-menu-active? false])
+        ;; "playlist"]
+       [navbar-item "#/playlist" "playlist"] 
        [:a.navbar-item
         {:on-click #(do
                       (rf/dispatch [::views-events/view-action-transition :go-to-playback])
                       (rf/dispatch [::events/set-navbar-menu-active? false]))}
-        "playback"]]
+        "playback"]
+       [navbar-item "#/editor" "lyrics editor"]]
       [:div.navbar-end
        (when @(rf/subscribe [::user-subs/user-ready?])
          [:div.navbar-item

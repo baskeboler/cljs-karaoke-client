@@ -19,6 +19,8 @@
             [cljs-karaoke.events.notifications]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.user :as user-events]
+            [cljs-karaoke.events.metrics :as metrics-events]
+            [cljs-karaoke.events.editor :as editor-events]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [cljs-karaoke.audio :as aud]))
 (defonce fetch-bg-from-web-enabled? true)
@@ -27,15 +29,10 @@
 
 (declare save-custom-delays-to-localstore)
 
-(rf/reg-event-db
- ::init-flow
- (fn-traced
-  [{:keys [db]} _]
-  {:db db}))
 
 (defn init-flow []
   {
-   :id    ::init-flow
+   ;; :id    (gensym ::init-flow)
    :rules [{:when     :seen?
             :events   [::handle-fetch-background-config-complete]
             :dispatch [::init-song-bg-cache]}
@@ -45,7 +42,8 @@
            {:when       :seen-any-of?
             :events     [::handle-fetch-background-config-failure
                          ::handle-fetch-delays-failure]
-            :dispatch-n [[::set-pageloader-active? false]
+            :dispatch-n [[::pageloader-exit-transition]
+                         ;; [::set-pageloader-active? false]
                          [::boot-failure]]
             :halt?      true}
            {:when       :seen?
@@ -58,12 +56,14 @@
                          ::set-audio
                          ;; ::http-relay-events/init-http-relay-listener
                          ::set-audio-events
+                         ::metrics-events/load-metrics-from-localstorage-complete
                          ::initial-audio-setup-complete
                          ::playlist-events/playlist-ready
                          ::views-events/views-state-ready
                          ::song-list-events/song-list-ready
                          ::fetch-song-list-complete]
-            :dispatch-n [[::set-pageloader-active? false]
+            :dispatch-n [[::pageloader-exit-transition]
+                         ;; [::set-pageloader-active? false]
                          [::initialized]]
             :halt?      true}]})
 (rf/reg-event-db
@@ -105,12 +105,14 @@
                           :song-duration              0
                           :custom-song-delay          {}
                           :song-backgrounds           {}
+                          :metrics                    {}
                           :stop-channel               (chan)
                           :loop?                      true
                           :initialized?               false
                           :base-storage-url           "https://karaoke-files.uyuyuy.xyz"
                           :current-view               :home
-                          ;; :pageloader-active?         true
+                          :pageloader-active?         true
+                          :pageloader-exiting?        false
                           :display-home-button?       true
                           ;; :playlist (pl/build-playlist)
                           :navbar-menu-active?        false
@@ -125,7 +127,9 @@
              :async-flow (init-flow)
 
              :dispatch-n [[::fetch-custom-delays]
+                          [::metrics-events/load-user-metrics-from-localstorage]
                           [::fetch-song-list]
+                          [::editor-events/init]
                           [::fetch-song-background-config]
                           [::initial-audio-setup]
                           [::audio-events/init-audio-data]
@@ -193,8 +197,16 @@
   (println "fetch song list complete!")
   db))
 
-
-
+(rf/reg-event-fx
+ ::pageloader-exit-transition
+ (fn-traced
+  [{:keys [db] } _]
+  {:db db
+   :dispatch [::set-pageloader-exiting? true]
+   :dispatch-later [{:ms 3000
+                     :dispatch [::set-pageloader-active? false]}
+                    {:ms 3000
+                     :dispatch [::set-pageloader-exiting? false]}]}))
 (rf/reg-event-fx
  ::fetch-custom-delays
  (fn-traced
@@ -262,7 +274,7 @@
   [{:keys [db]} _]
   {:db db
    :http-xhrio {:method :get
-                :uri (str base-storage-url "/backgrounds.edn")
+                :uri (str "/data/backgrounds.edn")
                 :timeout 8000
                 :response-format (ajax/text-response-format)
                 :on-success [::handle-fetch-background-config-success]
@@ -350,6 +362,7 @@
 (reg-set-attr ::set-player-current-time :player-current-time)
 (reg-set-attr ::set-playing? :playing?)
 (reg-set-attr ::set-pageloader-active? :pageloader-active?)
+(reg-set-attr ::set-pageloader-exiting? :pageloader-exiting?)
 (reg-set-attr ::set-navbar-menu-active? :navbar-menu-active?)
 
 (rf/reg-event-db
@@ -376,8 +389,8 @@
  ::play
  (fn-traced
   [{:keys [db]} _]
-  {:db (-> db
-           (assoc :playing? true))}))
+  {:db       db
+   :dispatch [::set-playing? true]}))
 
 
 

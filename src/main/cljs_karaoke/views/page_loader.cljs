@@ -2,15 +2,15 @@
   (:require [re-frame.core :as rf]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.subs :as subscriptions]
-            [stylefy.core :as stylefy]
+            ;; [stylefy.core :as stylefy]
             [cljs-karaoke.embed :as embed :include-macros true]
             [cljs.core.async :as async :refer [chan <! >! go-loop go]]
-            [bardo.interpolate :as interpolate]
-            [bardo.ease :as ease]
+            ;; [bardo.interpolate :as interpolate]
+            ;; [bardo.ease :as ease]
             [cljs-karaoke.styles :as styles]
-            [stylefy.core :as stylefy]
-            [bardo.transition :as transition]
-            [cljs-karaoke.animation :refer [logo-animation]])
+            [stylefy.core :as stylefy])
+            ;; [bardo.transition :as transition])
+            ;; [cljs-karaoke.animation :refer [logo-animation]])
 
   (:require-macros [cljs-karaoke.embed :refer [inline-svg]]))
 
@@ -51,14 +51,20 @@
   [:div
    (stylefy/use-style page-loader-logo-2-styles)
    @(rf/subscribe [::subscriptions/app-name])])
+
 (defn page-loader-component []
   [:div.pageloader
    (stylefy/use-style (merge
                        pageloader-styles
-                       (if-not @(rf/subscribe [::subscriptions/pageloader-active?])
-                         {:animation "slide-out-blurred-bottom 1s ease both"
+                       (cond
+                         (not
+                          @(rf/subscribe [::subscriptions/pageloader-active?]))
+                         {:display :none}
+                         @(rf/subscribe [::subscriptions/pageloader-exiting?])
+                         {:animation       "slide-out-blurred-bottom 1s ease both"
                           :animation-delay "1s"
-                          :z-index 100})))
+                          :z-index         100}
+                         :otherwise {})))
    [:div
     (stylefy/use-style (merge
                         styles/centered

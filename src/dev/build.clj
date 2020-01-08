@@ -92,7 +92,8 @@
   {:shadow.build/stage :flush
    :shadow.build/mode  :release}
   [build-state & args]
-  (prerender)
+  (when (= :release (:shadow.build/mode build-state))
+   (prerender))
   build-state)
 
 (defn create-docker-image []

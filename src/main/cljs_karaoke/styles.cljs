@@ -64,3 +64,8 @@
    :max-height "80vh"
    :transform  "translate(-50%,-50%)"
    :opacity    0.5})
+
+(def ^:export default-page-styles
+  {:background-color "rgba(255,255,255,0.7)"
+   :padding          "2em 1em"
+   :border-radius    "0.5em"})
