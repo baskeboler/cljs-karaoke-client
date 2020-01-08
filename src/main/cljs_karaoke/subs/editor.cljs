@@ -1,5 +1,7 @@
 (ns cljs-karaoke.subs.editor
   (:require [re-frame.core :as rf]
+            [clojure.string :as cstr]
+            [cljs-karaoke.protocols :as p]
             [cljs-karaoke.subs.audio :as audio-subs]))
 (rf/reg-sub
  ::editor-state
@@ -58,3 +60,62 @@
                     (nil? res)                    o
                     (> (:offset o) (:offset res)) o
                     :otherwise                    res))))))
+
+(rf/reg-sub
+ ::active-frame
+ :<- [::frames]
+ :<- [:cljs-karaoke.subs/song-position-ms]
+ (fn [[frames position] _]
+   (reduce
+    (fn [res f]
+      (cond
+        (nil? res)                     f
+        (and (> (:offset f) (:offset res))
+             (> position (:offset f))) f
+        :otherwise                     res))
+    frames)))
+
+(rf/reg-sub
+ ::frame-count
+ :<- [::frames]
+ (fn [frames _]
+   (count frames)))
+
+(defn flip [function]
+  (fn
+    ([] function)
+    ([x] (function x))
+    ([x y] (function y x))
+    ([x y z] (function z y x))
+    ([x y z w] (function w z y x))
+    ([x y z w & rest] (->> rest
+                           (concat [x y z w])
+                           reverse
+                           (apply function)))))
+
+(rf/reg-sub
+ ::word-count
+ :<- [::frames]
+ (fn [frames _]
+   (->> frames
+        (mapv :events)
+        (mapv (fn [events]
+                (->> events
+                     (mapv :text)
+                     (apply str)
+                     ((flip cstr/split) #" ")
+                     (count))))
+        (reduce + 0))))
+
+(rf/reg-sub
+ ::frame-count
+ :<- [::frames]
+ (fn [frames _]
+   (count frames)))
+
+(rf/reg-sub
+ ::words-per-frame
+ :<- [::word-count]
+ :<- [::frame-count]
+ (fn [[word-count frame-count] _]
+   (/ word-count frame-count)))

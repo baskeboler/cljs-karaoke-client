@@ -82,9 +82,10 @@
      [:th "actions"]]]
    [:tbody
     (doall
-     (for [{:keys [id events offset]} @(rf/subscribe [::editor-subs/frames])]
+     (for [{:keys [id events offset]} @(rf/subscribe [::editor-subs/frames])
+            :let [active-frame (rf/subscribe [::editor-subs/active-frame])]]
        ^{:key (str "frame_row_" id)}
-       [:tr
+       [:tr {:class (when (= (:id @active-frame) id) "is-selected")}
         [:td (apply str  (take 8 id))]
         [:td (apply str (map :text events))]
         [:td>div (gstr/format "%1.3f s" (/ offset 1000))]
