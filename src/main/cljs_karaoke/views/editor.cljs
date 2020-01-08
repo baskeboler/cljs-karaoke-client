@@ -27,6 +27,7 @@
       [:progress.progress.is-small.is-primary
        {:max (if (number? @dur) @dur 0)
         :value (if (number? @cur) @cur 0)}
+
        (str (if (pos? @dur)
               (long (* 100 (/ @cur @dur)))
               0) "%")])))
@@ -48,10 +49,10 @@
    "import lyrics"])
 
 (comment
- (def editor-styles
-  {:background-color "rgba(255,255,255,0.7)"
-   :padding          "2em 1em"
-   :border-radius    "0.5em"}))
+  (def editor-styles
+    {:background-color "rgba(255,255,255,0.7)"
+     :padding          "2em 1em"
+     :border-radius    "0.5em"}))
 
 (defn segment-table [{:keys [result done? text remaining-text]}]
   [:table.table.is-fullwidth
@@ -83,7 +84,7 @@
    [:tbody
     (doall
      (for [{:keys [id events offset]} @(rf/subscribe [::editor-subs/frames])
-            :let [active-frame (rf/subscribe [::editor-subs/active-frame])]]
+           :let [active-frame (rf/subscribe [::editor-subs/active-frame])]]
        ^{:key (str "frame_row_" id)}
        [:tr {:class (when (= (:id @active-frame) id) "is-selected")}
         [:td (apply str  (take 8 id))]
@@ -107,31 +108,31 @@
           (fn [e]
             (set! (.-src @(rf/subscribe [::s/audio]))
                   (.. e -target -result))))
-    (.. reader (readAsDataURL f))))      
+    (.. reader (readAsDataURL f))))
 (defn frame-text-editor []
   [:div.columns>div.column.is-full
-    [:div.columns>div.column.is-full>div.file.has-name>label.file-label
-     [:input.file-input
-      {:type :file
-       :on-change #(load-local-audio %)}]
-     [:span.file-cta
-      [:span.file-icon>i.fas.fa-upload]
-      [:span.file-label "Choose a File"]]]
+   [:div.columns>div.column.is-full>div.file.has-name>label.file-label
+    [:input.file-input
+     {:type :file
+      :on-change #(load-local-audio %)}]
+    [:span.file-cta
+     [:span.file-icon>i.fas.fa-upload]
+     [:span.file-label "Choose a File"]]]
      ;; [:span.file-name "file name"]]
-    [:div.columns>div.column.is-full>textarea.textarea.is-primary.is-full
-     {:value     @(rf/subscribe [::editor-subs/current-frame-property :text])
-      :lines     10
-      :on-change #(rf/dispatch [::editor-events/set-current-frame-property :text  (-> % .-target .-value)])}]
-    [:button.button.is-primary.is-fullwidth
-     {:on-click #(do
-                   (rf/dispatch [::editor-events/set-current-frame-property :text-done? true])
-                   (rf/dispatch [::editor-events/editor-action :confirm-text])
-                   (rf/dispatch [::editor-events/set-current-frame-property :segments
-                                 (editor-events/get-segments
-                                  @(rf/subscribe [::editor-subs/current-frame-property :segment-sizes])
-                                  @(rf/subscribe [::editor-subs/current-frame-property :text]))]))}
+   [:div.columns>div.column.is-full>textarea.textarea.is-primary.is-full
+    {:value     @(rf/subscribe [::editor-subs/current-frame-property :text])
+     :lines     10
+     :on-change #(rf/dispatch [::editor-events/set-current-frame-property :text  (-> % .-target .-value)])}]
+   [:button.button.is-primary.is-fullwidth
+    {:on-click #(do
+                  (rf/dispatch [::editor-events/set-current-frame-property :text-done? true])
+                  (rf/dispatch [::editor-events/editor-action :confirm-text])
+                  (rf/dispatch [::editor-events/set-current-frame-property :segments
+                                (editor-events/get-segments
+                                 @(rf/subscribe [::editor-subs/current-frame-property :segment-sizes])
+                                 @(rf/subscribe [::editor-subs/current-frame-property :text]))]))}
 
-     "confirm frame text"]])
+    "confirm frame text"]])
 
 (defn segments-display [{:keys [result done? text remaining-text]}]
   [:div.is-size-2
@@ -170,8 +171,8 @@
       (doall
        (for [[i seg] (map-indexed vector (vec
                                           (sort-by :offset
-                                                  (vec
-                                                   (vals @segments)))))
+                                                   (vec
+                                                    (vals @segments)))))
              :let    [{:keys [text id]} seg]]
          ^{:key (str "segment_timing_" i)}
          [:span.segment-timing-part
@@ -200,7 +201,48 @@
        "undo"]]]))
 
 (defn segment-timing-preview [])
-  
+
+(defn segment-selection-component []
+  (let [text          (rf/subscribe [::editor-subs/current-frame-property :text])
+        segment-sizes (rf/subscribe [::editor-subs/current-frame-property :segment-sizes])]
+    [:div.columns
+     [:div.column.is-full
+      [segments-display (editor-events/get-segments @segment-sizes @text)]
+      [segment-selector
+       {:text                     (-> (editor-events/get-segments @segment-sizes @text)
+                                      :remaining-text)
+        :on-new-segment-select-fn #(rf/dispatch [::editor-events/set-current-frame-property
+                                                 :segment-sizes
+                                                 (conj @segment-sizes %)])}]
+      [:div.field.is-grouped.has-addons
+       [:div.control.has-icon
+        [:button.button.is-warning
+         {:on-click #(rf/dispatch [::editor-events/set-current-frame-property :segment-sizes
+                                   ((comp vec butlast) @segment-sizes)])}
+
+         "remove segment"]]]
+      [:button.button.is-primary.is-fullwidth
+       {:on-click #(do
+                     (rf/dispatch [::editor-events/set-current-frame-property :segments-done? true])
+                     ;; (reset! segments-done? true)
+                     (rf/dispatch [::editor-events/set-current-frame-property :segments
+                                   (->>
+                                    (editor-events/get-segments @segment-sizes @text)
+                                    :result
+                                    (map-indexed (fn [i s] [i {:id i :text s}]))
+                                    (into {}))])
+                     (rf/dispatch [::editor-events/editor-action :confirm-segments]))
+        ;; (reset! segments (editor-events/get-segments @segment-sizes @text)))}
+        :disabled (not
+                   @(rf/subscribe [::editor-subs/segments-ready?]))}
+                    ;; (:done? (editor-events/get-segments @segment-sizes @text)))}
+
+       "confirm segments"]]]))
+
+(defn editor-mode-title []
+  (let [mode (rf/subscribe [::editor-subs/mode-title])]
+    [:div.title.is-text-2 @mode]))
+
 (defn  ^:export editor-component []
   (let [text            (rf/subscribe [::editor-subs/current-frame-property :text])
         text-done?      (rf/subscribe [::editor-subs/current-frame-property :text-done?])
@@ -210,10 +252,10 @@
         segment-offsets (rf/subscribe [::editor-subs/current-frame-property :segment-offsets])
         segments        (rf/subscribe [::editor-subs/current-frame-property :segments])
         size            (rf/subscribe [::editor-subs/current-frame-property :segment-size])]
-    (fn []
+    ;; (fn []
       [:div.editor.container-fluid
        (stylefy/use-style default-page-styles)
-       [:div.title "Lyrics Editor"]
+       [:div.title.is-size-2 "Lyrics Editor"]
        [:div.columns
         [:div.column.is-one-third
          [:div.columns>div.column
@@ -225,49 +267,24 @@
          [:div.columns>div.column.is-12
           [song-progress]
           [playback/playback-controls]]
-         (when (= :text-entry @(rf/subscribe [::editor-subs/current-state]))
+         [editor-mode-title]
+         (condp = @(rf/subscribe [::editor-subs/current-state])
+           :text-entry
            ;; (when-not @text-done?)
-           [frame-text-editor])
-         (when (= :segment-selection @(rf/subscribe [::editor-subs/current-state]))
+           [frame-text-editor]
+           :segment-selection
               ;; (and (not @segments-done?
                     ;; @text-done?)
-           [:div.columns
-            [:div.column.is-full
-             [segments-display (editor-events/get-segments @segment-sizes @text)]
-             [segment-selector
-              {:text                     (-> (editor-events/get-segments @segment-sizes @text)
-                                             :remaining-text)
-               :on-new-segment-select-fn #(rf/dispatch [::editor-events/set-current-frame-property
-                                                        :segment-sizes
-                                                        (conj @segment-sizes %)])}]
-             [:div.field.is-grouped.has-addons
-              [:div.control.has-icon
-               [:button.button.is-warning
-                {:on-click #(rf/dispatch [::editor-events/set-current-frame-property :segment-sizes
-                                          ((comp vec butlast) @segment-sizes)])}
+           [segment-selection-component]
+           :segment-timing
 
-                "remove segment"]]]
-             [:button.button.is-primary.is-fullwidth
-              {:on-click #(do
-                            (rf/dispatch [::editor-events/set-current-frame-property :segments-done? true])
-                            ;; (reset! segments-done? true)
-                            (rf/dispatch [::editor-events/set-current-frame-property :segments
-                                          (->>
-                                           (editor-events/get-segments @segment-sizes @text)
-                                           :result
-                                           (map-indexed (fn [i s] [i {:id i :text s}]))
-                                           (into {}))])
-                            (rf/dispatch [::editor-events/editor-action :confirm-segments]))
-               ;; (reset! segments (editor-events/get-segments @segment-sizes @text)))}
-               :disabled (not
-                          @(rf/subscribe [::editor-subs/segments-ready?]))}
-                          ;; (:done? (editor-events/get-segments @segment-sizes @text)))}
-
-              "confirm segments"]]])
-         (when (= :segment-timing @(rf/subscribe [::editor-subs/current-state]))
+         ;; (when (= :segment-timing @(rf/subscribe [::editor-subs/current-state]))
            [:div.columns>div.column.is-12
-            [:div.has-text-primary.is-size-2
-             @(rf/subscribe [::s/player-current-time])]
+            [:div.has-background-primary.has-text-light.has-text-centered.is-size-2
+             [:i.fas.fa-fw.fa-clock.has-text-warning]
+             (gstr/format
+              "%1.3f"
+              @(rf/subscribe [::s/player-current-time]))]
 
             [segment-timing-editor]
             [:button.button.is-fullwidth.is-warning
@@ -280,7 +297,7 @@
           {:on-click #(do
                         (rf/dispatch [::editor-events/reset-frame])
                         (rf/dispatch [::editor-events/editor-action :reset]))}
-          "reset"]]]])))
+          "reset"]]]]))
 
 (defn print-frames-str [frames]
   (pr-str (map lyrics/->map frames)))

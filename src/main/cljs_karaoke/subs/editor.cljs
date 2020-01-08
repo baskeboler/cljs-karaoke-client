@@ -32,6 +32,18 @@
  (fn [editor-state _]
    (:current-state editor-state)))
 
+(def mode-titles
+  {:text-entry        "Frame text definition"
+   :segment-selection "Divide text into segments"
+   :segment-timing    "Synchronize segments with audio track"
+   :frame-preview     "Preview work in progress"})
+
+(rf/reg-sub
+ ::mode-title
+ :<- [::current-state]
+ (fn [current-state _]
+   (mode-titles current-state)))
+
 (rf/reg-sub
  ::segments-ready?
  :<- [::editor-state]
