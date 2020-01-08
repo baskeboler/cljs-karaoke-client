@@ -21,8 +21,8 @@
    :rules [{:when       :seen-all-of?
             :events     [::lyrics-events/fetch-lyrics-complete
                          ::bg-events/update-bg-image-flow-complete
-                         ::setup-audio-complete
-                         ::metrics-events/save-user-metrics-to-localstorage-complete]
+                         ::setup-audio-complete]
+                         ;; ::metrics-events/save-user-metrics-to-localstorage-complete]
             :dispatch-n [[::events/set-can-play? true]
                          [::events/pageloader-exit-transition]
                          [::billboard-events/display-billboard {:id       (random-uuid)

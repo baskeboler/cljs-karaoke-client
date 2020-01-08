@@ -15,6 +15,7 @@
             [cljs-karaoke.views.playback :as playback]
             [cljs-karaoke.subs.editor :as editor-subs]
             [thi.ng.color.core :as color]
+            [cljs-karaoke.styles :refer [default-page-styles]]
             [cljs-karaoke.lyrics :as lyrics]
             [clojure.string :as str]))
 (declare print-frames-str)
@@ -46,10 +47,11 @@
                   :on-submit #(rf/dispatch [::editor-events/load-frames %])}))}
    "import lyrics"])
 
-(def editor-styles
+(comment
+ (def editor-styles
   {:background-color "rgba(255,255,255,0.7)"
    :padding          "2em 1em"
-   :border-radius    "0.5em"})
+   :border-radius    "0.5em"}))
 
 (defn segment-table [{:keys [result done? text remaining-text]}]
   [:table.table.is-fullwidth
@@ -209,7 +211,7 @@
         size            (rf/subscribe [::editor-subs/current-frame-property :segment-size])]
     (fn []
       [:div.editor.container-fluid
-       (stylefy/use-style editor-styles)
+       (stylefy/use-style default-page-styles)
        [:div.title "Lyrics Editor"]
        [:div.columns
         [:div.column.is-one-third

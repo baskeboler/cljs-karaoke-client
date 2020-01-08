@@ -60,7 +60,7 @@
   [{:keys [text visible?]}]
   [:div.h-scrolling-message])
 
-(defn- billboard-component [{:keys [content visible?] :as b}]
+(defn billboard-component [{:keys [content visible?] :as b}]
   [:div.billboard
    (stylefy/use-style
      billboard-styles)
@@ -68,9 +68,9 @@
      ;; billboard-styles
      ;; (if  visible? billboard-enter-styles billboard-exit-styles))
    [:div.billboard-content
-    (render-billboard b)]])
+    [render-billboard b]]])
 
-(defn- billboard-container [billboards]
+(defn billboard-container [billboards]
   [:div.billboard-container.columns
    (for [b billboards]
      ^{:key (:id b)}

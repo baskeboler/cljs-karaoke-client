@@ -75,11 +75,27 @@
      [:span.seconds secs] "."
      [:span.milis (-> ms (mod 1000) long)]]))
 
+(defn- load-random-song []
+  (rf/dispatch [::song-events/trigger-load-random-song]))
+
+(defn- clear-cached-song-bg-image [song]
+  (rf/dispatch [::bg-events/forget-cached-song-bg-image song]))
+
+(defn options-menu-entry [{:keys [label icon on-click]}]
+  [:a.dropdown-item
+   {:href "#"
+    :on-click on-click}
+   [:i.fas.fa-fw {:class [icon]}]label])
+(defn more-options-menu []
+  [:div.dropdown-menu {:role :menu}
+   [:div.dropdown-content]])
+    
+
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
    (stylefy/use-style top-right)
-   [:div.control
-    [enable-audio-input-button]]
+   #_[:div.control
+      [enable-audio-input-button]]
    (when-not (= :playback @(rf/subscribe [::s/current-view]))
      [:div.control
       [icon-button "play" "primary" play]])
@@ -92,20 +108,20 @@
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.control
       [icon-button "stop" "danger" stop]])
-   (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
+   #_(when (and @(rf/subscribe [::audio-subs/audio-input-available?])
               @(rf/subscribe [::audio-subs/recording-enabled?]))
-     [:div.control
-      [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
-       (rf/subscribe [::audio-subs/recording-button-enabled?])]])
+      [:div.control
+       [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
+        (rf/subscribe [::audio-subs/recording-button-enabled?])]])
    [:div.control
     [icon-button "step-forward" "info" #(do
                                           (stop)
                                           (rf/dispatch [::playlist-events/playlist-next]))]]
    [:div.control
-    [icon-button "random" "warning" #(rf/dispatch [::song-events/trigger-load-random-song])]]
-   [:div.control
-    [icon-button "trash" "danger" #(rf/dispatch [::bg-events/forget-cached-song-bg-image @(rf/subscribe [::s/current-song])])]]
-   [:div.control
-    [increase-playback-rate-btn]]
-   [:div.control
-    [decrease-playback-rate-btn]]])
+    [icon-button "random" "warning" load-random-song]]
+   #_[:div.control
+      [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]]
+   #_[:div.control
+      [increase-playback-rate-btn]]
+   #_[:div.control
+      [decrease-playback-rate-btn]]])

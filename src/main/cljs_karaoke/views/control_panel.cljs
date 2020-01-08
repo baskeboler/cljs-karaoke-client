@@ -5,6 +5,7 @@
             [cljs-karaoke.utils :as utils]
             [cljs-karaoke.modals :as modals]
             [cljs-karaoke.subs :as s]
+            [cljs-karaoke.styles :refer [default-page-styles]]
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
@@ -137,56 +138,60 @@
         remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])
         input-available?        (rf/subscribe [::audio-subs/audio-input-available?])
         recording-enabled?      (rf/subscribe [::audio-subs/recording-enabled?])]
-    [:div.control-panel.jello-vertical.columns
-     {:class (if @(rf/subscribe [::s/song-paused?])
-               ["song-paused"]
-               ["song-playing"])}
-     [:div.column (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
+    [:div.control-panel.container-fluid.jello-vertical
+     (stylefy/use-style
+      default-page-styles
+      {:class (if @(rf/subscribe [::s/song-paused?])
+                ["song-paused"]
+                ["song-playing"])})
+     [:div.columns>div.column.is-12>div.title "Control Panel"]
+     [:div.columns>div.column.is-12 (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
       [toggle-display-lyrics-link]
       [delay-select]
       [info-table]
-      [:div.columns>div.column.is-12
-       [:div.field.has-addons
-        [:div.control
-         [:button.button.is-primary {:on-click #(songs/load-song @current-song)}
-          [:span.icon
-           [:i.fas.fa-folder-open]]]]
-        [:div.control
-         [:button.button.is-info.tooltip
-          (if @can-play?
-            {:on-click     play
-             :data-tooltip "PLAY"}
-            {:disabled true})
-          [:span.icon
-           [:i.fas.fa-play]]]]
-        [:div.control
-         [:button.button.is-warning.stop-btn.tooltip
-          {:on-click     stop
-           :data-tooltip "STOP"}
-          [:span.icon
-           [:i.fas.fa-stop]]]]
-        [:div.control
-         [export-sync-data-btn]]
-        [:div.control
-         [toggle-song-list-btn]]
-        [:div.control
-         [enable-remote-control-btn]]
-        [:div.control
-         [remote-control-btn]]
-        (when @input-available?
-          [:div.control
-             [enable-audio-input-button]])]
-       [:div.field
-        [:div.control
-         [save-custom-delay-btn]]]
-       (when @remote-control-enabled?
-         [remote-control/remote-control-component])
-       [audio-input/audio-viz]]]
-       ;; [audio-input/test-viz]]]
-     (when @display-lyrics?
-       [:div.column (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
-        [lyrics-view @lyrics]])
-     (when @song-list-visible?
+      [:div.columns
        [:div.column
-        [song-table-component]])]))
+         [:div.field.has-addons
+          [:div.control
+           [:button.button.is-primary {:on-click #(songs/load-song @current-song)}
+            [:span.icon
+             [:i.fas.fa-folder-open]]]]
+          [:div.control
+           [:button.button.is-info.tooltip
+            (if @can-play?
+              {:on-click     play
+               :data-tooltip "PLAY"}
+              {:disabled true})
+            [:span.icon
+             [:i.fas.fa-play]]]]
+          [:div.control
+           [:button.button.is-warning.stop-btn.tooltip
+            {:on-click     stop
+             :data-tooltip "STOP"}
+            [:span.icon
+             [:i.fas.fa-stop]]]]
+          [:div.control
+           [export-sync-data-btn]]
+          [:div.control
+           [toggle-song-list-btn]]
+          [:div.control
+           [enable-remote-control-btn]]
+          [:div.control
+           [remote-control-btn]]
+          (when @input-available?
+            [:div.control
+               [enable-audio-input-button]])]
+         [:div.field
+          [:div.control
+           [save-custom-delay-btn]]]
+         (when @remote-control-enabled?
+           [remote-control/remote-control-component])
+         [audio-input/audio-viz]]
+         ;; [audio-input/test-viz]]]
+       (when @display-lyrics?
+         [:div.column (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
+          [lyrics-view @lyrics]])
+       (when @song-list-visible?
+         [:div.column
+          [song-table-component]])]]]))
 
