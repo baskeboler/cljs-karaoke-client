@@ -98,9 +98,9 @@
 }
 
 .control-panel {
-    transition: all 2s ease-out;
-    -webkit-animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
-	  animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; 
+    /* transition: all 2s ease-out; */
+    /* -webkit-animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; */
+	  /* animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;  */
 }
 .control-panel.song-playing {
     /* display: none; */

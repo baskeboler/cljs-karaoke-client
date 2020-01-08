@@ -51,7 +51,7 @@
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
-            [cljs-karaoke.animation :refer [logo-animation]]
+            ;; [cljs-karaoke.animation :refer [logo-animation]]
             [cljs-karaoke.svg.waveform :as waves]
             [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
@@ -258,6 +258,15 @@
     (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
     (rf/dispatch-sync [::audio-events/set-recording-enabled? false]))
   (. js/window (addEventListener "shake" on-shake false)))
+
+(defn ^:dev/after-load start-app []
+  (println "start app, mounting components")
+  (mount-components!))
+  
+
+(defn ^:dev/before-load stop-app []
+  (println "stop app"))
+
 
 (defn- capture-stream [^js/AudioBuffer audio]
   (cond

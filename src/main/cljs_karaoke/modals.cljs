@@ -13,10 +13,14 @@
       {:aria-label "close"
        :on-click #(rf/dispatch [::modal-events/modal-pop])}]]
     [:section.modal-card-body
-     content]
+     (if (fn? content)
+       [content]
+       content)]
     (when-not (nil? footer)
       [:footer.modal-card-foot
-       footer])]])
+       (if (fn? footer)
+         [footer]
+         footer)])]])
 
 (defn modals-component []
   [:div.modals
@@ -36,6 +40,24 @@
                              :read-only true}]]]
                 :footer  nil})]
    (rf/dispatch [::modal-events/modal-push modal])))
+
+(defn ^:export show-input-text-modal
+  [{:keys [title text on-submit]}]
+  (let [input-text (reagent.core/atom "")
+        modal      (modal-card-dialog
+                    {:title   title
+                     :content (fn []
+                                [:div.input-text-data-content
+                                 [:div.field>div.control
+                                  [:textarea.textarea.is-primary
+                                   {:id        (gensym ::input-text-modal)
+                                    :value     @input-text
+                                    :on-change #(reset! input-text (-> % .-target .-value))}]]])
+                     :footer [:div.footer-container
+                               [:button.button.is-primary
+                                 {:on-click #(on-submit @input-text)}
+                                 "OK"]]})]
+      (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn show-export-sync-info-modal []
   (let [data @(rf/subscribe [::s/custom-song-delay-for-export])]

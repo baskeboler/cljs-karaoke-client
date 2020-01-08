@@ -5,16 +5,16 @@
             [ajax.core :as ajax]
             [cljs.core.async :as async :refer [<! >! go go-loop timeout chan]]
             [day8.re-frame.async-flow-fx]
-            [cljs-karaoke.notifications :refer [notification add-notification]]
-            [bardo.interpolate :as interpolate]))
+            [cljs-karaoke.notifications :refer [notification add-notification]]))
+            ;; [bardo.interpolate :as interpolate]))
 
 (defn get-device-types
   "Returns an async channel with a set of device types available
    in the current browser"
   []
   (if (-> js/navigator .-mediaDevices)
-   (let [devsPromise (.. js/navigator -mediaDevices (enumerateDevices))
-         out (chan)]
+    (let [devsPromise (.. js/navigator -mediaDevices (enumerateDevices))
+          out         (chan)]
      (.. devsPromise
          (then (fn [devices]
                  (let [kinds (map #(. % -kind) (js->clj devices))
@@ -22,7 +22,7 @@
                    (go
                      (>! out kinds))))))
      out)
-   (let [out (chan)]
+    (let [out (chan)]
      (go (>! out #{}))
      out)))
 
@@ -47,7 +47,7 @@
 
 (defn convert-to-mono [input audio-context]
   (let [splitter (. audio-context (createChannelSplitter 2))
-        merger (. audio-context (createChannelMerger 2))]
+        merger   (. audio-context (createChannelMerger 2))]
     (. input (connect splitter))
     (. splitter (connect merger 0 0))
     (. splitter (connect merger 0 1))

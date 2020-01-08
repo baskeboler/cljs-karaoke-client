@@ -55,7 +55,7 @@
                            :watch-dir      "resources"
                            :preloads       [devtools.preload day8.re-frame-10x.preload
                                             shadow.remote.runtime.cljs.browser]
-                           :after-load     cljs-karaoke.app/init!
+                           ;; :after-load     cljs-karaoke.app/init!
                            :ignore-warning true}
         :dev              {:compiler-options
                            {:closure-defines

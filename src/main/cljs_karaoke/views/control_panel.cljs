@@ -137,7 +137,7 @@
         remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])
         input-available?        (rf/subscribe [::audio-subs/audio-input-available?])
         recording-enabled?      (rf/subscribe [::audio-subs/recording-enabled?])]
-    [:div.control-panel.puff-in-hor.slide-out-top.columns
+    [:div.control-panel.jello-vertical.columns
      {:class (if @(rf/subscribe [::s/song-paused?])
                ["song-paused"]
                ["song-playing"])}
