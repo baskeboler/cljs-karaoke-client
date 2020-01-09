@@ -9,7 +9,8 @@
             [cljs-karaoke.lyrics :as l]))
 
 (defn load-lyrics-flow []
-  {:rules [{:when :seen-any-of?
+  {:id (gensym ::load-lyrics-flow)
+   :rules [{:when :seen-any-of?
             :events [::handle-fetch-lyrics-success
                      ::handle-fetch-lyrics-failure]
             :dispatch [::fetch-lyrics-complete]
@@ -20,15 +21,15 @@
  (fn-traced
   [{:keys [db]} [_ name process]]
   (. js/console (log "Fetching lyrics for " name))
-  {:db (-> db
-           (assoc :lyrics-loaded? false)
-           (assoc :lyrics-fetching? true))
-   :http-xhrio {:method :get
-                :uri (str events/base-storage-url "/lyrics/" name ".edn")
-                :timeout 8000
+  {:db         (-> db
+                   (assoc :lyrics-loaded? false)
+                   (assoc :lyrics-fetching? true))
+   :http-xhrio {:method          :get
+                :uri             (str events/base-storage-url "/lyrics/" name ".edn")
+                :timeout         8000
                 :response-format (ajax/text-response-format)
-                :on-success [::handle-fetch-lyrics-success]
-                :on-failure [::handle-fetch-lyrics-failure]}
+                :on-success      [::handle-fetch-lyrics-success]
+                :on-failure      [::handle-fetch-lyrics-failure]}
    :async-flow (load-lyrics-flow)}))
 
 (rf/reg-event-fx
@@ -50,7 +51,8 @@
  (fn-traced
   [{:keys [db]} [_ error]]
   (. js/console (log "Failed to load lyrics " error))
-  {:db db}))
+  {:db (-> db
+           (assoc :lyrics-fetching? false))}))
 
 (rf/reg-event-fx
  ::fetch-lyrics-complete

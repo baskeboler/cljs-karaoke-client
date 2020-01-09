@@ -10,25 +10,36 @@
               :go-to-home     :home
               :load-song      :playback
               :play           :home
-              :go-to-playlist :playlist}
+              :go-to-playlist :playlist
+              :go-to-editor   :editor}
    :playback {:play           :playback
               :stop           :playback
               :load-song      :playback
               :go-to-home     :home
               :go-to-playback :playback
+              :go-to-editor   :editor
               :go-to-playlist :playlist}
-   :playlist {:go-to-playback :playback
+   :playlist {:go-to-editor   :editor
+              :go-to-playback :playback
               :go-to-home     :home
               :play           :playlist
               :stop           :playlist
               :load-song      :playlist}
-   :admin {}})
+   :editor   {:go-to-playback :playback
+              :go-to-home     :home
+              :play           :editor
+              :stop           :editor
+              :load-song      :editor
+              :go-to-playlist :playlist}
+   :admin    {}})
 
 (def transition  (partial  view-states))
 
 (def initial-views-state
   {:home {}
-   :playback {:options-enabled? false}})
+   :playback {:options-enabled? false}
+   :editor {}
+   :playlist {}})
 
 (rf/reg-event-fx
  ::init-views-state

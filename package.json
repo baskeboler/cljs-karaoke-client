@@ -1,30 +1,39 @@
 {
-  "name": "cljs-karaoke-client",
-  "repository": "https://github.com/baskeboler/cljs-karaoke-client",
-  "version": "1.2.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "shadow-cljs watch app",
-    "compile": "shadow-cljs compile app",
-    "release": "shadow-cljs release app",
-    "start": "shadow-cljs watch app"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "bulma-tooltip": "^2.0.2",
-    "create-react-class": "^15.6.3",
-    "path": "^0.12.7",
-    "react": "^16.12.0",
-    "react-dom": "^16.12.0",
-    "react-flip-move": "^3.0.4",
-    "react-highlight.js": "^1.0.7",
-    "shake.js": "^1.2.2"
-  },
-  "devDependencies": {
-    "shadow-cljs": "^2.8.83"
-  }
+    "name": "cljs-karaoke-client",
+    "repository": "https://github.com/baskeboler/cljs-karaoke-client",
+    "version": "1.2.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "cljs-watch": "shadow-cljs watch app",
+        "compile": "shadow-cljs compile app && npm run css-build",
+        "release": "shadow-cljs release app && npm run css-build",
+        "start": "npm run watch",
+        "copy-webfonts": "cp -rf ./node_modules/@fortawesome/fontawesome-free/webfonts ./public/",
+        "css-build": "node-sass --omit-source-map-url resources/sass/main.scss public/css/main.css && npm run copy-webfonts",
+        "css-watch": "npm run css-build -- --watch",
+        "watch": "concurrently \"npm:cljs-watch\" \"npm:css-watch\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "bulma-tooltip": "^2.0.2",
+        "create-react-class": "^15.6.3",
+        "highlight.js": "9.15.10",
+        "path": "^0.12.7",
+        "react": "^16.12.0",
+        "react-dom": "^16.12.0",
+        "react-flip-move": "^3.0.4",
+        "react-highlight.js": "^1.0.7",
+        "shake.js": "^1.2.2"
+    },
+    "devDependencies": {
+        "@fortawesome/fontawesome-free": "^5.12.0",
+        "bulma": "^0.8.0",
+        "concurrently": "^5.0.2",
+        "node-sass": "^4.13.0",
+        "shadow-cljs": "^2.8.83"
+    }
 }

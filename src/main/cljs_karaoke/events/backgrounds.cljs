@@ -1,11 +1,11 @@
 (ns cljs-karaoke.events.backgrounds
   (:require [re-frame.core :as rf :include-macros true]
+            [day8.re-frame.async-flow-fx]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [cljs-karaoke.search :as search]
             [cljs-karaoke.styles :refer [wallpapers]]
             [cljs-karaoke.events.common :as common-events]
-            [ajax.core :as ajax]
-            [day8.re-frame.async-flow-fx]))
+            [ajax.core :as ajax]))
 
 ;; (defonce fetch-bg-from-web-enabled? true)
 
@@ -17,33 +17,36 @@
 
 (defn update-song-bg-flow []
   {;; :first-dispatch [::update-bg-image song-name]
-   :rules [{:when :seen-all-of?
-            :events [::search-images
-                     ::handle-fetch-bg-success
-                     ::cache-song-bg-complete
-                     ::set-bg-image
-                     ::generate-bg-css-complete]
-            :dispatch [::update-bg-image-complete]}
-           {:when :seen-all-of?
-            :events [::set-random-bg-image
-                     ::set-bg-image
-                     ::generate-bg-css-complete]
-            :dispatch [::update-bg-image-complete]}
-           {:when :seen-all-of?
-            :events [::set-cached-bg
-                     ::generate-bg-css-complete
-                     ::set-bg-image
-                     ::generate-bg-css-complete]
-            :dispatch [::update-bg-image-complete]}
-           {:when :seen-any-of?
-            :events [::set-cached-bg
-                     ::generate-bg-css
-                     ::handle-fetch-bg-failure
-                     ::cache-song-bg-image]}
-           {:when :seen?
-            :events ::update-bg-image-complete
+   :id    (gensym ::update-song-bg-flow)
+   :rules [
+           ;; {:when     :seen-all-of?
+           ;; :events   [::search-images
+           ;; ::handle-fetch-bg-success
+           ;; ::cache-song-bg-complete
+           ;; ::set-bg-image
+           ;; ::generate-bg-css-complete
+           ;; :dispatch [::update-bg-image-complete]
+           {:when     :seen-all-of?
+            :events   [
+                       ::set-bg-image
+                       ::generate-bg-css-complete]
+            :dispatch [::update-bg-image-complete]
+            :halt?    false}
+           ;; {:when     :seen-all-of?
+           ;; :events   [::set-cached-bg
+           ;; ::set-bg-image
+           ;; ::generate-bg-css-complete]
+           ;; :dispatch [::update-bg-image-complete]}
+           ;; {:when   :seen-any-of?
+           ;; :events [::set-cached-bg
+           ;; ::generate-bg-css
+           ;; ::handle-fetch-bg-failure
+           ;; ::cache-song-bg-image
+           ;; :dispatch [::update-bg-image-complete]}
+           {:when     :seen-all-of?
+            :events   [::update-bg-image-complete]
             :dispatch [::update-bg-image-flow-complete]
-            :halt? true}]})
+            :halt?    true}]})
 
 (rf/reg-event-fx
  ::search-images
@@ -141,12 +144,12 @@
     {:db (-> db (assoc :bg-style styles))
      :dispatch [::generate-bg-css-complete]})))
 
-(rf/reg-event-fx
+(rf/reg-event-db
  ::generate-bg-css-complete
- (rf/after
-  (fn [db _]
-    (. js/console (log "Generate bg css complete"))))
- (fn-traced [{:keys [db]} _] {:db db}))
+ (fn-traced
+  [db _]
+  (. js/console (log "Generate bg css complete"))
+  db))
 
 
 (rf/reg-event-fx
@@ -154,10 +157,7 @@
  (fn-traced
   [{:keys [db] } [_ cb-event]]
   {:db       db
-   :dispatch [::common-events/save-to-localstorage
-              "song-bg-cache"
-              (:song-backgrounds db)
-              cb-event]}))
+   :dispatch [::common-events/save-to-localstorage "song-bg-cache" (:song-backgrounds db) cb-event]}))
 
 (rf/reg-event-fx
  ::cache-song-bg-image
@@ -180,24 +180,30 @@
    :dispatch [::save-bg-cache-to-localstorage ::cache-song-bg-complete]}))
 (rf/reg-event-fx
  ::cache-song-bg-complete
- (rf/after
-  (fn [db _]
-    (. js/console (log "Cache bg image complete"))))
- (fn-traced [{:keys [db]} _] {:db db}))
+ ;; (rf/after
+  ;; (fn [db _])
+ (fn-traced
+  [{:keys [db]} _]
+  (. js/console (log "Cache bg image complete"))
+  {:db db}))
 
 (rf/reg-event-fx
  ::update-bg-image-complete
- (rf/after
-  (fn [db _]
-    (. js/console (log "Update bg image complete"))))
- (fn-traced [{:keys [db]} _] {:db db}))
+ ;; (rf/after
+  ;; (fn [db _])
+ (fn-traced
+  [{:keys [db]} _]
+  (. js/console (log "Update bg image complete"))
+  {:db db}))
 
 (rf/reg-event-fx
  ::update-bg-image-flow-complete
- (rf/after
-  (fn [db _]
-    (. js/console (log "Update bg image flow complete"))))
- (fn-traced [{:keys [db]} _] {:db db}))
+ ;; (rf/after
+  ;; (fn [db _])
+  (fn-traced
+   [{:keys [db]} _]
+   (. js/console (log "Update bg image flow complete"))
+   {:db db}))
 
 ;; (rf/reg-event-fx
 ;;  ::init-update-bg-image-flow

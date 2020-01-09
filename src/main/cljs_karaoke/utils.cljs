@@ -21,12 +21,26 @@
         [:input {:type :radio
                  :name :answer}
          r]]))])
+
+(defn copy-text-to-clipboard [text]
+  (let [elem-id (str (random-uuid))
+        elem    (. js/document (createElement "input"))
+        body    (.-body js/document)]
+    (set! (.-value elem) text)
+    (set! (.-id elem) elem-id)
+    (. body (appendChild elem))
+    (select-element-text elem-id)
+    ;; (. elem (setSelectionRange 0 99999))
+    (. js/document (execCommand "copy"))
+    (. body (removeChild elem))))
+
+       
 (defn icon-button
   ([icon button-type callback enabled?]
    [:div.control
     [:p.control
-     [:a.button
-      {:class      ["button" (str "is-" button-type)]
+     [:a.button.is-small
+      {:class      [ (str "is-" button-type)]
        :disabled   (not @enabled?)
        :on-click   callback
        :aria-label icon

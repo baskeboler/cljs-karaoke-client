@@ -1,7 +1,6 @@
 (ns cljs-karaoke.lyrics
   (:require [re-frame.core :as rf]
             [clojure.string :as str]
-            ;; [com.rpl.specter :as s :include-macros true]
             [cljs.core :as core :refer [random-uuid]]
             [cljs-karaoke.protocols :as protocols
              :refer [set-text reset-progress inc-progress
@@ -200,6 +199,24 @@
 ;;     (take 5)
 ;;     (last))
 (defrecord ^:export LyricsEvent [id text ticks offset type])
+  ;; IEquiv
+  ;; (-equiv [_ other]
+  ;;   (and (instance? LyricsEvent other)
+  ;;        (= id (:id other))))
+         
+  ;; IPrintWithWriter
+  ;; (-pr-writer [a writer _]
+  ;;   (-write writer (str "#lyrics-event \""
+  ;;                       (pr-str {:id     id
+  ;;                                :text   text
+  ;;                                :ticks  ticks
+  ;;                                :offset offset
+  ;;                                :type   type})
+  ;;                       "\""))))
+(defn read-lyrics-event [e]
+  (let [values (cljs.reader/read-string e)]
+    (map->LyricsEvent values)))
+(cljs.reader/register-tag-parser! "cljs-karaoke.lyrics.LyricsEvent" read-lyrics-event)
 
 (extend-protocol protocols/PLyrics
   LyricsEvent
@@ -249,7 +266,13 @@
       (= :lyrics-event (:type this)) (-> (map->LyricsEvent this)
                                          (played? delta))
       :else false)))
-
+(defn ^:export create-lyrics-event [{:keys [offset text]}]
+  (map->LyricsEvent
+   {:id     (str (random-uuid))
+    :type   :lyrics-event
+    :text   text
+    :offset offset
+    :ticks  -1}))
 (defn ^:export create-frame [obj]
   (->
    (->> obj
@@ -272,3 +295,20 @@
   (map->Song
    {:name   name
     :frames (map create-frame frame-seq)}))
+
+(defprotocol ToMap
+  (->map [this]))
+
+(extend-protocol ToMap
+  LyricsEvent
+  (->map [{:keys [text offset id type  ] :as this}]
+    {:text   text
+     :offset offset
+     :id     id
+     :type   type})
+  LyricsFrame
+  (->map [{:keys [id events offset type ] :as this}]
+    {:id     id
+     :events (map ->map events)
+     :offset offset
+     :type   type}))
