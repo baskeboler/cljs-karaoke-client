@@ -1,7 +1,8 @@
 (ns build
   (:require [shadow.cljs.devtools.api :as shadow]
             [clojure.java.shell :refer [sh]]
-            [hiccup.page :refer [html5]]))
+            [hiccup.page :refer [html5]]
+            [clojure.tools.reader :as reader]))
 
 (defn sh! [command]
   (println command)
@@ -14,37 +15,44 @@
   [:meta {:name name
           :content content}])
 
-(defn seo-page [song]
-  [:html
-   [:head
-    [:meta {:charset :utf-8}]
-    (meta-tag
-     "twitter:image:src"
-     "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
-    (meta-tag "twitter:site" "@baskeboler")
-    (meta-tag "twitter:card" "summary_large_image")
-    (meta-tag :title  (str "Karaoke - " song))
-    (meta-tag :description  "Karaoke Party")
-    (meta-tag "twitter:title" (str "Karaoke Party :: " song))
-    (meta-tag "twitter:description" (str "Online Karaoke Player. Sing " song " online!"))
-    (meta-tag "og:image" "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
-    (meta-tag "og:site_name" "Karaoke Party")
-    (meta-tag "og:type" "website")
-    (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" song))
-    (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
-    [:title (str "Karaoke Party :: "
-                 song)]]
-   [:body
-    [:script
-     (str "location.assign('/#/songs/" song "');")]]])
+(defn seo-page
+  ([song offset]
+   [:html
+    [:head
+     [:meta {:charset :utf-8}]
+     (meta-tag
+      "twitter:image:src"
+      "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
+     (meta-tag "twitter:site" "@baskeboler")
+     (meta-tag "twitter:card" "summary_large_image")
+     (meta-tag :title  (str "Karaoke - " song))
+     (meta-tag :description  "Karaoke Party")
+     (meta-tag "twitter:title" (str "Karaoke Party :: " song))
+     (meta-tag "twitter:description" (str "Online Karaoke Player. Sing " song " online!"))
+     (meta-tag "og:image" "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
+     (meta-tag "og:site_name" "Karaoke Party")
+     (meta-tag "og:type" "website")
+     (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" song))
+     (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
+     [:title (str "Karaoke Party :: "
+                  song)]]
+    [:body
+     [:script
+      (str "location.assign('/#/songs/" song "?offset=" offset "');")]]])
+  ([song]
+   (seo-page song -1000)))
 
 (defn prerender []
-  (let  [songs  (clojure.edn/read-string (slurp "resources/public/data/songs.edn"))]
+  (let  [songs  (clojure.edn/read-string (slurp "resources/public/data/songs.edn"))
+         delays (reader/read-string (slurp "resources/public/data/delays.edn"))]
     (doall
-     (doseq [s    songs]
+     (doseq [s    songs
+             :let [delay (get delays s)]]
        (println "Prerendering " s)
        (spit (str "public/songs/" s ".html")
-             (html5 (rest (seo-page s))))))))
+             (html5 (rest (if-not (nil? delay)
+                            (seo-page s delay)
+                            (seo-page s)))))))))
 
 (defn minify-css
   "Minifies the given CSS string, returning the result.

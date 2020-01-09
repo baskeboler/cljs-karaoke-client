@@ -15,6 +15,12 @@
    (:current-frame editor-state)))
 
 (rf/reg-sub
+ ::song-name
+ :<- [::editor-state]
+ (fn [editor-state _]
+   (:song-name editor-state)))
+
+(rf/reg-sub
  ::current-frame-property
  :<- [::current-frame]
  (fn [current-frame [_ k]]

@@ -2,6 +2,7 @@
   (:require [reagent.core :as reagent]
             [clojure.string :as cstr]
             [cljs-karaoke.lyrics :as lyrics]
+            [cljs-karaoke.events.common :as common-events]
             [cljs.tools.reader :as reader]
             [re-frame.core :as rf]
             [day8.re-frame.tracing :refer-macros [fn-traced]]))
@@ -25,6 +26,7 @@
 (def initial-state
   {:current-state :text-entry
    :frames        []
+   :song-name     ""
    :current-frame {:text            "hola como te va?"
                    :text-done?      false
                    :mode            :creating
@@ -101,6 +103,8 @@
   {:id     (:id evt)
    :offset (:offset evt)
    :text   (:text evt)})
+
+(common-events/reg-set-attr ::set-song-name [:editor-state :song-name])
 
 (rf/reg-event-fx
  ::edit-frame
