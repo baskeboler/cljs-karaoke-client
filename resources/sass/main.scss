@@ -1,11 +1,38 @@
 @charset "utf-8";
-@import "../../node_modules/bulma/bulma.sass";
 @import "./animista.scss";
+
+// Import a Google Font
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
+
+// Set your brand colors
+$purple: #8A4D76;
+$pink: #FA7C91;
+$brown: #757763;
+$beige-light: #D0D1CD;
+$beige-lighter: #EFF0EB;
+
+// Update Bulma's global variables
+$family-sans-serif: "Nunito", sans-serif;
+$grey-dark: $brown;
+$grey-light: $beige-light;
+$primary: $purple;
+$link: $pink;
+$widescreen-enabled: false;
+$fullhd-enabled: false;
+
+// Update some of Bulma's component variables
+$body-background-color: $beige-lighter;
+$control-border-width: 2px;
+$input-border-color: transparent;
+$input-shadow: none;
+
+
+@import "../../node_modules/bulma/bulma.sass";
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/fontawesome.scss";
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/brands.scss";
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/regular.scss";
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/solid.scss";
-@import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700%7CNunito:400,70&display=swap');
 
 .button, .navbar-item {
   text-transform: capitalize;

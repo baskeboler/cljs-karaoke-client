@@ -21,7 +21,8 @@
   [day8.re-frame/async-flow-fx "0.0.11"]
   [binaryage/devtools "0.9.10"]
   [day8.re-frame/http-fx "0.1.6"]
-  [cider/cider-nrepl "0.22.4"]
+  [cider/cider-nrepl "0.23.0-SNAPSHOT"]
+  [refactor-nrepl "2.4.0"]
   [day8.re-frame/tracing "0.5.1"]
   [hiccup "1.0.5"]
   [etaoin "0.3.6"]
@@ -30,8 +31,8 @@
   ;; [com.rpl/specter "1.1.2"]
   [bardo "0.1.2-SNAPSHOT"]]
 
- :nrepl {:port       9999
-         :middleware []}
+ :nrepl {:port       9999}
+         ;; :middleware [refactor-nrepl.middleware/wrap-refactor]}
 
  :builds
  {:app {:target           :browser
