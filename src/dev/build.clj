@@ -78,8 +78,8 @@
 (def target-dir "public")
 
 (def css-files
-  ["css/main.css"
-   "css/animista.css"])
+  ["css/main.css"])
+   
 
 (defn get-files [files]
   (->> files
@@ -91,6 +91,7 @@
   [build-state & args]
   (sh! "rm -rf public")
   (sh! "cp -rf resources/public public")
+  (sh! "npm run css-build")
   (->> css-files
        (mapv #(str target-dir "/" %))
        (mapv minify-css-inplace))

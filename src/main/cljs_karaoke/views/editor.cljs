@@ -20,6 +20,22 @@
             [clojure.string :as str]))
 (declare print-frames-str)
 
+(defn song-name-editor []
+  (let [song-name (rf/subscribe [::editor-subs/song-name])
+        editing?  (reagent/atom false)]
+    (fn []
+      [:span.song-name-editor
+       (if @editing?
+        [:div.field>div.control>input.input.is-large.is-primary
+         {:value       @song-name
+          :on-blur     #(swap! editing? not)
+          :on-change   #(rf/dispatch [::editor-events/set-song-name (-> % .-target .-value)])
+          :placeholder "Name of the song"}]
+        [:p.subtitle.is-3
+         {:on-click #(swap! editing? not)}
+         (if-not (str/blank? @song-name)
+           @song-name
+           "unknown")])])))
 (defn song-progress []
   (let [dur (rf/subscribe [::s/song-duration])
         cur (rf/subscribe [::s/song-position])]
@@ -117,7 +133,7 @@
       :on-change #(load-local-audio %)}]
     [:span.file-cta
      [:span.file-icon>i.fas.fa-upload]
-     [:span.file-label "Choose a File"]]]
+     [:span.file-label "Choose an audio file to sync the lyrics to"]]]
      ;; [:span.file-name "file name"]]
    [:div.columns>div.column.is-full>textarea.textarea.is-primary.is-full
     {:value     @(rf/subscribe [::editor-subs/current-frame-property :text])
@@ -202,7 +218,7 @@
 
 (defn segment-timing-preview [])
 
-(defn segment-selection-component []
+(defn- segment-selection-component []
   (let [text          (rf/subscribe [::editor-subs/current-frame-property :text])
         segment-sizes (rf/subscribe [::editor-subs/current-frame-property :segment-sizes])]
     [:div.columns
@@ -238,7 +254,21 @@
                     ;; (:done? (editor-events/get-segments @segment-sizes @text)))}
 
        "confirm segments"]]]))
+(defn- segment-timing-component []
+  [:div.columns>div.column.is-12
+   [:div.has-background-primary.has-text-light.has-text-centered.is-size-2
+    [:i.fas.fa-fw.fa-clock.has-text-warning]
+    (gstr/format
+     "%1.3f"
+     @(rf/subscribe [::s/player-current-time]))]
 
+   [segment-timing-editor]
+   [:button.button.is-fullwidth.is-warning
+    {:on-click #(do
+                  (rf/dispatch [::editor-events/add-frame])
+                  (rf/dispatch [::editor-events/editor-action :confirm-timing]))
+     :disabled (not @(rf/subscribe [::editor-subs/segment-timings-ready?]))}
+    "add frame"]])
 (defn editor-mode-title []
   (let [mode (rf/subscribe [::editor-subs/mode-title])]
     [:div.title.is-text-2 @mode]))
@@ -255,7 +285,8 @@
     ;; (fn []
       [:div.editor.container-fluid
        (stylefy/use-style default-page-styles)
-       [:div.title.is-size-2 "Lyrics Editor"]
+       [:p.title.is-1 "Lyrics Editor"]
+       [song-name-editor]
        [:div.columns
         [:div.column.is-one-third
          [:div.columns>div.column
@@ -268,31 +299,14 @@
           [song-progress]
           [playback/playback-controls]]
          [editor-mode-title]
-         (condp = @(rf/subscribe [::editor-subs/current-state])
-           :text-entry
-           ;; (when-not @text-done?)
-           [frame-text-editor]
-           :segment-selection
-              ;; (and (not @segments-done?
-                    ;; @text-done?)
-           [segment-selection-component]
-           :segment-timing
+         [:div.box
+          (condp = @(rf/subscribe [::editor-subs/current-state])
+            :text-entry        [frame-text-editor]
+            :segment-selection [segment-selection-component]
+            :segment-timing    [segment-timing-component])]
 
-         ;; (when (= :segment-timing @(rf/subscribe [::editor-subs/current-state]))
-           [:div.columns>div.column.is-12
-            [:div.has-background-primary.has-text-light.has-text-centered.is-size-2
-             [:i.fas.fa-fw.fa-clock.has-text-warning]
-             (gstr/format
-              "%1.3f"
-              @(rf/subscribe [::s/player-current-time]))]
-
-            [segment-timing-editor]
-            [:button.button.is-fullwidth.is-warning
-             {:on-click #(do
-                           (rf/dispatch [::editor-events/add-frame])
-                           (rf/dispatch [::editor-events/editor-action :confirm-timing]))
-              :disabled (not @(rf/subscribe [::editor-subs/segment-timings-ready?]))}
-             "add frame"]])
+           ;; (when (= :segment-timing @(rf/subscribe [::editor-subs/current-state]))
+  
          [:button.button.is-fullwidth
           {:on-click #(do
                         (rf/dispatch [::editor-events/reset-frame])

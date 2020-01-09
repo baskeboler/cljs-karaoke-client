@@ -1,0 +1,355 @@
+@charset "utf-8";
+@import "../../node_modules/bulma/bulma.sass";
+@import "./animista.scss";
+@import "../../node_modules/@fortawesome/fontawesome-free/scss/fontawesome.scss";
+@import "../../node_modules/@fortawesome/fontawesome-free/scss/brands.scss";
+@import "../../node_modules/@fortawesome/fontawesome-free/scss/regular.scss";
+@import "../../node_modules/@fortawesome/fontawesome-free/scss/solid.scss";
+@import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700&display=swap');
+
+.button, .navbar-item {
+  text-transform: capitalize;
+}
+
+.slide-out-top {
+  -webkit-animation: slide-out-top 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
+  animation: slide-out-top 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
+}
+
+.slide-in-bck-center {
+  -webkit-animation: slide-in-bck-center 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: slide-in-bck-center 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.roll-in-blurred-top {
+  -webkit-animation: roll-in-blurred-top 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+  animation: roll-in-blurred-top 0.6s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.jello-vertical {
+  -webkit-animation: jello-vertical 0.9s both;
+  animation: jello-vertical 0.9s both;
+}
+
+.text-pop-up-bottom {
+  -webkit-animation: text-pop-up-bottom 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: text-pop-up-bottom 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation-delay: 2s;
+}
+
+.current-frame {
+  position: fixed;
+  display: block;
+  top: 50%;
+  left: 50%;
+  z-index: 100;
+  width: 90vw;
+
+  /* transition: all 0.5s ease; */
+  transform: translate(-50%, -50%);
+
+  /* display: flex; */
+  justify-content: center;
+  text-align: center;
+  font-size: 1.5rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 0.3em;
+  border-radius: 1em;
+}
+
+.song-table {
+  background-color: unset;
+  color: black;
+  text-shadow: 0 0 10px white;
+}
+
+.app-bg {
+  /* display: inline; */
+  position: fixed;
+  z-index: -100;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url("../images/Dolphin.jpg") 50% 50%;
+  background-size: cover;
+}
+
+.current-frame .frame-text {
+  animation: puff-in-center 0.5s ease both;
+
+  > span {
+    display: inline-block;
+
+    /* position: relative; */
+    opacity: 0.6;
+
+    /* transition: all 0.5s ease-in-out; */
+    font-family: 'Chewy', cursive;
+    color: black;
+
+    /* transform: scale(1) translate(0px,0px); */
+    /* transition: all 2s ease-out; */
+    /* text-shadow:  -2px -2px 1px #eee; */
+
+    &.highlighted {
+      display: inline-block;
+      color: red;
+
+      /* opacity: 1; */
+      /* transition: all 0.5s ease-in-out; */
+      /* font-size: 1.05em; */
+      /* transform: translate(10px, 50px); */
+      -webkit-animation: pulsate-fwd 0.5s ease-in-out both;
+      animation: pulsate-fwd 0.5s ease-in-out both;
+
+      /* animation: bounce-top 0.5s ease both; */
+
+      .icon {
+        color: black;
+      }
+    }
+  }
+}
+
+.control-panel {
+  /* transition: all 2s ease-out; */
+  /* -webkit-animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both; */
+  /* animation: slide-in-bck-center 0.7s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;  */
+
+  &.song-playing {
+    /* display: none; */
+  }
+}
+
+.edge-stop-btn {
+  display: none;
+
+  &.song-playing {
+    display: none;
+
+    /* display: block; */
+    position: absolute;
+    bottom: 0;
+    right: 0;
+
+    /* width: 32px; */
+    /* height: 32px; */
+  }
+}
+
+.edge-progress-bar {
+  .song-progress {
+    position: fixed;
+    bottom: 0.5em;
+    left: 0;
+    width: 100%;
+    padding: 0.2em 0.6em;
+  }
+
+  .lyrics-timing {
+    position: fixed;
+    bottom: 0em;
+    left: 0;
+    width: 100%;
+    padding: 0em 0.6em;
+
+    /* transition: all 0.5s ease-in; */
+  }
+}
+
+.right-seek-component-wrapper {
+  position: fixed;
+  height: 100vh;
+
+  /* width: 50%; */
+  display: block;
+  top: 0;
+  right: 0;
+}
+
+.right-seek-btn {
+  position: fixed;
+  display: block;
+  background-color: gray;
+  opacity: 1;
+  font-size: 1.5em;
+  right: 0;
+  top: 50%;
+  z-index: 3;
+  padding: 1em 0.1em 1em 0.2em;
+  transform: translateY(-50%);
+  border-top-left-radius: 1em;
+  border-bottom-left-radius: 1em;
+}
+
+.right-seek-hotspot {
+  position: fixed;
+  display: block;
+  opacity: 0;
+  top: 3em;
+  right: 0;
+  height: calc(100vh - 3em);
+  width: 3em;
+  z-index: 3;
+}
+
+.left-seek-btn {
+  position: fixed;
+  display: block;
+  background-color: gray;
+  opacity: 1;
+  font-size: 1.5em;
+  left: 0;
+  top: 50%;
+  z-index: 3;
+  padding: 1em 0.2em 1em 0.1em;
+  transform: translateY(-50%);
+  border-top-right-radius: 1em;
+  border-bottom-right-radius: 1em;
+}
+
+.left-seek-hotspot {
+  position: fixed;
+  display: block;
+  opacity: 0;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 3em;
+  z-index: 3;
+}
+
+.notifications-container {
+  position: fixed;
+  width: calc(100vw - 3em);
+  top: 1em;
+  right: 1em;
+  z-index: 3;
+  overflow: hidden;
+}
+
+.notification {
+  opacity: 0.8;
+  margin-bottom: 0.5em !important;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.audio-spectrum {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 200px;
+
+  /* background-color: white; */
+  align-items: flex-end;
+
+  > .freq-bar {
+    flex: 1 0 auto;
+    height: 0;
+    border-top: solid 2px white;
+    background-color: red;
+    transition: height 0.1s ease;
+  }
+}
+
+.audio-spectrum-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.2;
+
+  /* background-color: white; */
+  align-items: flex-end;
+
+  > .freq-bar {
+    flex: 1 0 auto;
+    height: 0;
+    margin: 0 2px;
+    border-top: solid 2px white;
+    background-color: red;
+    transition: height 0.1s ease;
+  }
+}
+
+.puff-in-hor {
+  -webkit-animation: puff-in-hor 0.7s cubic-bezier(0.47, 0, 0.745, 0.715) both;
+  animation: puff-in-hor 0.7s cubic-bezier(0.47, 0, 0.745, 0.715) both;
+}
+
+.playlist-view.container {
+  background-color: white;
+  padding: 1em;
+}
+
+#main-video {
+  transition: all 0.5s ease-in-out;
+  position: fixed;
+  display: block;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 5px solid black;
+  border-radius: 1em;
+  height: 500px;
+
+  &.preview {
+    height: 300px;
+    right: 1em;
+    bottom: 0.5em;
+    top: auto;
+    left: auto;
+
+    /* transform: unset */
+    transform: unset;
+  }
+}
+
+.page-content {
+  margin-top: 2em;
+}
+
+nav.navbar > div.navbar-brand > a.navbar-item > object.header-logo {
+  height: 2em;
+}
+
+html {
+  overflow-y: auto;
+}
+
+.editor .playback-controls {
+  position: relative;
+  top: unset;
+  right: unset;
+}
+
+@media screen and (min-width: 320px) {
+  .current-frame {
+    width: 90vw;
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .notifications-container {
+    position: fixed;
+    top: 1em;
+    right: 1em;
+    width: 25vw;
+  }
+
+  .current-frame {
+    width: 70vw;
+    font-size: 2rem;
+  }
+
+  .app {
+    margin-top: 2em;
+  }
+}
