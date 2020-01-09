@@ -42,7 +42,7 @@
           "Next"]]))))
 (defn song-filter-component []
   (let [filt (rf/subscribe [::s/song-list-filter])]
-    [:div.field>div.control.has-icon
+    [:div.field>div.control.has-icons-left
      [:input.input.is-primary
       {:value     @filt
        :name      "filter-input"

@@ -133,7 +133,7 @@
   (let [current-song            (rf/subscribe [::s/current-song])
         can-play?               (rf/subscribe [::s/can-play?])
         input-available?        (rf/subscribe [::audio-subs/audio-input-available?])]
-    [:div.field.has-addons
+    [:div.field.has-addons.buttons.are-small
       [:div.control
        [:button.button.is-primary {:on-click #(songs/load-song @current-song)}
         [:span.icon

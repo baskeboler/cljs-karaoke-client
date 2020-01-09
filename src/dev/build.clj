@@ -2,7 +2,20 @@
   (:require [shadow.cljs.devtools.api :as shadow]
             [clojure.java.shell :refer [sh]]
             [hiccup.page :refer [html5]]
-            [clojure.tools.reader :as reader]))
+            [clojure.tools.reader :as reader]
+            [clojure.string :as cstr])
+  (:import [java.net URLEncoder]))
+
+(def site-url-prefix "https://karaoke.uyuyuy.xyz")
+
+(defn sitemap-urls [songs]
+  (map #(str site-url-prefix "/songs/" %) songs))
+
+(defn get-songs []
+  (reader/read-string (slurp "resources/public/data/songs.edn")))
+
+(defn get-delays []
+  (reader/read-string (slurp "resources/public/data/delays.edn")))
 
 (defn sh! [command]
   (println command)
@@ -43,8 +56,8 @@
    (seo-page song -1000)))
 
 (defn prerender []
-  (let  [songs  (clojure.edn/read-string (slurp "resources/public/data/songs.edn"))
-         delays (reader/read-string (slurp "resources/public/data/delays.edn"))]
+  (let  [songs  (get-songs)
+         delays (get-delays)]
     (doall
      (doseq [s    songs
              :let [delay (get delays s)]]
@@ -52,7 +65,12 @@
        (spit (str "public/songs/" s ".html")
              (html5 (rest (if-not (nil? delay)
                             (seo-page s delay)
-                            (seo-page s)))))))))
+                            (seo-page s)))))))
+    (println "Generating sitemap")
+    (->> (sitemap-urls songs)
+         (cstr/join "\n")
+         (spit "public/sitemap.txt"))
+    (println "sitemap ready")))
 
 (defn minify-css
   "Minifies the given CSS string, returning the result.
@@ -78,8 +96,8 @@
 (def target-dir "public")
 
 (def css-files
-  ["css/main.css"
-   "css/animista.css"])
+  ["css/main.css"])
+   
 
 (defn get-files [files]
   (->> files
@@ -91,11 +109,14 @@
   [build-state & args]
   (sh! "rm -rf public")
   (sh! "cp -rf resources/public public")
+  (sh! "npm run css-build")
   (->> css-files
        (mapv #(str target-dir "/" %))
        (mapv minify-css-inplace))
   build-state)
 
+(defn ^:export generate-sitemap [])
+  
 (defn ^:export generate-seo-pages
   {:shadow.build/stage :flush
    :shadow.build/mode  :release}
