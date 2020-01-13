@@ -212,9 +212,9 @@
       (rf/dispatch [::events/set-pageloader-exiting? false])
       (rf/dispatch [::views-events/set-current-view :playback])
       (if-some [offset (:offset query-params)]
-        (rf/dispatch-sync [::events/set-lyrics-delay (long offset)])
+        (rf/dispatch [::events/set-lyrics-delay (long offset)])
         (do
-         (rf/dispatch-sync [::song-events/update-song-hash song])))
+         (rf/dispatch [::song-events/update-song-hash song])))
       (songs/load-song song)
       (when-some [show-opts? (:show-opts query-params)]
         (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))

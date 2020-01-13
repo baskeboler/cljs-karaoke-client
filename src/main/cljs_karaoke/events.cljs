@@ -387,9 +387,9 @@
   [{:keys [db]} [_ song-name]]
   {:db         (-> db
                    (assoc :current-song song-name))
-   :dispatch-n [
+   :dispatch-n []}))
                 ;; [::fetch-bg song-name]
-                [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
+                ;; [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
 
 ;; (reg-set-attr ::set-player-status :player-status)
 ;; (reg-set-attr ::set-highlight-status :highlight-status)

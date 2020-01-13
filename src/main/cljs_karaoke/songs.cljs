@@ -97,7 +97,7 @@
 
 (defn load-song
   ([name]
-   (rf/dispatch-sync [::song-events/load-song-if-initialized  name]))
+   (rf/dispatch [::song-events/load-song-if-initialized  name]))
   ([]
    (when-let [song @(rf/subscribe [::s/playlist-current])]
      (load-song song))))
