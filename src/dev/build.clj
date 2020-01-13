@@ -91,6 +91,7 @@
              (html5 (rest (if-not (nil? delay)
                             (seo-page s delay im)
                             (seo-page s 0 im)))))))
+    (println "used " (count (keys images)) " custom images for seo image tags")
     (println "Generating sitemap")
     (->> (sitemap-urls songs)
          (cstr/join "\n")
