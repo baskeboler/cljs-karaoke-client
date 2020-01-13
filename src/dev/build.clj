@@ -123,7 +123,6 @@
 
 (def css-files
   ["css/main.css"])
-   
 
 (defn get-files [files]
   (->> files
@@ -145,18 +144,16 @@
 (defn ^:export build-css []
   (sh! "npm run css-build"))
 
-
 (defn ^:export watch-css []
   (future
     (sh! "npm run css-watch")))
-
 
 (defn ^:export generate-seo-pages
   {:shadow.build/stage :flush
    :shadow.build/mode  :release}
   [build-state & args]
   (when (= :release (:shadow.build/mode build-state))
-   (prerender))
+    (prerender))
   build-state)
 
 (defn create-docker-image []

@@ -2,8 +2,11 @@
   (:require [stylefy.core :as stylefy]
             [re-frame.core :as rf]
             [cljs-karaoke.remote-control :as remote-control]
+            [cljs-karaoke.events :as events]
+            [cljs-karaoke.modals :as modals]
             [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.playback :refer [play stop pause update-playback-rate]]))
+            [cljs-karaoke.playback :refer [play stop pause update-playback-rate]]
+            [cljs-karaoke.subs :as s]))
 
 ;; (def d! rf/dispatch)
 
@@ -52,6 +55,17 @@
                      :on-click identity})
    (map->FnMenuItem {:label "signal remote karaoke"
                      :on-click identity})])
+
+(def lyrics-items
+  [(map->FnMenuItem {:label    "export song delays"
+                     :on-click modals/show-export-sync-info-modal})
+   (map->FnMenuItem {:label    "save custom delays"
+                     :on-click (fn []
+                                 (let [selected (rf/subscribe [::s/current-song])
+                                       delay    (rf/subscribe [::s/lyrics-delay])]
+                                   (when-not (nil? @selected)
+                                     (rf/dispatch [::events/set-custom-song-delay @selected @delay]))))})])
+
 (defn menu-component []
   [:aside.menu
    [:p.menu-label "Playback"]
@@ -65,6 +79,12 @@
     (doall
      (for [item remote-control-items]
        ^{:key (str "remote-control-item-" (:label item))}
+       [menu-item item]))]
+   [:p.menu-label "Lyrics"]
+   [:ul.menu-list
+    (doall
+     (for [item lyrics-items]
+       ^{:key (str "lyrics-item-" (:label item))}
        [menu-item item]))]])
 
 (def menu-items
