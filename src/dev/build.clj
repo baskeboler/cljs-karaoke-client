@@ -109,14 +109,22 @@
   [build-state & args]
   (sh! "rm -rf public")
   (sh! "cp -rf resources/public public")
+  (sh! "cp -rf ./node_modules/@fortawesome/fontawesome-free/webfonts ./public/")
   (sh! "npm run css-build")
   (->> css-files
        (mapv #(str target-dir "/" %))
        (mapv minify-css-inplace))
   build-state)
 
-(defn ^:export generate-sitemap [])
-  
+(defn ^:export build-css []
+  (sh! "npm run css-build"))
+
+
+(defn ^:export watch-css []
+  (future
+    (sh! "npm run css-watch")))
+
+
 (defn ^:export generate-seo-pages
   {:shadow.build/stage :flush
    :shadow.build/mode  :release}

@@ -35,7 +35,8 @@
          {:on-click #(swap! editing? not)}
          (if-not (str/blank? @song-name)
            @song-name
-           "unknown")])])))
+           "unknown")
+         [:i.fas.fa-fw.fa-edit.fa-sm]])])))
 (defn song-progress []
   (let [dur (rf/subscribe [::s/song-duration])
         cur (rf/subscribe [::s/song-position])]
@@ -273,6 +274,11 @@
   (let [mode (rf/subscribe [::editor-subs/mode-title])]
     [:div.title.is-text-2 @mode]))
 
+(defn- image []
+  [:figure.image {:style
+                  {:width "256px"}}
+   [:img {:src   "/images/art_window.svg"}]])
+
 (defn  ^:export editor-component []
   (let [text            (rf/subscribe [::editor-subs/current-frame-property :text])
         text-done?      (rf/subscribe [::editor-subs/current-frame-property :text-done?])
@@ -285,8 +291,12 @@
     ;; (fn []
       [:div.editor.container-fluid
        (stylefy/use-style default-page-styles)
-       [:p.title.is-1 "Lyrics Editor"]
-       [song-name-editor]
+       [:div.columns.is-vcentered
+        [:div.column.is-hidden-mobile
+         [image]]
+        [:div.column>h1.title.is-1 "Lyrics Editor"]
+        [:div.column
+         [song-name-editor]]]
        [:div.columns
         [:div.column.is-one-third
          [:div.columns>div.column

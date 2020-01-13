@@ -15,9 +15,10 @@
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]
             [cljs-karaoke.notifications :as n]))
 
+          
 (defn load-song-flow [song-name]
-  {;; :first-dispatch [::load-song-start song-name]
-   ;; :id    (gensym ::load-song-flow)
+  {
+   :first-dispatch [::trigger-load-song-flow song-name]
    :rules [{:when       :seen-all-of?
             :events     [::lyrics-events/fetch-lyrics-complete
                          ::bg-events/update-bg-image-flow-complete
@@ -29,7 +30,8 @@
                                                                 :type     :song-name-display
                                                                 :text     song-name
                                                                 :visible? true}
-                          5000]]
+                          5000]
+                         [::toggle-loading-song]]
             :halt?      true}]})
 
 ;; (defn stop-song-flow []
@@ -61,14 +63,40 @@
     {:db db
      :dispatch [::events/set-location-hash (str "/songs/" song-name "?offset=" offset)]})))
 
+(rf/reg-event-db
+ ::toggle-loading-song
+ (fn-traced
+  [db _]
+  (-> db (update :loading-song? not))))
+
+(rf/reg-event-fx
+ ::load-song-if-initialized
+ (fn-traced
+  [{:keys [db]} [_ song-name]]
+  (cond
+    (not
+     (:initialized? db))
+    (do
+      (println "delaying song load, app not yet initialized.")
+      {:db             db
+       :dispatch-later [{:dispatch [::load-song-if-initialized song-name]
+                         :ms       500}]})
+    (:loading-song? db)
+    (do
+      (println "song is loading, discarding")
+      {:db db})
+    :otherwise
+    {:db         (-> db
+                     (assoc :loading-song? true))
+                     
+     :async-flow (load-song-flow song-name)})))
+
 (rf/reg-event-fx
  ::trigger-load-song-flow
 
- ;; ::load-song-start
  (fn-traced
   [{:keys [db]} [_ song-name]]
   {:db         db
-   :async-flow (load-song-flow song-name)
    :dispatch-n [
                 ;; [::events/set-pageloader-exiting? false]
                 ;; [::events/set-pageloader-active? true]
@@ -76,13 +104,13 @@
                 [::events/set-playing? false]
                 [::metrics-events/load-user-metrics-from-localstorage]
                 [::setup-audio-events song-name]
-                ;; [::update-song-hash song-name]
+                [::update-song-hash song-name]
                 ;; [::set-first-playback-position-updated? false]
                 ;; [::common-events/set-page-title (str "Karaoke :: " song-name)]
                 [::events/set-current-song song-name]
                 [::bg-events/init-update-bg-image-flow song-name]
-                [::lyrics-events/fetch-lyrics song-name preprocess-frames]
-                [::views-events/view-action-transition :load-song]]}))
+                [::lyrics-events/fetch-lyrics song-name preprocess-frames]]}))
+                ;; [::views-events/view-action-transition :load-song]]}))
 
 (rf/reg-event-fx
  ::trigger-load-random-song
@@ -167,3 +195,15 @@
  (fn-traced
   [{:keys [db]} [_ rate]]
   {:db db}))
+
+(rf/reg-event-db
+ ::update-audio-playback-rate
+ (rf/after
+   (fn [db [_ delta]]
+     (let [rate     (-> db :audio .-playbackRate)
+           new-rate (+ rate delta)
+           new-rate (cond
+                      (> new-rate 3.0) 3.0
+                      (< new-rate 0.1) 0.1
+                      :otherwise       new-rate)])))
+ (fn-traced [db _] db))

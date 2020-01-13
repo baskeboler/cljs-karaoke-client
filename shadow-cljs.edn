@@ -31,22 +31,23 @@
   ;; [com.rpl/specter "1.1.2"]
   [bardo "0.1.2-SNAPSHOT"]]
 
- :nrepl {:port       9999}
-         ;; :middleware [refactor-nrepl.middleware/wrap-refactor]}
+ :nrepl {:port 9999}
+ ;; :middleware [refactor-nrepl.middleware/wrap-refactor]}
 
  :builds
  {:app {:target           :browser
         :build-hooks      [(build/setup-target-dir)
                            (build/generate-seo-pages)]
-        :asset-path       "js/."
+        :asset-path       "./resources"
         :output-dir       "public/js"
         :build-options    {:cache-level :on}
-        :compiler-options {:static-fns         true
-                           :output-feature-set :es-next
-                           :infer-externs      :auto
-                           :optimize-constants true
-                           :pretty-print       false
-                           :optimization       :advanced}
+        :compiler-options {:static-fns          true
+                           :output-feature-set  :es-next
+                           :infer-externs       :auto
+                           :optimize-constants  true
+                           :pretty-print        false
+                           :optimization        :advanced
+                           :strip-type-prefixes #{"cljs.pprint"}}
         :modules          {:main {:init-fn cljs-karaoke.app/init!}}
         :dev-http         {8089 "public/"}
         :devtools         {

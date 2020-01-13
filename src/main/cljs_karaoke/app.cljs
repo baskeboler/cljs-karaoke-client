@@ -198,37 +198,39 @@
   (songs/load-song s))
 
 (defn init-routing! []
-  (secretary/set-config! :prefix "#")
-  (defroute "/" []
-    (println "home path")
-    ;; (rf/dispatch-sync [::playlist-events/playlist-load])
-    (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
-  (defroute "/songs/:song"
-    [song query-params]
-    (println "song: " song)
-    (println "query params: " query-params)
-    ;; (rf/dispatch [::events/set-pageloader-active? true])
-    (rf/dispatch [::events/set-pageloader-exiting? false])
-    (songs/load-song song)
-    (if-some [offset (:offset query-params)]
-      (rf/dispatch-sync [::events/set-lyrics-delay (long offset)])
-      (rf/dispatch [::song-events/update-song-hash song]))
-    ;; (rf/dispatch [::events/set-custom-song-delay song (long offset)]))
-    (when-some [show-opts? (:show-opts query-params)]
-      (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
-
-  ;; Quick and dirty history configuration.
-  (defroute "/party-mode" []
-    (println "fuck yea! party mode ON")
-    (rf/dispatch [::playlist-events/set-loop? true])
-    (rf/dispatch [::playlist-events/playlist-load]))
-  (defroute "/playlist" []
-    (rf/dispatch-sync [::views-events/set-current-view :playlist]))
-  (defroute "/editor" []
-    (rf/dispatch [::views-events/view-action-transition :go-to-editor]))
   (let [h (History.)]
-    (gevents/listen h ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
-    (doto h (.setEnabled true))))
+    (secretary/set-config! :prefix "#")
+    (defroute "/" []
+      (println "home path")
+      ;; (rf/dispatch-sync [::playlist-events/playlist-load])
+      (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
+    (defroute "/songs/:song"
+      [song query-params]
+      (println "song: " song)
+      (println "query params: " query-params)
+      ;; (rf/dispatch [::events/set-pageloader-active? true])
+      (rf/dispatch [::events/set-pageloader-exiting? false])
+      (rf/dispatch [::views-events/set-current-view :playback])
+      (if-some [offset (:offset query-params)]
+        (rf/dispatch-sync [::events/set-lyrics-delay (long offset)])
+        (do
+         (rf/dispatch-sync [::song-events/update-song-hash song])))
+      (songs/load-song song)
+      (when-some [show-opts? (:show-opts query-params)]
+        (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
+
+    ;; Quick and dirty history configuration.
+    (defroute "/party-mode" []
+      (println "fuck yea! party mode ON")
+      (rf/dispatch [::playlist-events/set-loop? true])
+      (rf/dispatch [::playlist-events/playlist-load]))
+    (defroute "/playlist" []
+      (rf/dispatch-sync [::views-events/set-current-view :playlist]))
+    (defroute "/editor" []
+      (rf/dispatch [::views-events/view-action-transition :go-to-editor]))
+    (gevents/listen ^js @(rf/subscribe [::s/history]) ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
+    (doto ^js @(rf/subscribe [::s/history]) (.setEnabled true))))
+
 
 (defn get-sharing-url []
   (let [l        js/location
@@ -241,10 +243,12 @@
      (js/encodeURI))))
 
 
+
+(defonce app-root (. js/document (getElementById "root")))
+ 
 (defn mount-components! []
-  (reagent/render
-   [app]
-   (. js/document (getElementById "root"))))
+  (reagent/render [app] app-root))
+   ;; (. js/document (getElementById "root"))))
 
 (defn on-shake [evt] (trigger-toasty))
 
@@ -265,8 +269,8 @@
   
 
 (defn ^:dev/before-load stop-app []
-  (println "stop app"))
-
+  (println "stop app")
+  (rf/clear-subscription-cache!))
 
 (defn- capture-stream [^js/AudioBuffer audio]
   (cond

@@ -41,6 +41,15 @@
                 :footer  nil})]
    (rf/dispatch [::modal-events/modal-push modal])))
 
+(defn ^:export show-generic-tools-modal [{:keys [title content]}]
+  (let [modal (modal-card-dialog
+               {:title   title
+                :content content
+                :footer  [:div.footer-container
+                          [:button.button.is-primary
+                           {:on-click #(rf/dispatch [::modal-events/modal-pop])}]]})]
+    (rf/dispatch [::modal-events/modal-push modal])))
+
 (defn ^:export show-input-text-modal
   [{:keys [title text on-submit]}]
   (let [input-text (reagent.core/atom "")

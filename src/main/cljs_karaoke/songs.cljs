@@ -1,5 +1,6 @@
 (ns cljs-karaoke.songs
   (:require [reagent.core :as reagent :refer [atom]]
+            [re-frame.core :as rf :include-macros true]
             [clojure.string :as str]
             [cljs-karaoke.events.common]
             [cljs-karaoke.subs :as s]
@@ -8,7 +9,6 @@
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.remote-control.commands :as cmds]
             [cljs-karaoke.events.http-relay :as remote-events]
-            [re-frame.core :as rf :include-macros true]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
             [cljs.core.async :as async :refer [<! >! chan go go-loop]]))
@@ -43,13 +43,14 @@
 (defn song-filter-component []
   (let [filt (rf/subscribe [::s/song-list-filter])]
     [:div.field>div.control.has-icons-left
+     [:span.icon
+      [:i.fas.fa-search]]
      [:input.input.is-primary
       {:value     @filt
        :name      "filter-input"
        :on-change #(rf/dispatch [::song-list-events/set-song-filter
-                                 (-> % .-target .-value)])}]
-     [:span.icon
-      [:i.fas.fa-search]]]))
+                                 (-> % .-target .-value)])}]]))
+     
 (defn song-table-component
   []
   (let [current-page            (rf/subscribe [::s/song-list-current-page])
@@ -57,12 +58,12 @@
         filter-text             (rf/subscribe [::s/song-list-filter])
         page-offset             (rf/subscribe [::s/song-list-offset])
         remote-control-enabled? (rf/subscribe [:cljs-karaoke.subs.http-relay/remote-control-enabled?])]
-    [:div.card.song-table-component
+    [:div.card.song-table-component.flip-in-hor-bottom
      [:div.card-header]
      [:div.card-content
       [song-filter-component]
       [song-table-pagination]
-      [:table.table.is-fullwidth.song-table
+      [:table.table.is-narrow.is-fullwidth.song-table
        [:thead
         [:tr
          [:th "Song"]
@@ -96,7 +97,7 @@
 
 (defn load-song
   ([name]
-   (rf/dispatch-sync [::song-events/trigger-load-song-flow name]))
+   (rf/dispatch-sync [::song-events/load-song-if-initialized  name]))
   ([]
    (when-let [song @(rf/subscribe [::s/playlist-current])]
      (load-song song))))

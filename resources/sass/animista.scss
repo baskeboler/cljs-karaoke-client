@@ -731,6 +731,13 @@
   }
 }
 
+.flip-in-hor-bottom {
+    animation: flip-in-hor-bottom ;
+    animation-delay: 0;
+    animation-fill-mode: both;
+    animation-timing-function: ease-in-out;
+}
+
 @-webkit-keyframes slit-in-vertical {
   0% {
     -webkit-transform: translateZ(-800px) rotateY(90deg);

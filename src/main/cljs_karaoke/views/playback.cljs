@@ -1,5 +1,6 @@
 (ns cljs-karaoke.views.playback
   (:require [re-frame.core :as rf]
+            [secretary.core :as routing]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.events.views :as views-events]

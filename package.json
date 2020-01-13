@@ -7,13 +7,12 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "cljs-watch": "shadow-cljs watch app",
-        "compile": "shadow-cljs compile app && npm run css-build",
-        "release": "shadow-cljs release app && npm run css-build",
+        "compile": "shadow-cljs compile app ",
+        "release": "shadow-cljs release app ",
         "start": "npm run watch",
         "copy-webfonts": "cp -rf ./node_modules/@fortawesome/fontawesome-free/webfonts ./public/",
-        "css-build": "node-sass --omit-source-map-url resources/sass/main.scss public/css/main.css && npm run copy-webfonts",
-        "css-watch": "npm run css-build -- --watch",
-        "watch": "concurrently \"npm:cljs-watch\" \"npm:css-watch\""
+        "css-build": "node-sass --omit-source-map-url resources/sass/main.scss public/css/main.css",
+        "css-watch": "npm run css-build -- --watch"
     },
     "keywords": [],
     "author": "",
