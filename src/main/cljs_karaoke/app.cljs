@@ -158,7 +158,7 @@
       [song-progress]])])
 
 (defn default-view []
-  [:div.default-view.container-fluid
+  [:div.default-view.container.is-fluid
    [control-panel]
    [:button.button.is-danger.edge-stop-btn
     {:class (if @(rf/subscribe [::s/song-paused?])

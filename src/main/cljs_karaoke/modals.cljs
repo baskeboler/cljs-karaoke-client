@@ -1,7 +1,8 @@
 (ns cljs-karaoke.modals
   (:require [re-frame.core :as rf]
             [cljs-karaoke.events.modals :as modal-events]
-            [cljs-karaoke.subs :as s]))
+            [cljs-karaoke.subs :as s]
+            [cljs-karaoke.components.delay-select :refer [delay-select-component]]))
 (defn modal-card-dialog [{:keys [title content footer]}]
   [:div.modal.is-active
    {:key (random-uuid)}
@@ -46,9 +47,16 @@
                {:title   title
                 :content content
                 :footer  [:div.footer-container
-                          [:button.button.is-primary
-                           {:on-click #(rf/dispatch [::modal-events/modal-pop])}]]})]
+                          [:button.button.is-primary-outlined
+                           {:on-click #(rf/dispatch [::modal-events/modal-pop])}
+                           "Dismiss"]]})]
     (rf/dispatch [::modal-events/modal-push modal])))
+
+(defn ^:export show-delay-select-modal []
+  (show-generic-tools-modal {:title "Adjust lyrics delay"
+                             :content [:div.delay-select-modal-content
+                                       [:label "Select lyrics delay"]
+                                       [delay-select-component]]}))
 
 (defn ^:export show-input-text-modal
   [{:keys [title text on-submit]}]

@@ -152,6 +152,14 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
   &.song-playing {
     /* display: none; */
   }
+
+  .menu {
+      .menu-list {
+          li>a {
+              text-transform: capitalize;
+          }
+      }
+  }
 }
 
 .edge-stop-btn {

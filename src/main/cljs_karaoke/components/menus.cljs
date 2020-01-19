@@ -64,7 +64,9 @@
                                  (let [selected (rf/subscribe [::s/current-song])
                                        delay    (rf/subscribe [::s/lyrics-delay])]
                                    (when-not (nil? @selected)
-                                     (rf/dispatch [::events/set-custom-song-delay @selected @delay]))))})])
+                                     (rf/dispatch [::events/set-custom-song-delay @selected @delay]))))})
+   (map->FnMenuItem {:label "Adjust lyrics delay"
+                     :on-click modals/show-delay-select-modal})])
 
 (defn menu-component []
   [:aside.menu

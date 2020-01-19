@@ -18,7 +18,8 @@
             [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.components.menus :as menus :refer [menu-component]]
             [stylefy.core :as stylefy]
-            [cljs-karaoke.audio-input :as audio-input :refer [enable-audio-input-button]]))
+            [cljs-karaoke.audio-input :as audio-input :refer [enable-audio-input-button]]
+            [cljs-karaoke.components.delay-select :refer [delay-select-component]]))
 
 (defn lyrics-view [lyrics]
   [:div.tile.is-child.is-vertical
@@ -105,17 +106,6 @@
               [:div.tag.is-success "loaded"]
               [:div.tag.is-danger "not loaded"])]]]]))
 
-(defn delay-select []
-  (let [delay (rf/subscribe [::s/lyrics-delay])]
-    [:div.field
-     [:div.control
-      [:div.select.is-primary.is-fullwidth.delay-select
-       [:select {:value     @delay
-                 :on-change #(rf/dispatch [::events/set-lyrics-delay (-> % .-target .-value (long))])}
-        (for [v (vec (range -10000 10001 250))]
-          [:option {:key   (str "opt_" v)
-                    :value v}
-           v])]]]]))
 (defn toggle-display-lyrics []
   (rf/dispatch [::events/toggle-display-lyrics]))
 
@@ -168,7 +158,7 @@
   (let [remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])]
     [:div.card>div.card-content
      [toggle-display-lyrics-link]
-     [delay-select]
+     [delay-select-component]
      [info-table]
      [control-panel-button-bar]
      [:div.field
