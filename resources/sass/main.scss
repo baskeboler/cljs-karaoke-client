@@ -370,6 +370,10 @@ html {
   right: unset;
 }
 
+.app {
+    margin-top: 4em;
+}
+
 @media screen and (min-width: 320px) {
   .current-frame {
     width: 90vw;

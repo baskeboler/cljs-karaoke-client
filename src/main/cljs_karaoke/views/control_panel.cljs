@@ -19,7 +19,8 @@
             [cljs-karaoke.components.menus :as menus :refer [menu-component]]
             [stylefy.core :as stylefy]
             [cljs-karaoke.audio-input :as audio-input :refer [enable-audio-input-button]]
-            [cljs-karaoke.components.delay-select :refer [delay-select-component]]))
+            [cljs-karaoke.components.delay-select :refer [delay-select-component]]
+            [cljs-karaoke.components.song-info-panel :refer [song-info-table]]))
 
 (defn lyrics-view [lyrics]
   [:div.tile.is-child.is-vertical
@@ -84,27 +85,6 @@
     :data-tooltip "Control Remote Karaoke"}
    [:span.icon
     [:i.fas.fa-satellite-dish]]])
-(defn info-table []
-  (let [current-song   (rf/subscribe [::s/current-song])
-        lyrics-loaded? (rf/subscribe [::s/lyrics-loaded?])]
-    [:table.table.is-fullwidth.is-narrow
-     [:tbody
-      [:tr
-       [:td "current"]
-       [:td
-        (if-not (nil? @current-song)
-          [:div.tag.is-info.is-normal
-           @current-song]
-          [:div.tag.is-danger.is-normal
-           "no song selected"])]]
-      [:tr
-       [:td "is paused?"]
-       [:td (if @(rf/subscribe [::s/song-paused?]) "yes" "no")]]
-      [:tr
-       [:td "lyrics loaded?"]
-       [:td (if @lyrics-loaded?
-              [:div.tag.is-success "loaded"]
-              [:div.tag.is-danger "not loaded"])]]]]))
 
 (defn toggle-display-lyrics []
   (rf/dispatch [::events/toggle-display-lyrics]))
@@ -159,7 +139,7 @@
     [:div.card>div.card-content
      [toggle-display-lyrics-link]
      [delay-select-component]
-     [info-table]
+     [song-info-table]
      [control-panel-button-bar]
      [:div.field
       [:div.control

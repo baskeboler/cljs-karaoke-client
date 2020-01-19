@@ -2,7 +2,8 @@
   (:require [re-frame.core :as rf]
             [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.subs :as s]
-            [cljs-karaoke.components.delay-select :refer [delay-select-component]]))
+            [cljs-karaoke.components.delay-select :refer [delay-select-component]]
+            [cljs-karaoke.components.song-info-panel :refer [song-info-table]]))
 (defn modal-card-dialog [{:keys [title content footer]}]
   [:div.modal.is-active
    {:key (random-uuid)}
@@ -47,7 +48,7 @@
                {:title   title
                 :content content
                 :footer  [:div.footer-container
-                          [:button.button.is-primary-outlined
+                          [:button.button.is-primary.is-outlined
                            {:on-click #(rf/dispatch [::modal-events/modal-pop])}
                            "Dismiss"]]})]
     (rf/dispatch [::modal-events/modal-push modal])))
@@ -57,6 +58,11 @@
                              :content [:div.delay-select-modal-content
                                        [:label "Select lyrics delay"]
                                        [delay-select-component]]}))
+
+(defn ^:export show-song-info-table-modal []
+  (show-generic-tools-modal {:title "current song information"
+                             :content [:div.current-song-information-modal-content
+                                       [song-info-table]]}))
 
 (defn ^:export show-input-text-modal
   [{:keys [title text on-submit]}]

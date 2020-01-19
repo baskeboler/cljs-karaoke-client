@@ -38,7 +38,9 @@
      label]))
 
 (def playback-items
-  [(map->FnMenuItem {:label    "Play"
+  [(map->FnMenuItem {:label "current song information"
+                     :on-click modals/show-song-info-table-modal})
+   (map->FnMenuItem {:label    "Play"
                      :on-click play})
    (map->FnMenuItem {:label    "Stop"
                      :on-click stop})
