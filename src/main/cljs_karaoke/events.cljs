@@ -21,12 +21,13 @@
             [cljs-karaoke.events.user :as user-events]
             [cljs-karaoke.events.metrics :as metrics-events]
             [cljs-karaoke.events.editor :as editor-events]
+            [cljs-karaoke.config :refer [config-map]]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [goog.events :as gevents]
             [cljs-karaoke.audio :as aud])
   (:import goog.History))
 (defonce fetch-bg-from-web-enabled? true)
-(def base-storage-url "https://karaoke-files.uyuyuy.xyz")
+(def base-storage-url (:audio-files-prefix config-map))
 
 
 (declare save-custom-delays-to-localstore)

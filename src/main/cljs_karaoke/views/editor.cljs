@@ -288,8 +288,7 @@
         segment-offsets (rf/subscribe [::editor-subs/current-frame-property :segment-offsets])
         segments        (rf/subscribe [::editor-subs/current-frame-property :segments])
         size            (rf/subscribe [::editor-subs/current-frame-property :segment-size])]
-    ;; (fn []
-      [:div.editor.container-fluid
+      [:div.editor
        (stylefy/use-style default-page-styles)
        [:div.columns.is-vcentered
         [:div.column.is-hidden-mobile

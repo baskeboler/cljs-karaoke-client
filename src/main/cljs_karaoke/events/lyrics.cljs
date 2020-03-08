@@ -6,8 +6,10 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.common :as common-events]
             [cljs.tools.reader.edn :as reader]
-            [cljs-karaoke.lyrics :as l]))
+            [cljs-karaoke.lyrics :as l]
+            [cljs-karaoke.config :refer [config-map]]))
 
+(def http-timeout (:http-timeout config-map))
 (defn load-lyrics-flow []
   {:id (gensym ::load-lyrics-flow)
    :rules [{:when :seen-any-of?
@@ -26,7 +28,7 @@
                    (assoc :lyrics-fetching? true))
    :http-xhrio {:method          :get
                 :uri             (str events/base-storage-url "/lyrics/" name ".edn")
-                :timeout         8000
+                :timeout         http-timeout
                 :response-format (ajax/text-response-format)
                 :on-success      [::handle-fetch-lyrics-success]
                 :on-failure      [::handle-fetch-lyrics-failure]}

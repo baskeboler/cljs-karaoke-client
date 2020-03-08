@@ -179,11 +179,11 @@
      ;; [:div.columns>div.column.is-12 (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
      [:div.columns
        (when @display-menu?
-         [:div.column.is-3>div.box
+         [:div.column.is-3
           [toggle-menu-btn]
           [menu-component]])
       (when @song-list-visible?
-        [:div.column>div.box
+        [:div.column
          (when-not @display-menu?
            [toggle-menu-btn])
          [song-table-component]])]]))

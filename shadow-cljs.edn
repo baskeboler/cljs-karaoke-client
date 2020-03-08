@@ -5,7 +5,7 @@
   "src/test"]
 
  :dependencies
- [[reagent "0.8.1"]
+ [[reagent "0.9.1"]
   [org.clojure/data.xml "0.0.8"]
   [clj-tagsoup/clj-tagsoup "0.3.0"]
   [keybind "2.2.0"]

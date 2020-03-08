@@ -1,48 +1,48 @@
 (ns cljs-karaoke.app
-  (:require [reagent.core :as reagent :refer [atom]]
+  (:require [reagent.core :as reagent ]
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
-            [cljs.reader :as reader]
-            [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
+            ;; [cljs.reader :as reader]
+            ;; [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
             [stylefy.core :as stylefy]
             [secretary.core :as secretary :refer-macros [defroute]]
             [goog.events :as gevents]
             [goog.history.EventType :as EventType]
-            [keybind.core :as key]
+            ;; [keybind.core :as key]
             [clojure.string :as str]
-            [ajax.core :as ajax]
+            ;; [ajax.core :as ajax]
             [cljs-karaoke.protocols :as protocols]
-            [cljs-karaoke.songs :as songs :refer [song-table-component]]
-            [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
-            [cljs-karaoke.remote-control :as remote-control]
-            [cljs-karaoke.events.common :as common-events]
-            [cljs-karaoke.events.billboards :as billboard-events]
-            [cljs-karaoke.events.backgrounds :as bg-events]
-            [cljs-karaoke.events.lyrics :as lyrics-events]
+            [cljs-karaoke.songs :as songs]
+            [cljs-karaoke.audio :as aud]
+            ;; [cljs-karaoke.remote-control :as remote-control]
+            ;; [cljs-karaoke.events.common :as common-events]
+            ;; [cljs-karaoke.events.billboards :as billboard-events]
+            ;; [cljs-karaoke.events.backgrounds :as bg-events]
+            ;; [cljs-karaoke.events.lyrics :as lyrics-events]
             [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.events.editor :as editor-events]
-            [cljs-karaoke.events.metrics :as metrics-events]
-            [cljs-karaoke.events.song-list :as song-list-events]
+            ;; [cljs-karaoke.events.editor :as editor-events]
+            ;; [cljs-karaoke.events.metrics :as metrics-events]
+            ;; [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            [cljs-karaoke.events.user :as user-events]
-            [cljs-karaoke.events.http-relay :as http-relay-events]
-            [cljs-karaoke.events.modals :as modal-events]
+            ;; [cljs-karaoke.events.user :as user-events]
+            ;; [cljs-karaoke.events.http-relay :as http-relay-events]
+            ;; [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.events.audio :as audio-events]
-            [cljs-karaoke.events.notifications :as notifications-events]
+            ;; [cljs-karaoke.events.notifications :as notifications-events]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.subs :as s]
-            [cljs-karaoke.subs.audio :as audio-subs]
-            [cljs-karaoke.modals :as modals :refer [show-export-sync-info-modal]]
-            [cljs-karaoke.utils :as utils :refer [icon-button]]
-            [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
-            [cljs-karaoke.playlists :as pl]
-            [cljs-karaoke.audio-input :refer [enable-audio-input-button spectro-overlay]]
+            ;; [cljs-karaoke.subs.audio :as audio-subs]
+            [cljs-karaoke.modals :as modals]
+            ;; [cljs-karaoke.utils :as utils :refer [icon-button]]
+            [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
+            ;; [cljs-karaoke.playlists :as pl]
+            [cljs-karaoke.audio-input :refer [ spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
-            [cljs-karaoke.remote-control :as remote-control]
+            ;; [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.views.billboards :refer [billboards-component]]
             [cljs-karaoke.views.page-loader :as page-loader]
-            [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
+            [cljs-karaoke.views.seek-buttons :as seek-buttons]
             [cljs-karaoke.views.control-panel :refer [control-panel]]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
@@ -52,15 +52,14 @@
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
             ;; [cljs-karaoke.animation :refer [logo-animation]]
-            [cljs-karaoke.svg.waveform :as waves]
+            ;; [cljs-karaoke.svg.waveform :as waves]
             [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
-             :refer [time-display-style centered
-                     top-left parent-style
-                     top-right logo-bg-style]]
-            ["shake.js" :as Shake])
-  (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
-  (:import goog.History))
+             :refer [ centered
+                     top-left parent-style]]
+            ["shake.js" :as Shake]))
+  ;; (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
+  ;; (:import goog.History))
 
 (stylefy/init)
 
@@ -158,7 +157,7 @@
       [song-progress]])])
 
 (defn default-view []
-  [:div.default-view.container.is-fluid
+  [:div.default-view.is-fluid
    [control-panel]
    [:button.button.is-danger.edge-stop-btn
     {:class (if @(rf/subscribe [::s/song-paused?])
@@ -198,7 +197,7 @@
   (songs/load-song s))
 
 (defn init-routing! []
-  (let [h (History.)]
+  ;; (let [h (History.)]
     (secretary/set-config! :prefix "#")
     (defroute "/" []
       (println "home path")
@@ -213,10 +212,10 @@
       (rf/dispatch [::views-events/set-current-view :playback])
       (if-some [offset (:offset query-params)]
         (rf/dispatch [::events/set-lyrics-delay (long offset)])
-        (do
-         (rf/dispatch [::song-events/update-song-hash song])))
+        ;; (do
+        (rf/dispatch [::song-events/update-song-hash song]))
       (songs/load-song song)
-      (when-some [show-opts? (:show-opts query-params)]
+      (when-some [_ (:show-opts query-params)]
         (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
 
     ;; Quick and dirty history configuration.
@@ -229,7 +228,7 @@
     (defroute "/editor" []
       (rf/dispatch [::views-events/view-action-transition :go-to-editor]))
     (gevents/listen ^js @(rf/subscribe [::s/history]) ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
-    (doto ^js @(rf/subscribe [::s/history]) (.setEnabled true))))
+    (doto ^js @(rf/subscribe [::s/history]) (.setEnabled true)))
 
 
 (defn get-sharing-url []
@@ -282,10 +281,10 @@
   [event]
   (println "handling canplaythrough event")
   (let [audio @(rf/subscribe [::s/audio])
-        output-mix @(rf/subscribe [::audio-subs/output-mix])
-        ctx @(rf/subscribe [::audio-subs/audio-context])
-        song-stream (capture-stream audio)
-        song-paused? @(rf/subscribe [::s/song-paused?])]
+        ;; output-mix @(rf/subscribe [::audio-subs/output-mix])
+        ;; ctx @(rf/subscribe [::audio-subs/audio-context])
+        song-stream (capture-stream audio)]
+        ;; song-paused? @(rf/subscribe [::s/song-paused?])]
     (rf/dispatch-sync [::song-events/set-song-stream song-stream])
     (rf/dispatch-sync [::events/set-can-play? true])))
     ;; (play)))
