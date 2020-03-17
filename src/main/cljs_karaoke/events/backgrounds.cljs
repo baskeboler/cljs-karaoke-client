@@ -17,7 +17,7 @@
 
 (defn update-song-bg-flow []
   {;; :first-dispatch [::update-bg-image song-name]
-   :id    (gensym ::update-song-bg-flow)
+   ;; :id    (gensym ::update-song-bg-flow)
    :rules [
            ;; {:when     :seen-all-of?
            ;; :events   [::search-images

@@ -1,5 +1,6 @@
 (ns cljs-karaoke.views.playback
   (:require [re-frame.core :as rf]
+            [secretary.core :as routing]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.events.views :as views-events]
@@ -14,8 +15,10 @@
              :refer [time-display-style centered
                      top-left parent-style
                      top-right logo-bg-style]]
+            [cljs-karaoke.modals :refer [show-export-text-info-modal]]
             [cljs-karaoke.utils :as utils :refer [icon-button]]
-            [cljs-karaoke.events.playlists :as playlist-events]))
+            [cljs-karaoke.events.playlists :as playlist-events]
+            [goog.string :as gstr :refer [urlEncode]]))
 (defn lyrics-timing-progress []
   (let [time-remaining (rf/subscribe [::s/time-until-next-event])]
     ;; (fn []
@@ -74,6 +77,8 @@
      [:span.minutes mins] ":"
      [:span.seconds secs] "."
      [:span.milis (-> ms (mod 1000) long)]]))
+(defn show-sharing-url []
+  (let [song-name (rf/subscribe [::s/current-song])]))
 
 (defn- load-random-song []
   (rf/dispatch [::song-events/trigger-load-random-song]))
@@ -124,4 +129,9 @@
    [:div.control
       [increase-playback-rate-btn]]
    [:div.control
-      [decrease-playback-rate-btn]]])
+    [decrease-playback-rate-btn]]
+   [:div.control
+    [icon-button "share-alt" "success"
+     #(show-export-text-info-modal
+       {:title "Share Link"
+        :text (str "https://karaoke.uyuyuy.xyz/songs/" (urlEncode @(rf/subscribe [::s/current-song])) ".html")})]]])

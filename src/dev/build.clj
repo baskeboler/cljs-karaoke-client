@@ -3,6 +3,7 @@
             [clojure.java.shell :refer [sh]]
             [hiccup.page :refer [html5]]
             [clojure.tools.reader :as reader]
+            [clojure.java.io :refer [input-stream]]
             [clojure.string :as cstr])
   (:import [java.net URLEncoder]))
 
@@ -17,6 +18,26 @@
 (defn get-delays []
   (reader/read-string (slurp "resources/public/data/delays.edn")))
 
+(defn valid-url? [url]
+  (print "checking url " url ": ")
+  (try
+    (with-open [_ (input-stream url)]
+      (println "OK!")
+      true)
+    (catch Exception e
+      (println "FAILED!")
+      false)))
+
+(defn get-images []
+  (reader/read-string (slurp "resources/public/data/backgrounds.edn")))
+
+(defn get-valid-images []
+  (into
+   {}
+   (for [[k v] (get-images)
+         :when (valid-url? v)]
+     [k v])))
+
 (defn sh! [command]
   (println command)
   (println (sh "bash" "-c" command)))
@@ -28,21 +49,25 @@
   [:meta {:name name
           :content content}])
 
+(def default-seo-image
+  "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
+
 (defn seo-page
-  ([song offset]
+  ([song offset image]
    [:html
     [:head
      [:meta {:charset :utf-8}]
      (meta-tag
       "twitter:image:src"
-      "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
+      image)
      (meta-tag "twitter:site" "@baskeboler")
      (meta-tag "twitter:card" "summary_large_image")
      (meta-tag :title  (str "Karaoke - " song))
      (meta-tag :description  "Karaoke Party")
      (meta-tag "twitter:title" (str "Karaoke Party :: " song))
      (meta-tag "twitter:description" (str "Online Karaoke Player. Sing " song " online!"))
-     (meta-tag "og:image" "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
+     (meta-tag "og:image"
+               image)
      (meta-tag "og:site_name" "Karaoke Party")
      (meta-tag "og:type" "website")
      (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" song))
@@ -52,20 +77,25 @@
     [:body
      [:script
       (str "location.assign('/#/songs/" song "?offset=" offset "');")]]])
+  ([song offset]
+   (seo-page song offset default-seo-image))
   ([song]
    (seo-page song -1000)))
 
 (defn prerender []
   (let  [songs  (get-songs)
-         delays (get-delays)]
+         delays (get-delays)
+         images (get-images)]
     (doall
      (doseq [s    songs
-             :let [delay (get delays s)]]
+             :let [delay (get delays s)
+                   im (get images s default-seo-image)]]
        (println "Prerendering " s)
        (spit (str "public/songs/" s ".html")
              (html5 (rest (if-not (nil? delay)
-                            (seo-page s delay)
-                            (seo-page s)))))))
+                            (seo-page s delay im)
+                            (seo-page s 0 im)))))))
+    (println "used " (count (keys images)) " custom images for seo image tags")
     (println "Generating sitemap")
     (->> (sitemap-urls songs)
          (cstr/join "\n")
@@ -97,7 +127,6 @@
 
 (def css-files
   ["css/main.css"])
-   
 
 (defn get-files [files]
   (->> files
@@ -109,20 +138,26 @@
   [build-state & args]
   (sh! "rm -rf public")
   (sh! "cp -rf resources/public public")
+  (sh! "cp -rf ./node_modules/@fortawesome/fontawesome-free/webfonts ./public/")
   (sh! "npm run css-build")
   (->> css-files
        (mapv #(str target-dir "/" %))
        (mapv minify-css-inplace))
   build-state)
 
-(defn ^:export generate-sitemap [])
-  
+(defn ^:export build-css []
+  (sh! "npm run css-build"))
+
+(defn ^:export watch-css []
+  (future
+    (sh! "npm run css-watch")))
+
 (defn ^:export generate-seo-pages
   {:shadow.build/stage :flush
    :shadow.build/mode  :release}
   [build-state & args]
   (when (= :release (:shadow.build/mode build-state))
-   (prerender))
+    (prerender))
   build-state)
 
 (defn create-docker-image []

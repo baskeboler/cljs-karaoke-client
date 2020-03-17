@@ -47,4 +47,16 @@
   (let [audio (rf/subscribe [::s/audio])]
     (when @audio
       (.pause @audio))))
-      
+
+(def max-playback-rate 3.0)
+(def min-playback-rate 0.1)
+
+(defn ^:export update-playback-rate
+  [delta]
+  (let [rate (rf/subscribe [::s/audio-playback-rate])
+        new-rate (+ @rate delta)
+        new-rate (cond
+                   (< new-rate min-playback-rate) min-playback-rate
+                   (> new-rate max-playback-rate) max-playback-rate
+                   :otherwise new-rate)]
+    (rf/dispatch [::song-events/set-audio-playback-rate new-rate])))

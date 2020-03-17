@@ -21,10 +21,13 @@
             [cljs-karaoke.events.user :as user-events]
             [cljs-karaoke.events.metrics :as metrics-events]
             [cljs-karaoke.events.editor :as editor-events]
+            [cljs-karaoke.config :refer [config-map]]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
-            [cljs-karaoke.audio :as aud]))
+            [goog.events :as gevents]
+            [cljs-karaoke.audio :as aud])
+  (:import goog.History))
 (defonce fetch-bg-from-web-enabled? true)
-(def base-storage-url "https://karaoke-files.uyuyuy.xyz")
+(def base-storage-url (:audio-files-prefix config-map))
 
 
 (declare save-custom-delays-to-localstore)
@@ -120,6 +123,7 @@
                           :user                       nil
                           :billboards                 []
                           :modals                     []
+                          :history                    (History.)
                           :notifications              []}
              ;; :dispatch-n [[::fetch-custom-delays]
              ;; [::fetch-song-background-config]}
@@ -244,15 +248,18 @@
  ::save-custom-song-delays-to-localstorage
  (fn-traced
   [{:keys [db]} _]
-  {:db db
+  {:db       db
    :dispatch [::common-events/save-to-localstorage
               "custom-song-delays"
               (:custom-song-delay db)
               ::save-custom-delays-to-localstorage-complete]}))
 
-(rf/reg-event-db
- ::save-custom-song-delays-to-localstorage-complete
- (fn-traced [db _] db))
+
+(common-events/reg-identity-event ::save-custom-delays-to-localstorage-complete)
+
+;; (rf/reg-event-db
+ ;; ::save-custom-song-delays-to-localstorage-complete
+ ;; (fn-traced [db _] db))
 
 (rf/reg-event-fx
  ::handle-fetch-delays-complete
@@ -303,8 +310,11 @@
 (rf/reg-event-db
  ::set-location-hash
  (rf/after
-  (fn [_ [_ new-hash]]
-   (set-location-hash new-hash)))
+  (fn [db [_ new-hash]]
+    (println "setting new location hash")
+    (doto ^js (:history db) (.setEnabled false))
+    (set-location-hash new-hash)
+    (doto ^js (:history db) (.setEnabled true))))
  (fn-traced
   [db [_ new-hash]]
   (-> db
@@ -378,9 +388,9 @@
   [{:keys [db]} [_ song-name]]
   {:db         (-> db
                    (assoc :current-song song-name))
-   :dispatch-n [
+   :dispatch-n []}))
                 ;; [::fetch-bg song-name]
-                [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
+                ;; [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
 
 ;; (reg-set-attr ::set-player-status :player-status)
 ;; (reg-set-attr ::set-highlight-status :highlight-status)

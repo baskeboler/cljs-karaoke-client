@@ -43,6 +43,7 @@
  (fn-traced [db _]
             (get-in db [:custom-song-delay (:current-song db)])))
 
+
 (rf/reg-sub
  ::current-frame
  :<- [::lyrics]
@@ -366,3 +367,7 @@
                 (partial + delay)
                 protocols/get-offset)
           frames))))
+
+(rf/reg-sub
+ ::history
+ (fn [db _] (:history db)))
