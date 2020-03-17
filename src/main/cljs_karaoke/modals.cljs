@@ -2,6 +2,7 @@
   (:require [re-frame.core :as rf]
             [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.subs :as s]
+            [goog.string :as gstr]
             [cljs-karaoke.components.delay-select :refer [delay-select-component]]
             [cljs-karaoke.components.song-info-panel :refer [song-info-table]]))
 (defn modal-card-dialog [{:keys [title content footer]}]
@@ -29,6 +30,21 @@
    (for [m @(rf/subscribe [::s/modals])]
      m)])
 
+(defn footer-buttons
+  ([]
+   [:div.footer-container
+    [:button.button.is-primary.is-outlined
+     {:on-click #(rf/dispatch [::modal-events/modal-pop])}
+     "Dismiss"]])
+  ([& btns]
+   [:div.footer-container
+    [:button.button.is-primary.is-outlined
+     {:on-click #(rf/dispatch [::modal-events/modal-pop])}
+     "Dismiss"]
+    (for [btn btns]
+      btn)]))
+   
+
 
 (defn ^:export show-export-text-info-modal
   [{:keys [title text]}]
@@ -40,17 +56,22 @@
                             {:id        (gensym ::export-text-info-modal)
                              :value     text
                              :read-only true}]]]
-                :footer  nil})]
+                :footer  [footer-buttons
+                          [:button.button.is-info.is-outlined
+                           {:on-click #(.. js/navigator
+                                           -clipboard
+                                           (writeText text)
+                                           (then (fn [] (println "text copied")))
+                                           (catch (fn [e] (println "failed to copy " e))))}
+                           [:i.fas.fa-fw.fa-share-alt]
+                           "Copy to Clipboard"]]})]
    (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn ^:export show-generic-tools-modal [{:keys [title content]}]
   (let [modal (modal-card-dialog
                {:title   title
                 :content content
-                :footer  [:div.footer-container
-                          [:button.button.is-primary.is-outlined
-                           {:on-click #(rf/dispatch [::modal-events/modal-pop])}
-                           "Dismiss"]]})]
+                :footer [footer-buttons]})]
     (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn ^:export show-delay-select-modal []

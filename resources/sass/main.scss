@@ -352,6 +352,10 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
   }
 }
 
+.modal {
+    z-index: 600;
+}
+
 .page-content {
   margin-top: 2em;
 }
