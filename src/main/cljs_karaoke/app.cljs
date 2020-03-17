@@ -1,5 +1,5 @@
 (ns cljs-karaoke.app
-  (:require [reagent.core :as reagent ]
+  (:require [reagent.core :as reagent]
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
             ;; [cljs.reader :as reader]
@@ -265,7 +265,6 @@
 (defn ^:dev/after-load start-app []
   (println "start app, mounting components")
   (mount-components!))
-  
 
 (defn ^:dev/before-load stop-app []
   (println "stop app")
