@@ -3,6 +3,7 @@
             [clojure.java.shell :refer [sh]]
             [hiccup.page :refer [html5]]
             [clojure.tools.reader :as reader]
+            [clojure.java.io :refer [input-stream]]
             [clojure.string :as cstr])
   (:import [java.net URLEncoder]))
 
@@ -18,10 +19,13 @@
   (reader/read-string (slurp "resources/public/data/delays.edn")))
 
 (defn valid-url? [url]
+  (print "checking url " url ": ")
   (try
-    (with-open [_ (clojure.java.io/input-stream url)]
+    (with-open [_ (input-stream url)]
+      (println "OK!")
       true)
     (catch Exception e
+      (println "FAILED!")
       false)))
 
 (defn get-images []
@@ -81,7 +85,7 @@
 (defn prerender []
   (let  [songs  (get-songs)
          delays (get-delays)
-         images (get-valid-images)]
+         images (get-images)]
     (doall
      (doseq [s    songs
              :let [delay (get delays s)
