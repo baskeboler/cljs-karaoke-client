@@ -3,6 +3,7 @@
             [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.subs :as s]
             [goog.string :as gstr]
+            [cljs-karaoke.notifications :as notification]
             [cljs-karaoke.components.delay-select :refer [delay-select-component]]
             [cljs-karaoke.components.song-info-panel :refer [song-info-table]]))
 (defn modal-card-dialog [{:keys [title content footer]}]
@@ -41,30 +42,36 @@
     [:button.button.is-primary.is-outlined
      {:on-click #(rf/dispatch [::modal-events/modal-pop])}
      "Dismiss"]
-    (for [btn btns]
-      btn)]))
+    (for [[i btn] (map-indexed vector btns)]
+      ^{:key (str "footer-button-" i)} btn)]))
    
 
 
 (defn ^:export show-export-text-info-modal
   [{:keys [title text]}]
-  (let [modal (modal-card-dialog
-               {:title   title
-                :content [:div.export-text-data-content
-                          [:div.field>div.control
-                           [:textarea.textarea.is-primary
-                            {:id        (gensym ::export-text-info-modal)
-                             :value     text
-                             :read-only true}]]]
-                :footer  [footer-buttons
-                          [:button.button.is-info.is-outlined
-                           {:on-click #(.. js/navigator
-                                           -clipboard
-                                           (writeText text)
-                                           (then (fn [] (println "text copied")))
-                                           (catch (fn [e] (println "failed to copy " e))))}
-                           [:i.fas.fa-fw.fa-share-alt]
-                           "Copy to Clipboard"]]})]
+  (let [after-copy-handler-fn (fn []
+                                (rf/dispatch [::modal-events/modal-pop])
+                                (notification/add-notification
+                                 (notification/notification
+                                  :success
+                                  "Text has been copied to the clipboard :)")))
+        modal                 (modal-card-dialog
+                               {:title   title
+                                :content [:div.export-text-data-content
+                                          [:div.field>div.control
+                                           [:textarea.textarea.is-primary
+                                            {:id        (gensym ::export-text-info-modal)
+                                             :value     text
+                                             :read-only true}]]]
+                                :footer  [footer-buttons
+                                          [:button.button.is-info.is-outlined
+                                           {:on-click #(.. js/navigator
+                                                           -clipboard
+                                                           (writeText text)
+                                                           (then after-copy-handler-fn)
+                                                           (catch (fn [e] (println "failed to copy " e))))}
+                                           [:i.fas.fa-fw.fa-share-alt]
+                                           "Copy to Clipboard"]]})]
    (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn ^:export show-generic-tools-modal [{:keys [title content]}]

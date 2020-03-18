@@ -53,7 +53,7 @@
     ;; (when-not (number? (protocols/current @pl))
       ;; (rf/dispatch-sync [::playlist-events/set-current-playlist-song])
     (if @pl
-      [:table.table.is-fullwidth.is-hoverable
+      [:div.table-container>table.table.is-narrow.is-fullwidth.is-hoverable
        [:thead>tr
         [:th "#"] [:th "Song"] [:th "Action"]]
        [:tbody

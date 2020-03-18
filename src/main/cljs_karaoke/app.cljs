@@ -113,6 +113,7 @@
 
 (defn playback-view []
   [:div.playback-view
+   ^{:class "edge-stop-btn"} [playback-controls]
    [spectro-overlay]
    [current-frame-display]
    (comment)
@@ -150,7 +151,6 @@
            (songs/load-song))})
       [:span.icon
        [:i.fas.fa-sync.fa-5x]]])
-   ^{:class "edge-stop-btn"} [playback-controls]
    [seek-buttons/seek-component #(seek 10000) #(seek -10000)]
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.edge-progress-bar

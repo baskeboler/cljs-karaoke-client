@@ -143,7 +143,7 @@
   (cond
     (not done?) frame
     (>= 1500 (-   next-offset position)) next-frame
-    :otherwise (if (some? frame) frame next-frame))))
+    :else (if (some? frame) frame next-frame))))
 
 (rf/reg-sub
  ::time-until-next-event

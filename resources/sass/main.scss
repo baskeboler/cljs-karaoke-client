@@ -365,13 +365,33 @@ nav.navbar > div.navbar-brand > a.navbar-item > object.header-logo {
 }
 
 html {
-  overflow-y: auto;
+    overflow-y: auto;
+    min-width: 240px;
+}
+
+.playback-controls {
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 2em;
+    .control {
+        flex: 1 1 auto;
+        a, p {
+            height: 100%;
+            width: 100%;
+        }
+    }
 }
 
 .editor .playback-controls {
   position: relative;
   top: unset;
   right: unset;
+  
 }
 
 .app {
@@ -390,6 +410,12 @@ html {
     top: 1em;
     right: 1em;
     width: 25vw;
+  }
+
+  .playback-controls {
+      width: unset;
+      left: unset;
+      right: 0;
   }
 
   .current-frame {
