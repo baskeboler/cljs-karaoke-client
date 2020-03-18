@@ -78,12 +78,12 @@
      (for [item playback-items]
        ^{:key (str "playback-item-" (:label item))}
        [menu-item item]))]
-   [:p.menu-label "Remote Control"]
-   [:ul.menu-list
-    (doall
-     (for [item remote-control-items]
-       ^{:key (str "remote-control-item-" (:label item))}
-       [menu-item item]))]
+   ;; [:p.menu-label "Remote Control"]
+   #_[:ul.menu-list
+      (doall
+       (for [item remote-control-items]
+         ^{:key (str "remote-control-item-" (:label item))}
+         [menu-item item]))]
    [:p.menu-label "Lyrics"]
    [:ul.menu-list
     (doall

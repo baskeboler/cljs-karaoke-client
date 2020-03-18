@@ -42,7 +42,7 @@
         :output-dir       "public/js"
         :build-options    {:cache-level :on}
         :compiler-options {:static-fns          true
-                           :output-feature-set  :es-next
+                           ;; :output-feature-set  :es-next
                            :infer-externs       :auto
                            :optimize-constants  true
                            :pretty-print        false

@@ -3,44 +3,24 @@
             [reagent.dom :refer [render]]
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
-            ;; [cljs.reader :as reader]
-            ;; [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
             [stylefy.core :as stylefy]
             [secretary.core :as secretary :refer-macros [defroute]]
             [goog.events :as gevents]
             [goog.history.EventType :as EventType]
-            ;; [keybind.core :as key]
             [clojure.string :as str]
-            ;; [ajax.core :as ajax]
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.songs :as songs]
             [cljs-karaoke.audio :as aud]
-            ;; [cljs-karaoke.remote-control :as remote-control]
-            ;; [cljs-karaoke.events.common :as common-events]
-            ;; [cljs-karaoke.events.billboards :as billboard-events]
-            ;; [cljs-karaoke.events.backgrounds :as bg-events]
-            ;; [cljs-karaoke.events.lyrics :as lyrics-events]
             [cljs-karaoke.events.songs :as song-events]
-            ;; [cljs-karaoke.events.editor :as editor-events]
-            ;; [cljs-karaoke.events.metrics :as metrics-events]
-            ;; [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            ;; [cljs-karaoke.events.user :as user-events]
-            ;; [cljs-karaoke.events.http-relay :as http-relay-events]
-            ;; [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.events.audio :as audio-events]
-            ;; [cljs-karaoke.events.notifications :as notifications-events]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.subs :as s]
-            ;; [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.modals :as modals]
-            ;; [cljs-karaoke.utils :as utils :refer [icon-button]]
             [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
-            ;; [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.audio-input :refer [ spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
-            ;; [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.views.billboards :refer [billboards-component]]
             [cljs-karaoke.views.page-loader :as page-loader]
             [cljs-karaoke.views.seek-buttons :as seek-buttons]
@@ -52,15 +32,11 @@
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
-            ;; [cljs-karaoke.animation :refer [logo-animation]]
-            ;; [cljs-karaoke.svg.waveform :as waves]
             [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
              :refer [ centered
                      top-left parent-style]]
             ["shake.js" :as Shake]))
-  ;; (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
-  ;; (:import goog.History))
 
 (stylefy/init)
 
@@ -248,7 +224,6 @@
  
 (defn mount-components! []
   (render [app] app-root))
-   ;; (. js/document (getElementById "root"))))
 
 (defn on-shake [evt] (trigger-toasty))
 
