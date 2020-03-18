@@ -73,7 +73,7 @@
      (meta-tag "og:type" "website")
      (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" song))
      (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
-     [:link {:rel :canonical :href (str "https://karaoke.uyuyuy.xyz/#/songs/" (cstr/replace  song " " "%20") "?offset=" offset)}]
+     [:link {:rel :canonical :href "https://karaoke.uyuyuy.xyz/"}]
      [:title (str "Karaoke Party :: "
                   song)]]
     [:body
