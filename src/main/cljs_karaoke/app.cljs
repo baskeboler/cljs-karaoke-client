@@ -1,5 +1,6 @@
 (ns cljs-karaoke.app
   (:require [reagent.core :as reagent]
+            [reagent.dom :refer [render]]
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
             ;; [cljs.reader :as reader]
@@ -246,7 +247,7 @@
 (defonce app-root (. js/document (getElementById "root")))
  
 (defn mount-components! []
-  (reagent/render [app] app-root))
+  (render [app] app-root))
    ;; (. js/document (getElementById "root"))))
 
 (defn on-shake [evt] (trigger-toasty))
