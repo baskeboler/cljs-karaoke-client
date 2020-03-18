@@ -5,7 +5,8 @@
             [clojure.tools.reader :as reader]
             [clojure.java.io :refer [input-stream]]
             [clojure.string :as cstr])
-  (:import [java.net URLEncoder]))
+  (:import [java.net URLEncoder]
+           [java.nio.charset StandardCharsets]))
 
 (def site-url-prefix "https://karaoke.uyuyuy.xyz")
 
@@ -72,6 +73,7 @@
      (meta-tag "og:type" "website")
      (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" song))
      (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
+     [:link {:rel :canonical :href (str "https://karaoke.uyuyuy.xyz/#/songs/" (cstr/replace  song " " "%20") "?offset=" offset)}]
      [:title (str "Karaoke Party :: "
                   song)]]
     [:body
