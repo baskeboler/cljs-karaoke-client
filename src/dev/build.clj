@@ -11,7 +11,7 @@
 (def site-url-prefix "https://karaoke.uyuyuy.xyz")
 
 (defn sitemap-urls [songs]
-  (map #(str site-url-prefix "/songs/" %) songs))
+  (map #(str site-url-prefix "/songs/" (cstr/replace % " " "%20")) songs))
 
 (defn get-songs []
   (reader/read-string (slurp "resources/public/data/songs.edn")))
