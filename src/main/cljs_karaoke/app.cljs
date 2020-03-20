@@ -17,6 +17,7 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.mongo :as mongo]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.modals :as modals]
             [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
@@ -58,7 +59,17 @@
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
+(defn save-current []
+  (let [name (rf/subscribe [::s/current-song])
+        lyrics (rf/subscribe [::s/lyrics])]
+    (mongo/save-song @name @lyrics)))
 
+(defn fetch-all-saved-songs []
+  (.. (mongo/fetch-all)
+      (then #(js->clj % :keywordize-keys true))
+      (catch
+          (fn [err]
+            (println "error fetching" err)))))
 
 (defn current-frame-display []
   (let [frame (rf/subscribe [::s/frame-to-display])]
