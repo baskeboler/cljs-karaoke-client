@@ -371,10 +371,18 @@
 (reg-set-attr ::set-can-play? :can-play?)
 (reg-set-attr ::set-player-current-time :player-current-time)
 (reg-set-attr ::set-playing? :playing?)
-(reg-set-attr ::set-pageloader-active? :pageloader-active?)
+;; (reg-set-attr ::set-pageloader-active? :pageloader-active?)
 (reg-set-attr ::set-pageloader-exiting? :pageloader-exiting?)
 (reg-set-attr ::set-navbar-menu-active? :navbar-menu-active?)
 
+
+(rf/reg-event-db
+ ::set-pageloader-active?
+ (fn-traced
+  [db [_ active?]]
+  (-> db
+      (assoc :pageloader-active? active?
+             :pageloader-exiting? (not active?)))))
 (rf/reg-event-db
  ::toggle-display-lyrics
  (fn-traced

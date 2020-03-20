@@ -7,6 +7,7 @@
             [secretary.core :as secretary :refer-macros [defroute]]
             [goog.events :as gevents]
             [goog.history.EventType :as EventType]
+            [goog.labs.userAgent.device :as device]
             [clojure.string :as str]
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.songs :as songs]
@@ -32,9 +33,10 @@
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
+            [goog.debug :as gdebug]
             [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
-             :refer [ centered
+             :refer [ centered screen-centered
                      top-left parent-style]]
             ["shake.js" :as Shake]))
 
@@ -44,6 +46,9 @@
   (-> (. js/navigator -platform)
       (str/lower-case)
       (str/includes? "ios")))
+
+(defn- mobile-device? []
+  (device/isMobile))
 
 (defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
@@ -99,7 +104,7 @@
    (when (and
           @(rf/subscribe [::s/song-paused?])
           @(rf/subscribe [::s/can-play?]))
-     [:div
+     [:div (stylefy/use-style screen-centered)
       (when @(rf/subscribe
               [::s/view-property :playback :options-enabled?])
         [:a
@@ -184,8 +189,8 @@
       [song query-params]
       (println "song: " song)
       (println "query params: " query-params)
-      ;; (rf/dispatch [::events/set-pageloader-active? true])
-      (rf/dispatch [::events/set-pageloader-exiting? false])
+      (rf/dispatch [::events/set-pageloader-active? true])
+      ;; (rf/dispatch [::events/set-pageloader-exiting? false])
       (rf/dispatch [::views-events/set-current-view :playback])
       (if-some [offset (:offset query-params)]
         (rf/dispatch [::events/set-lyrics-delay (long offset)])
@@ -212,10 +217,9 @@
   (let [l        js/location
         protocol (. l -protocol)
         host     (. l -host)
-        song     @(rf/subscribe [::s/current-song])
-        delay    @(rf/subscribe [::s/custom-song-delay])]
+        song     @(rf/subscribe [::s/current-song])]
     (->
-     (str protocol "//" host "/#/songs/" song "?lyrics-delay=" delay)
+     (str protocol "//" host "/songs/" song ".html")
      (js/encodeURI))))
 
 
@@ -227,16 +231,22 @@
 
 (defn on-shake [evt] (trigger-toasty))
 
+(def mobile? (mobile-device?))
+
 (defn init! []
   (println "init!")
   (rf/dispatch-sync [::events/init-db])
   (mount-components!)
   (init-routing!)
-  (init-keybindings!)
-  (when (ios?)
-    (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
-    (rf/dispatch-sync [::audio-events/set-recording-enabled? false]))
-  (. js/window (addEventListener "shake" on-shake false)))
+  (if mobile?
+    (do
+      (println "mobile device, ignoring keybindings")
+      (. js/window (addEventListener "shake" on-shake false))
+      (when (ios?)
+        (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
+        (rf/dispatch-sync [::audio-events/set-recording-enabled? false])))
+    (init-keybindings!)))
+  
 
 (defn ^:dev/after-load start-app []
   (println "start app, mounting components")

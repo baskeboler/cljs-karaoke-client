@@ -25,6 +25,12 @@
    :top       "50%"
    :left      "50%"
    :transform "translate(-50%, -50%)"})
+(def ^:export screen-centered
+  {:position  :fixed
+   :display   :block
+   :top       "50vh"
+   :left      "50vw"
+   :transform "translate(-50%, -50%)"})
 (def ^:export top-left
   {:position :fixed
    :display  :block
