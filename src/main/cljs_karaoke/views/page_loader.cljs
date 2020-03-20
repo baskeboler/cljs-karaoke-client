@@ -19,7 +19,7 @@
    :height     "100vh"
    :top        0
    :left       0
-   :animation "roll-in-blurred-top 0.6s cubic-bezier(0.23, 1, 0.32, 1) both"})
+   :animation "bounce-in-top 1.1s both"})
 (defn page-loader-logo []
   [:img
    (stylefy/use-style
