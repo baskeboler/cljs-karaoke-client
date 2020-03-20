@@ -15,20 +15,19 @@
   (if (-> js/navigator .-mediaDevices)
     (let [devsPromise (.. js/navigator -mediaDevices (enumerateDevices))
           out         (chan)]
-     (.. devsPromise
-         (then (fn [devices]
-                 (let [kinds (map #(. % -kind) (js->clj devices))
-                       kinds (into #{} kinds)]
-                   (go
-                     (>! out kinds))))))
-     out)
+      (.. devsPromise
+          (then (fn [devices]
+                  (let [kinds (map #(. % -kind) (js->clj devices))
+                        kinds (into #{} kinds)]
+                    (go
+                      (>! out kinds))))))
+      out)
     (let [out (chan)]
-     (go (>! out #{}))
-     out)))
+      (go (>! out #{}))
+      out)))
 
 (defn init-audio-input-flow []
-  {:rules [
-           ;; {:when :seen?
+  {:rules [;; {:when :seen?
            ;;  :events ::set-audio-context
            ;;  :dispatch [::fetch-reverb-buffer]}
            {:when :seen?
@@ -78,7 +77,7 @@
     (. gain-node (connect delay-node))
     (. delay-node (connect gain-node))
     ;; (. delay-node (connect wet-gain))
- 
+
     delay-node))
 
 (defn create-compressor! [audio-context]
@@ -161,6 +160,8 @@
     ;; (.connect audio-filter analyser)
     ;; (reset! analyser analyser)
     ;; audio-filter))
+
+
     (println "Audio input init complete.")
     (add-notification (notification :success "Audio input initialized!"))
     {:db db
@@ -243,6 +244,7 @@
 (reg-set-attr ::set-reverb-analyser [:audio-data :reverb-analyser])
 (reg-set-attr ::set-freq-data       [:audio-data :freq-data])
 (reg-set-attr ::set-audio-context   [:audio-data :audio-context])
+(reg-set-attr ::set-effects-audio-ready [:effects-audio-ready?])
 (reg-set-attr ::set-stream [:audio-data :stream])
 (reg-set-attr ::set-media-recorder [:audio-data :media-recorder])
 (reg-set-attr ::set-audio-input-available? [:audio-data :audio-input-available?])
@@ -301,7 +303,6 @@
   (-> db
       (update-in [:audio-data :recorded-blobs] conj blob))))
 
-
 (defn get-user-media [args on-success on-failure]
   (cond
     (.-getUserMedia js/navigator) (-> js/navigator (.getUserMedia args on-success on-failure))
@@ -319,7 +320,7 @@
         constraints (get-in db [:audio-data :constraints])
         constraints (if video? constraints (-> constraints (dissoc :video)))
         args (clj->js constraints)]
-              
+
     (get-user-media args
                     #(rf/dispatch [::on-stream %])
                     #(println "Failed to setup audio input" %))
@@ -416,10 +417,10 @@
 
 (defn get-media-recorder [stream options]
   (when-let [rec (try
-                  (js/MediaRecorder. stream options)
-                  (catch js/Error e
-                    (. js/console (error "Failed to create MediaRecorder " e))
-                    nil))]
+                   (js/MediaRecorder. stream options)
+                   (catch js/Error e
+                     (. js/console (error "Failed to create MediaRecorder " e))
+                     nil))]
     (. js/console (log "Created media recorder " rec " with options " options))
     rec))
 (defn handle-data-available [event]
@@ -498,7 +499,6 @@
  ::stop-recording
  (fn-traced [cofx evt] (stop-recording cofx evt)))
 
-
 (defn reset-audio-input [audio-input audio]
   (.. js/document (querySelector "video#main-video") (pause))
   (.. js/document (querySelector "audio#main-audio") (pause))
@@ -513,7 +513,6 @@
   {:db db
    :dispatch-n [[::set-audio-input nil]
                 [::set-audio-context (-> db :audio-data :audio-context)]]}))
-                
 
 (defn- get-audio-element []
   (first

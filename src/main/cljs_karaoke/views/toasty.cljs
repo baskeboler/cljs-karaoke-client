@@ -15,6 +15,8 @@
                :opacity    0
                :z-index    2
                :display    :block
+               :max-width "100vw"
+               :max-height "100vh"
                :transition "all 0.5s ease-in-out"}
               (if @toasty {:bottom  "0px"
                            :opacity 1})))
@@ -24,6 +26,7 @@
        [:img {:src "/images/toasty.png" :alt "toasty"}]])))
 
 (defn ^:export trigger-toasty []
-  (let [a (.getElementById js/document "toasty-audio")]
-    (.play a)
+  (let [a (rf/subscribe [::s/effects-audio])]
+    (set! (.-src @a) "/media/toasty.mp3")
+    (.play @a)
     (rf/dispatch [::events/trigger-toasty])))

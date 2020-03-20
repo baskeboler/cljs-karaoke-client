@@ -1,6 +1,5 @@
 (ns cljs-karaoke.events.editor
-  (:require [reagent.core :as reagent]
-            [clojure.string :as cstr]
+  (:require [clojure.string :as cstr]
             [cljs-karaoke.lyrics :as lyrics]
             [cljs-karaoke.events.common :as common-events]
             [cljs.tools.reader :as reader]

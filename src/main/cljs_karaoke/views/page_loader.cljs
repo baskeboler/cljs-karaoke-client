@@ -5,12 +5,8 @@
             ;; [stylefy.core :as stylefy]
             [cljs-karaoke.embed :as embed :include-macros true]
             [cljs.core.async :as async :refer [chan <! >! go-loop go]]
-            ;; [bardo.interpolate :as interpolate]
-            ;; [bardo.ease :as ease]
             [cljs-karaoke.styles :as styles]
             [stylefy.core :as stylefy])
-            ;; [bardo.transition :as transition])
-            ;; [cljs-karaoke.animation :refer [logo-animation]])
 
   (:require-macros [cljs-karaoke.embed :refer [inline-svg]]))
 
@@ -23,8 +19,7 @@
    :height     "100vh"
    :top        0
    :left       0
-   :animation "slide-in-bck-center 0.9s ease-in both"})
-
+   :animation "bounce-in-top 1.1s both"})
 (defn page-loader-logo []
   [:img
    (stylefy/use-style
@@ -43,6 +38,7 @@
    :animation-iteration-count :infinite
    :animation-duration        "1s"
    :animation-timing-function :ease-in-out
+   ;; :animation-delay "1s"
    :animation-fill-mode       :both
    ::stylefy/media            {{:min-width "320px"} {:font-size "3em"}
                                {:min-width "640px"} {:font-size "4em"}
@@ -54,20 +50,21 @@
 
 (defn page-loader-component []
   [:div.pageloader
-   (stylefy/use-style (merge
-                       pageloader-styles
-                       (cond
-                         (not
-                          @(rf/subscribe [::subscriptions/pageloader-active?]))
-                         {:display :none}
-                         @(rf/subscribe [::subscriptions/pageloader-exiting?])
-                         {:animation       "slide-out-blurred-bottom 1s ease both"
-                          :animation-delay "1s"
-                          :z-index         100}
-                         :otherwise {})))
+   (stylefy/use-style
+    (merge
+     pageloader-styles
+     (cond
+       (not
+        @(rf/subscribe [::subscriptions/pageloader-active?]))
+       {:display :none}
+       @(rf/subscribe [::subscriptions/pageloader-exiting?])
+       {:animation       "slide-out-top 1s ease both"
+        :animation-delay "2s"
+        :z-index         100}
+       :else {})))
    [:div
     (stylefy/use-style (merge
-                        styles/centered
+                        styles/screen-centered
                         {:z-index 1000}))
     [page-loader-logo-2]]])
- 
+

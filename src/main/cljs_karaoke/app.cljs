@@ -1,48 +1,30 @@
 (ns cljs-karaoke.app
-  (:require [reagent.core :as reagent :refer [atom]]
+  (:require [reagent.core :as reagent]
+            [reagent.dom :refer [render]]
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
-            [cljs.reader :as reader]
-            [cljs.core.async :as async :refer [go go-loop chan <! >! timeout alts!]]
             [stylefy.core :as stylefy]
             [secretary.core :as secretary :refer-macros [defroute]]
             [goog.events :as gevents]
             [goog.history.EventType :as EventType]
-            [keybind.core :as key]
+            [goog.labs.userAgent.device :as device]
             [clojure.string :as str]
-            [ajax.core :as ajax]
             [cljs-karaoke.protocols :as protocols]
-            [cljs-karaoke.songs :as songs :refer [song-table-component]]
-            [cljs-karaoke.audio :as aud :refer [setup-audio-listeners]]
-            [cljs-karaoke.remote-control :as remote-control]
-            [cljs-karaoke.events.common :as common-events]
-            [cljs-karaoke.events.billboards :as billboard-events]
-            [cljs-karaoke.events.backgrounds :as bg-events]
-            [cljs-karaoke.events.lyrics :as lyrics-events]
+            [cljs-karaoke.songs :as songs]
+            [cljs-karaoke.audio :as aud]
             [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.events.editor :as editor-events]
-            [cljs-karaoke.events.metrics :as metrics-events]
-            [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            [cljs-karaoke.events.user :as user-events]
-            [cljs-karaoke.events.http-relay :as http-relay-events]
-            [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.events.audio :as audio-events]
-            [cljs-karaoke.events.notifications :as notifications-events]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.subs :as s]
-            [cljs-karaoke.subs.audio :as audio-subs]
-            [cljs-karaoke.modals :as modals :refer [show-export-sync-info-modal]]
-            [cljs-karaoke.utils :as utils :refer [icon-button]]
-            [cljs-karaoke.lyrics :as l :refer [preprocess-frames frame-text-string]]
-            [cljs-karaoke.playlists :as pl]
-            [cljs-karaoke.audio-input :refer [enable-audio-input-button spectro-overlay]]
+            [cljs-karaoke.modals :as modals]
+            [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
+            [cljs-karaoke.audio-input :refer [ spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
-            [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.views.billboards :refer [billboards-component]]
             [cljs-karaoke.views.page-loader :as page-loader]
-            [cljs-karaoke.views.seek-buttons :as seek-buttons :refer [right-seek-component]]
+            [cljs-karaoke.views.seek-buttons :as seek-buttons]
             [cljs-karaoke.views.control-panel :refer [control-panel]]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
@@ -51,16 +33,12 @@
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
-            ;; [cljs-karaoke.animation :refer [logo-animation]]
-            [cljs-karaoke.svg.waveform :as waves]
+            [goog.debug :as gdebug]
             [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
-             :refer [time-display-style centered
-                     top-left parent-style
-                     top-right logo-bg-style]]
-            ["shake.js" :as Shake])
-  (:require-macros [cljs-karaoke.embed :refer [inline-svg]])
-  (:import goog.History))
+             :refer [ centered screen-centered
+                     top-left parent-style]]
+            ["shake.js" :as Shake]))
 
 (stylefy/init)
 
@@ -68,6 +46,9 @@
   (-> (. js/navigator -platform)
       (str/lower-case)
       (str/includes? "ios")))
+
+(defn- mobile-device? []
+  (device/isMobile))
 
 (defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
@@ -113,6 +94,7 @@
 
 (defn playback-view []
   [:div.playback-view
+   ^{:class "edge-stop-btn"} [playback-controls]
    [spectro-overlay]
    [current-frame-display]
    (comment)
@@ -122,7 +104,7 @@
    (when (and
           @(rf/subscribe [::s/song-paused?])
           @(rf/subscribe [::s/can-play?]))
-     [:div
+     [:div (stylefy/use-style screen-centered)
       (when @(rf/subscribe
               [::s/view-property :playback :options-enabled?])
         [:a
@@ -150,7 +132,6 @@
            (songs/load-song))})
       [:span.icon
        [:i.fas.fa-sync.fa-5x]]])
-   ^{:class "edge-stop-btn"} [playback-controls]
    [seek-buttons/seek-component #(seek 10000) #(seek -10000)]
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.edge-progress-bar
@@ -158,7 +139,7 @@
       [song-progress]])])
 
 (defn default-view []
-  [:div.default-view.container-fluid
+  [:div.default-view.is-fluid
    [control-panel]
    [:button.button.is-danger.edge-stop-btn
     {:class (if @(rf/subscribe [::s/song-paused?])
@@ -198,75 +179,82 @@
   (songs/load-song s))
 
 (defn init-routing! []
-  (secretary/set-config! :prefix "#")
-  (defroute "/" []
-    (println "home path")
-    ;; (rf/dispatch-sync [::playlist-events/playlist-load])
-    (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
-  (defroute "/songs/:song"
-    [song query-params]
-    (println "song: " song)
-    (println "query params: " query-params)
-    ;; (rf/dispatch [::events/set-pageloader-active? true])
-    (rf/dispatch [::events/set-pageloader-exiting? false])
-    (songs/load-song song)
-    (if-some [offset (:offset query-params)]
-      (rf/dispatch-sync [::events/set-lyrics-delay (long offset)])
-      (rf/dispatch [::song-events/update-song-hash song]))
-    ;; (rf/dispatch [::events/set-custom-song-delay song (long offset)]))
-    (when-some [show-opts? (:show-opts query-params)]
-      (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
+  ;; (let [h (History.)]
+    (secretary/set-config! :prefix "#")
+    (defroute "/" []
+      (println "home path")
+      ;; (rf/dispatch-sync [::playlist-events/playlist-load])
+      (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
+    (defroute "/songs/:song"
+      [song query-params]
+      (println "song: " song)
+      (println "query params: " query-params)
+      (rf/dispatch [::events/set-pageloader-active? true])
+      ;; (rf/dispatch [::events/set-pageloader-exiting? false])
+      (rf/dispatch [::views-events/set-current-view :playback])
+      (if-some [offset (:offset query-params)]
+        (rf/dispatch [::events/set-lyrics-delay (long offset)])
+        ;; (do
+        (rf/dispatch [::song-events/update-song-hash song]))
+      (songs/load-song song)
+      (when-some [_ (:show-opts query-params)]
+        (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
 
-  ;; Quick and dirty history configuration.
-  (defroute "/party-mode" []
-    (println "fuck yea! party mode ON")
-    (rf/dispatch [::playlist-events/set-loop? true])
-    (rf/dispatch [::playlist-events/playlist-load]))
-  (defroute "/playlist" []
-    (rf/dispatch-sync [::views-events/set-current-view :playlist]))
-  (defroute "/editor" []
-    (rf/dispatch [::views-events/view-action-transition :go-to-editor]))
-  (let [h (History.)]
-    (gevents/listen h ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
-    (doto h (.setEnabled true))))
+    ;; Quick and dirty history configuration.
+    (defroute "/party-mode" []
+      (println "fuck yea! party mode ON")
+      (rf/dispatch [::playlist-events/set-loop? true])
+      (rf/dispatch [::playlist-events/playlist-load]))
+    (defroute "/playlist" []
+      (rf/dispatch-sync [::views-events/set-current-view :playlist]))
+    (defroute "/editor" []
+      (rf/dispatch [::views-events/view-action-transition :go-to-editor]))
+    (gevents/listen ^js @(rf/subscribe [::s/history]) ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
+    (doto ^js @(rf/subscribe [::s/history]) (.setEnabled true)))
+
 
 (defn get-sharing-url []
   (let [l        js/location
         protocol (. l -protocol)
         host     (. l -host)
-        song     @(rf/subscribe [::s/current-song])
-        delay    @(rf/subscribe [::s/custom-song-delay])]
+        song     @(rf/subscribe [::s/current-song])]
     (->
-     (str protocol "//" host "/#/songs/" song "?lyrics-delay=" delay)
+     (str protocol "//" host "/songs/" song ".html")
      (js/encodeURI))))
 
 
+
+(defonce app-root (. js/document (getElementById "root")))
+ 
 (defn mount-components! []
-  (reagent/render
-   [app]
-   (. js/document (getElementById "root"))))
+  (render [app] app-root))
 
 (defn on-shake [evt] (trigger-toasty))
+
+(def mobile? (mobile-device?))
 
 (defn init! []
   (println "init!")
   (rf/dispatch-sync [::events/init-db])
   (mount-components!)
   (init-routing!)
-  (init-keybindings!)
-  (when (ios?)
-    (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
-    (rf/dispatch-sync [::audio-events/set-recording-enabled? false]))
-  (. js/window (addEventListener "shake" on-shake false)))
+  (if mobile?
+    (do
+      (println "mobile device, ignoring keybindings")
+      (. js/window (addEventListener "shake" on-shake false))
+      (when (ios?)
+        (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
+        (rf/dispatch-sync [::audio-events/set-recording-enabled? false])))
+    (init-keybindings!)))
+  
 
 (defn ^:dev/after-load start-app []
   (println "start app, mounting components")
   (mount-components!))
-  
 
 (defn ^:dev/before-load stop-app []
-  (println "stop app"))
-
+  (println "stop app")
+  (rf/clear-subscription-cache!))
 
 (defn- capture-stream [^js/AudioBuffer audio]
   (cond
@@ -278,10 +266,10 @@
   [event]
   (println "handling canplaythrough event")
   (let [audio @(rf/subscribe [::s/audio])
-        output-mix @(rf/subscribe [::audio-subs/output-mix])
-        ctx @(rf/subscribe [::audio-subs/audio-context])
-        song-stream (capture-stream audio)
-        song-paused? @(rf/subscribe [::s/song-paused?])]
+        ;; output-mix @(rf/subscribe [::audio-subs/output-mix])
+        ;; ctx @(rf/subscribe [::audio-subs/audio-context])
+        song-stream (capture-stream audio)]
+        ;; song-paused? @(rf/subscribe [::s/song-paused?])]
     (rf/dispatch-sync [::song-events/set-song-stream song-stream])
     (rf/dispatch-sync [::events/set-can-play? true])))
     ;; (play)))

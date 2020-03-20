@@ -20,6 +20,10 @@
  ::audio
  (fn-traced [db _]
             (:audio db)))
+(rf/reg-sub
+ ::effects-audio
+ (fn-traced [db _]
+            (:effects-audio db)))
 
 (rf/reg-sub
  ::audio-playback-rate
@@ -42,6 +46,7 @@
  ::current-song-delay
  (fn-traced [db _]
             (get-in db [:custom-song-delay (:current-song db)])))
+
 
 (rf/reg-sub
  ::current-frame
@@ -142,7 +147,7 @@
   (cond
     (not done?) frame
     (>= 1500 (-   next-offset position)) next-frame
-    :otherwise (if (some? frame) frame next-frame))))
+    :else (if (some? frame) frame next-frame))))
 
 (rf/reg-sub
  ::time-until-next-event
@@ -366,3 +371,7 @@
                 (partial + delay)
                 protocols/get-offset)
           frames))))
+
+(rf/reg-sub
+ ::history
+ (fn [db _] (:history db)))

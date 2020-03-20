@@ -1,7 +1,11 @@
 (ns cljs-karaoke.modals
   (:require [re-frame.core :as rf]
             [cljs-karaoke.events.modals :as modal-events]
-            [cljs-karaoke.subs :as s]))
+            [cljs-karaoke.subs :as s]
+            [goog.string :as gstr]
+            [cljs-karaoke.notifications :as notification]
+            [cljs-karaoke.components.delay-select :refer [delay-select-component]]
+            [cljs-karaoke.components.song-info-panel :refer [song-info-table]]))
 (defn modal-card-dialog [{:keys [title content footer]}]
   [:div.modal.is-active
    {:key (random-uuid)}
@@ -27,19 +31,66 @@
    (for [m @(rf/subscribe [::s/modals])]
      m)])
 
+(defn footer-buttons
+  ([]
+   [:div.footer-container
+    [:button.button.is-primary.is-outlined
+     {:on-click #(rf/dispatch [::modal-events/modal-pop])}
+     "Dismiss"]])
+  ([& btns]
+   [:div.footer-container
+    [:button.button.is-primary.is-outlined
+     {:on-click #(rf/dispatch [::modal-events/modal-pop])}
+     "Dismiss"]
+    (for [[i btn] (map-indexed vector btns)]
+      ^{:key (str "footer-button-" i)} btn)]))
+   
+
 
 (defn ^:export show-export-text-info-modal
   [{:keys [title text]}]
+  (let [after-copy-handler-fn (fn []
+                                (rf/dispatch [::modal-events/modal-pop])
+                                (notification/add-notification
+                                 (notification/notification
+                                  :success
+                                  "Text has been copied to the clipboard :)")))
+        modal                 (modal-card-dialog
+                               {:title   title
+                                :content [:div.export-text-data-content
+                                          [:div.field>div.control
+                                           [:textarea.textarea.is-primary
+                                            {:id        (gensym ::export-text-info-modal)
+                                             :value     text
+                                             :read-only true}]]]
+                                :footer  [footer-buttons
+                                          [:button.button.is-info.is-outlined
+                                           {:on-click #(.. js/navigator
+                                                           -clipboard
+                                                           (writeText text)
+                                                           (then after-copy-handler-fn)
+                                                           (catch (fn [e] (println "failed to copy " e))))}
+                                           [:i.fas.fa-fw.fa-share-alt]
+                                           "Copy to Clipboard"]]})]
+   (rf/dispatch [::modal-events/modal-push modal])))
+
+(defn ^:export show-generic-tools-modal [{:keys [title content]}]
   (let [modal (modal-card-dialog
                {:title   title
-                :content [:div.export-text-data-content
-                          [:div.field>div.control
-                           [:textarea.textarea.is-primary
-                            {:id        (gensym ::export-text-info-modal)
-                             :value     text
-                             :read-only true}]]]
-                :footer  nil})]
-   (rf/dispatch [::modal-events/modal-push modal])))
+                :content content
+                :footer [footer-buttons]})]
+    (rf/dispatch [::modal-events/modal-push modal])))
+
+(defn ^:export show-delay-select-modal []
+  (show-generic-tools-modal {:title "Adjust lyrics delay"
+                             :content [:div.delay-select-modal-content
+                                       [:label "Select lyrics delay"]
+                                       [delay-select-component]]}))
+
+(defn ^:export show-song-info-table-modal []
+  (show-generic-tools-modal {:title "current song information"
+                             :content [:div.current-song-information-modal-content
+                                       [song-info-table]]}))
 
 (defn ^:export show-input-text-modal
   [{:keys [title text on-submit]}]

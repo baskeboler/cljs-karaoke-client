@@ -25,13 +25,13 @@
     {:on-click #(rf/dispatch [::events/dismiss-notification (:id n)])}]
    (:text n)])
 
-(defn ^export add-notification [n]
+(defn ^:export add-notification [n]
   (cond
     (map? n) (rf/dispatch [::events/add-notification n])
     (string? n) (rf/dispatch [::events/add-notification (notification n)])))
 
 
-(defn ^export notifications-container-component []
+(defn ^:export notifications-container-component []
   (let [nots-subs (rf/subscribe [::s/notifications])]
     [:div.notifications-container
      (when (not-empty @nots-subs)

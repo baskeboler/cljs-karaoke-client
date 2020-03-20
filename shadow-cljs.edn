@@ -5,23 +5,23 @@
   "src/test"]
 
  :dependencies
- [[reagent "0.8.1"]
+ [[reagent "0.10.0"]
   [org.clojure/data.xml "0.0.8"]
   [clj-tagsoup/clj-tagsoup "0.3.0"]
   [keybind "2.2.0"]
   [cljs-ajax "0.8.0"]
   [meander/delta "0.0.149"]
-  [re-frame "0.10.8"]
+  [re-frame "0.12.0"]
   [clj-commons/secretary "1.2.4"]
   [thi.ng/color "1.3.0"]
   [thi.ng/geom "1.0.0-RC3"]
   [org.clojure/core.async "0.4.490"]
   ;; [day8.re-frame/re-frame-10x "0.3.3-react16"]
-  [day8.re-frame/re-frame-10x "0.4.5"]
+  [day8.re-frame/re-frame-10x "0.6.0"]
   [day8.re-frame/async-flow-fx "0.0.11"]
-  [binaryage/devtools "0.9.10"]
   [day8.re-frame/http-fx "0.1.6"]
-  [cider/cider-nrepl "0.23.0-SNAPSHOT"]
+  [binaryage/devtools "0.9.10"]
+  [cider/cider-nrepl "0.25.0-SNAPSHOT"]
   [refactor-nrepl "2.4.0"]
   [day8.re-frame/tracing "0.5.1"]
   [hiccup "1.0.5"]
@@ -31,22 +31,23 @@
   ;; [com.rpl/specter "1.1.2"]
   [bardo "0.1.2-SNAPSHOT"]]
 
- :nrepl {:port       9999}
-         ;; :middleware [refactor-nrepl.middleware/wrap-refactor]}
+ :nrepl {:port 9999}
+ ;; :middleware [refactor-nrepl.middleware/wrap-refactor]}
 
  :builds
  {:app {:target           :browser
         :build-hooks      [(build/setup-target-dir)
                            (build/generate-seo-pages)]
-        :asset-path       "js/."
+        :asset-path       "./resources"
         :output-dir       "public/js"
         :build-options    {:cache-level :on}
-        :compiler-options {:static-fns         true
-                           :output-feature-set :es-next
-                           :infer-externs      :auto
-                           :optimize-constants true
-                           :pretty-print       false
-                           :optimization       :advanced}
+        :compiler-options {:static-fns          true
+                           ;; :output-feature-set  :es-next
+                           :infer-externs       :auto
+                           :optimize-constants  true
+                           :pretty-print        false
+                           :optimization        :advanced
+                           :strip-type-prefixes #{"cljs.pprint"}}
         :modules          {:main {:init-fn cljs-karaoke.app/init!}}
         :dev-http         {8089 "public/"}
         :devtools         {

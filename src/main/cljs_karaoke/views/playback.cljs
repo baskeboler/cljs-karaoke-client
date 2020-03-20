@@ -1,5 +1,6 @@
 (ns cljs-karaoke.views.playback
   (:require [re-frame.core :as rf]
+            [secretary.core :as routing]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.events.views :as views-events]
@@ -14,8 +15,10 @@
              :refer [time-display-style centered
                      top-left parent-style
                      top-right logo-bg-style]]
+            [cljs-karaoke.modals :refer [show-export-text-info-modal]]
             [cljs-karaoke.utils :as utils :refer [icon-button]]
-            [cljs-karaoke.events.playlists :as playlist-events]))
+            [cljs-karaoke.events.playlists :as playlist-events]
+            [goog.string :as gstr :refer [urlEncode]]))
 (defn lyrics-timing-progress []
   (let [time-remaining (rf/subscribe [::s/time-until-next-event])]
     ;; (fn []
@@ -74,6 +77,8 @@
      [:span.minutes mins] ":"
      [:span.seconds secs] "."
      [:span.milis (-> ms (mod 1000) long)]]))
+(defn show-sharing-url []
+  (let [song-name (rf/subscribe [::s/current-song])]))
 
 (defn- load-random-song []
   (rf/dispatch [::song-events/trigger-load-random-song]))
@@ -93,35 +98,40 @@
 
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
-   (stylefy/use-style top-right)
+   ;; (stylefy/use-style top-right)
    #_[:div.control
       [enable-audio-input-button]]
    (when-not (= :playback @(rf/subscribe [::s/current-view]))
-     [:div.control
-      [icon-button "play" "primary" play]])
+     ;; [:div.control
+      [icon-button "play" "primary" play])
    (when @(rf/subscribe [::s/display-home-button?])
-     [:div.control
-      [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])]])
+     ;; [:div.control
+      [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])])
    (when-not @(rf/subscribe [::s/song-paused?])
-     [:div.control
-      [icon-button "pause" "warning" pause]])
+     ;; [:div.control
+      [icon-button "pause" "warning" pause])
    (when-not @(rf/subscribe [::s/song-paused?])
-     [:div.control
-      [icon-button "stop" "danger" stop]])
+     ;; [:div.control
+      [icon-button "stop" "danger" stop])
    (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
               @(rf/subscribe [::audio-subs/recording-enabled?]))
-      [:div.control
+      ;; [:div.control
        [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
-        (rf/subscribe [::audio-subs/recording-button-enabled?])]])
-   [:div.control
-    [icon-button "step-forward" "info" #(do
-                                          (stop)
-                                          (rf/dispatch [::playlist-events/playlist-next]))]]
-   [:div.control
-    [icon-button "random" "warning" load-random-song]]
-   [:div.control
-      [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]]
-   [:div.control
-      [increase-playback-rate-btn]]
-   [:div.control
-      [decrease-playback-rate-btn]]])
+        (rf/subscribe [::audio-subs/recording-button-enabled?])])
+  ;; [:div.control
+   [icon-button "step-forward" "info" #(do
+                                         (stop)
+                                         (rf/dispatch [::playlist-events/playlist-next]))]
+  ;; [:div.control
+   [icon-button "random" "warning" load-random-song]
+  ;; [:div.control
+   [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]
+;; [:div.control
+   [increase-playback-rate-btn]
+;; [:div.control
+   [decrease-playback-rate-btn]
+  ;; [:div.control
+   [icon-button "share-alt" "success"
+    #(show-export-text-info-modal
+      {:title "Share Link"
+       :text (str "https://karaoke.uyuyuy.xyz/songs/" (urlEncode @(rf/subscribe [::s/current-song])) ".html")})]])

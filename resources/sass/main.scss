@@ -2,7 +2,7 @@
 @import "./animista.scss";
 
 // Import a Google Font
-@import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
+// @import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
 
 // Set your brand colors
 $purple: #8A4D76;
@@ -10,6 +10,7 @@ $pink: #FA7C91;
 $brown: #757763;
 $beige-light: #D0D1CD;
 $beige-lighter: #EFF0EB;
+
 
 // Update Bulma's global variables
 $family-sans-serif: "Nunito", sans-serif;
@@ -20,11 +21,14 @@ $link: $pink;
 $widescreen-enabled: false;
 $fullhd-enabled: false;
 
+// $primary: #9999ff;
+// $warning: #ffff99;
+// $danger: #ff99cc;
 // Update some of Bulma's component variables
 $body-background-color: $beige-lighter;
 $control-border-width: 2px;
 $input-border-color: transparent;
-$input-shadow: none;
+$input-shadow: 2px 2px 15px 0px $beige-light;
 
 
 @import "../../node_modules/bulma/bulma.sass";
@@ -79,7 +83,8 @@ $input-shadow: none;
   justify-content: center;
   text-align: center;
   font-size: 1.5rem;
-  background-color: rgba(255, 255, 255, 0.8);
+  // background-color: rgba(255, 255, 255, 0.8);
+  background-color: $body-background-color;
   padding: 0.3em;
   border-radius: 1em;
 }
@@ -146,6 +151,14 @@ $input-shadow: none;
 
   &.song-playing {
     /* display: none; */
+  }
+
+  .menu {
+      .menu-list {
+          li>a {
+              text-transform: capitalize;
+          }
+      }
   }
 }
 
@@ -339,6 +352,10 @@ $input-shadow: none;
   }
 }
 
+.modal {
+    z-index: 600;
+}
+
 .page-content {
   margin-top: 2em;
 }
@@ -348,13 +365,37 @@ nav.navbar > div.navbar-brand > a.navbar-item > object.header-logo {
 }
 
 html {
-  overflow-y: auto;
+    overflow-y: auto;
+    min-width: 240px;
+}
+
+.playback-controls {
+    position: absolute;
+    display: flex;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 2em;
+    .control {
+        flex: 1 1 auto;
+        a, p {
+            height: 100%;
+            width: 100%;
+        }
+    }
 }
 
 .editor .playback-controls {
   position: relative;
   top: unset;
   right: unset;
+  
+}
+
+.app {
+    margin-top: 4em;
 }
 
 @media screen and (min-width: 320px) {
@@ -369,6 +410,12 @@ html {
     top: 1em;
     right: 1em;
     width: 25vw;
+  }
+
+  .playback-controls {
+      width: unset;
+      left: unset;
+      right: 0;
   }
 
   .current-frame {

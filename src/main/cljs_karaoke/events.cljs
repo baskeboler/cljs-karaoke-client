@@ -21,10 +21,13 @@
             [cljs-karaoke.events.user :as user-events]
             [cljs-karaoke.events.metrics :as metrics-events]
             [cljs-karaoke.events.editor :as editor-events]
+            [cljs-karaoke.config :refer [config-map]]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
-            [cljs-karaoke.audio :as aud]))
+            [goog.events :as gevents]
+            [cljs-karaoke.audio :as aud])
+  (:import goog.History))
 (defonce fetch-bg-from-web-enabled? true)
-(def base-storage-url "https://karaoke-files.uyuyuy.xyz")
+(def base-storage-url (:audio-files-prefix config-map))
 
 
 (declare save-custom-delays-to-localstore)
@@ -100,6 +103,7 @@
                           :can-play?                  false
                           ;; :highlight-status nil
                           :playing?                   false
+                          :effects-audio-ready? false
                           :toasty?                    false
                           :player-current-time        0
                           :song-duration              0
@@ -120,6 +124,7 @@
                           :user                       nil
                           :billboards                 []
                           :modals                     []
+                          :history                    (History.)
                           :notifications              []}
              ;; :dispatch-n [[::fetch-custom-delays]
              ;; [::fetch-song-background-config]}
@@ -244,15 +249,18 @@
  ::save-custom-song-delays-to-localstorage
  (fn-traced
   [{:keys [db]} _]
-  {:db db
+  {:db       db
    :dispatch [::common-events/save-to-localstorage
               "custom-song-delays"
               (:custom-song-delay db)
               ::save-custom-delays-to-localstorage-complete]}))
 
-(rf/reg-event-db
- ::save-custom-song-delays-to-localstorage-complete
- (fn-traced [db _] db))
+
+(common-events/reg-identity-event ::save-custom-delays-to-localstorage-complete)
+
+;; (rf/reg-event-db
+ ;; ::save-custom-song-delays-to-localstorage-complete
+ ;; (fn-traced [db _] db))
 
 (rf/reg-event-fx
  ::handle-fetch-delays-complete
@@ -303,8 +311,11 @@
 (rf/reg-event-db
  ::set-location-hash
  (rf/after
-  (fn [_ [_ new-hash]]
-   (set-location-hash new-hash)))
+  (fn [db [_ new-hash]]
+    (println "setting new location hash")
+    (doto ^js (:history db) (.setEnabled false))
+    (set-location-hash new-hash)
+    (doto ^js (:history db) (.setEnabled true))))
  (fn-traced
   [db [_ new-hash]]
   (-> db
@@ -354,6 +365,7 @@
 (reg-set-attr ::set-song-duration :song-duration)
 ;; (reg-set-attr ::set-current-frame :current-frame)
 (reg-set-attr ::set-audio :audio)
+(reg-set-attr ::set-effects-audio :effects-audio)
 (reg-set-attr ::set-lyrics :lyrics)
 (reg-set-attr ::set-lyrics-delay :lyrics-delay)
 (reg-set-attr ::set-lyrics-loaded? :lyrics-loaded?)
@@ -361,10 +373,18 @@
 (reg-set-attr ::set-can-play? :can-play?)
 (reg-set-attr ::set-player-current-time :player-current-time)
 (reg-set-attr ::set-playing? :playing?)
-(reg-set-attr ::set-pageloader-active? :pageloader-active?)
+;; (reg-set-attr ::set-pageloader-active? :pageloader-active?)
 (reg-set-attr ::set-pageloader-exiting? :pageloader-exiting?)
 (reg-set-attr ::set-navbar-menu-active? :navbar-menu-active?)
 
+
+(rf/reg-event-db
+ ::set-pageloader-active?
+ (fn-traced
+  [db [_ active?]]
+  (-> db
+      (assoc :pageloader-active? active?
+             :pageloader-exiting? (not active?)))))
 (rf/reg-event-db
  ::toggle-display-lyrics
  (fn-traced
@@ -378,9 +398,9 @@
   [{:keys [db]} [_ song-name]]
   {:db         (-> db
                    (assoc :current-song song-name))
-   :dispatch-n [
+   :dispatch-n []}))
                 ;; [::fetch-bg song-name]
-                [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
+                ;; [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
 
 ;; (reg-set-attr ::set-player-status :player-status)
 ;; (reg-set-attr ::set-highlight-status :highlight-status)
@@ -412,12 +432,14 @@
   (fn [db _]
     (. js/console (log "Initial Audio Setup"))
     (let [audio        (. js/document (getElementById "main-audio"))
+          effects-audio (. js/document (getElementById "effects-audio"))
           audio-events (aud/setup-audio-listeners audio)]
       (go-loop [e (<! audio-events)]
         (when-not (nil? e)
           (aud/process-audio-event e)
           (recur (<! audio-events))))
       (rf/dispatch [::set-audio audio])
+      (rf/dispatch [::set-effects-audio effects-audio])
       (rf/dispatch [::set-audio-events audio-events]))))
  (fn-traced
   [{:keys [db]} _]

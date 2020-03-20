@@ -8,7 +8,6 @@
    "wp3.jpg"
    "wp4.jpg"])
 
-
 (defn random-kenburn []
   (str "kenburns-"
        (rand-nth ["top" "left" "right" "bottom" "top-right" "top-left"])))
@@ -25,6 +24,12 @@
    :display   :block
    :top       "50%"
    :left      "50%"
+   :transform "translate(-50%, -50%)"})
+(def ^:export screen-centered
+  {:position  :fixed
+   :display   :block
+   :top       "50vh"
+   :left      "50vw"
    :transform "translate(-50%, -50%)"})
 (def ^:export top-left
   {:position :fixed
@@ -43,18 +48,19 @@
    :display          :block
    :color            :white
    :font-weight      :bold
-   :top              0
-   :margin           "0.1em"
    :border-radius    ".5em"
    :padding          "0.5em"
    :background-color "rgba(0,0,0, 0.3)"
-   :animation "slide-in-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both"
-   ::stylefy/media   {{:min-width "320px"} {:left        0
-                                            :margin-left "0.1em"}
-                      {:min-width "640px"} {:left      "50%"
-                                            :margin    " 1em"
-                                            :transform "translate(-50%)"}}})
-
+   :bottom           "0"
+   :z-index          2
+   :left             "50%"
+   :transform        "translate(-50%)"
+   ::stylefy/media   {{:min-width "320px"}  {:animation "slide-in-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both"}
+                      {:min-width "1024px"} {:left      "50%"
+                                             :bottom    "unset"
+                                             :margin    "0.5em"
+                                             :animation "slide-in-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both"
+                                             :top       0}}})
 
 (def ^:export logo-bg-style
   {:position   :fixed
