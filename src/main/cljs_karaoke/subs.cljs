@@ -20,6 +20,10 @@
  ::audio
  (fn-traced [db _]
             (:audio db)))
+(rf/reg-sub
+ ::effects-audio
+ (fn-traced [db _]
+            (:effects-audio db)))
 
 (rf/reg-sub
  ::audio-playback-rate

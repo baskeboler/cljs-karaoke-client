@@ -103,6 +103,7 @@
                           :can-play?                  false
                           ;; :highlight-status nil
                           :playing?                   false
+                          :effects-audio-ready? false
                           :toasty?                    false
                           :player-current-time        0
                           :song-duration              0
@@ -364,6 +365,7 @@
 (reg-set-attr ::set-song-duration :song-duration)
 ;; (reg-set-attr ::set-current-frame :current-frame)
 (reg-set-attr ::set-audio :audio)
+(reg-set-attr ::set-effects-audio :effects-audio)
 (reg-set-attr ::set-lyrics :lyrics)
 (reg-set-attr ::set-lyrics-delay :lyrics-delay)
 (reg-set-attr ::set-lyrics-loaded? :lyrics-loaded?)
@@ -430,12 +432,14 @@
   (fn [db _]
     (. js/console (log "Initial Audio Setup"))
     (let [audio        (. js/document (getElementById "main-audio"))
+          effects-audio (. js/document (getElementById "effects-audio"))
           audio-events (aud/setup-audio-listeners audio)]
       (go-loop [e (<! audio-events)]
         (when-not (nil? e)
           (aud/process-audio-event e)
           (recur (<! audio-events))))
       (rf/dispatch [::set-audio audio])
+      (rf/dispatch [::set-effects-audio effects-audio])
       (rf/dispatch [::set-audio-events audio-events]))))
  (fn-traced
   [{:keys [db]} _]

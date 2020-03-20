@@ -2,13 +2,20 @@
   (:require [re-frame.core :as rf]
             [cljs.core.async :as async :refer [go go-loop <! >! chan]]
             [cljs-karaoke.subs :as s]
+            [cljs-karaoke.subs.audio :as a-subs]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.songs :as song-events]
+            [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.songs :as songs]))
 
 (defn play []
-  (let [audio (rf/subscribe [::s/audio])]
+  (let [audio (rf/subscribe [::s/audio])
+        effects-ready? (rf/subscribe [::a-subs/effects-audio-ready?])]
+    (when-not @effects-ready?
+      (let [effects-audio (rf/subscribe [::s/effects-audio])]
+        (.play @effects-audio)
+        (rf/dispatch [::audio-events/set-effects-audio-ready true])))
         ;; lyrics (rf/subscribe [::s/lyrics])]
     ;; (rf/dispatch [::views-events/set-current-view :playback])
     ;; (set! (.-currentTime @audio) 0)
