@@ -20,16 +20,6 @@
   {:action handler
    :params params})
 
-;; (defmethod handle-route :songs [_] :playback)
-;; (defmethod handle-route :song
-  ;; [{:keys [action params]}])
-  
-;; (defn- route-handler
-  ;; ([handler params]
-   ;; (condp = handler
-     ;; :songs :playback
-     ;; :song (do)})
-             
 
 (defn dispatch-route
   [{:keys [route-params handler] :as matched-route}]
