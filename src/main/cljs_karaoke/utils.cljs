@@ -45,8 +45,8 @@
        :on-click   callback
        :aria-label icon
        :title      icon}
-      [:span.icon.is-small
-       [:i
-        {:class ["fa" (str "fa-" icon)]}]]]]])
+      ;; [:span.icon.is-small
+      [:i
+       {:class ["fas" "fa-fw" (str "fa-" icon)]}]]]])
   ([icon button-type callback]
    (icon-button icon button-type callback (atom true))))

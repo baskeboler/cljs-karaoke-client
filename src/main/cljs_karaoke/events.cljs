@@ -12,7 +12,8 @@
             [cljs-karaoke.events.common :as common-events
              :refer [reg-set-attr
                      save-to-localstorage get-from-localstorage
-                     get-custom-delays-from-localstorage set-location-hash]]
+                     get-custom-delays-from-localstorage]]
+                     ;; set-location-hash]]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
@@ -20,11 +21,12 @@
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.user :as user-events]
             [cljs-karaoke.events.metrics :as metrics-events]
-            [cljs-karaoke.events.editor :as editor-events]
+            [cljs-karaoke.editor.events :as editor-events]
             [cljs-karaoke.config :refer [config-map]]
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [goog.events :as gevents]
-            [cljs-karaoke.audio :as aud])
+            [cljs-karaoke.audio :as aud]
+            [cljs-karaoke.http.events :as http-events])
   (:import goog.History))
 (defonce fetch-bg-from-web-enabled? true)
 (def base-storage-url (:audio-files-prefix config-map))
@@ -32,6 +34,12 @@
 
 (declare save-custom-delays-to-localstore)
 
+
+(rf/reg-cofx
+ ::pending-events
+ (fn-traced
+  [coeffects _]
+  (assoc coeffects :pending-events [])))
 
 (defn init-flow []
   {
@@ -51,7 +59,8 @@
             :halt?      true}
            {:when       :seen?
             :events     ::playlist-ready
-            :dispatch-n [[::views-events/set-current-view :playback]
+            :dispatch-n [
+                         ;; [::views-events/set-current-view :playback]
                          [::playlist-load]]}
            {:when       :seen-all-of?
             :events     [::song-bgs-loaded
@@ -69,6 +78,8 @@
                          ;; [::set-pageloader-active? false]
                          [::initialized]]
             :halt?      true}]})
+
+;; (rf/dispatch)
 (rf/reg-event-db
  ::boot-failure
  (fn [db [_ e]]
@@ -175,18 +186,28 @@
   {:db db
    :dispatch-n dispatch-n-vec}))
 
+#_(rf/reg-event-fx
+    ::fetch-song-list
+    (fn-traced
+     [{:keys [db]} _]
+     {:db db
+      :http-xhrio {:method :get
+                   :uri "/data/songs.edn"
+                   :timeout 8000
+                   :response-format (ajax/text-response-format)
+                   :on-success [::handle-fetch-song-list-success]
+                   :on-failure [::http-fetch-fail [[::fetch-song-list-complete]]]}}))
+
 (rf/reg-event-fx
  ::fetch-song-list
  (fn-traced
   [{:keys [db]} _]
   {:db db
-   :http-xhrio {:method :get
-                :uri "/data/songs.edn"
-                :timeout 8000
-                :response-format (ajax/text-response-format)
-                :on-success [::handle-fetch-song-list-success]
-                :on-failure [::http-fetch-fail [[::fetch-song-list-complete]]]}}))
-
+   :dispatch [::http-events/get
+              {:url "/data/songs.edn"
+               :response-format (ajax/text-response-format)
+               :on-success ::handle-fetch-song-list-success
+               :on-error ::fetch-song-list-complete}]}))
 (rf/reg-event-fx
  ::handle-fetch-song-list-success
  (fn-traced
@@ -242,7 +263,7 @@
                         {})
                       remote-delays)]
     {:db       (-> db
-                   (assoc :custom-song-delay (merge delays)))
+                   (update :custom-song-delay merge delays))
      :dispatch [::handle-fetch-delays-complete]})))
 
 (rf/reg-event-fx
@@ -308,18 +329,18 @@
  ::handle-fetch-background-config-complete
  (fn-traced [db _] db))
 
-(rf/reg-event-db
- ::set-location-hash
- (rf/after
-  (fn [db [_ new-hash]]
-    (println "setting new location hash")
-    (doto ^js (:history db) (.setEnabled false))
-    (set-location-hash new-hash)
-    (doto ^js (:history db) (.setEnabled true))))
- (fn-traced
-  [db [_ new-hash]]
-  (-> db
-      (assoc :location-hash new-hash))))
+#_(rf/reg-event-db
+   ::set-location-hash
+   (rf/after
+    (fn [db [_ new-hash]]
+      (println "setting new location hash")
+      (doto ^js (:history db) (.setEnabled false))
+      (set-location-hash new-hash)
+      (doto ^js (:history db) (.setEnabled true))))
+   (fn-traced
+    [db [_ new-hash]]
+    (-> db
+        (assoc :location-hash new-hash))))
 
 (rf/reg-event-fx
  ::init-song-delays
@@ -376,7 +397,7 @@
 ;; (reg-set-attr ::set-pageloader-active? :pageloader-active?)
 (reg-set-attr ::set-pageloader-exiting? :pageloader-exiting?)
 (reg-set-attr ::set-navbar-menu-active? :navbar-menu-active?)
-
+(reg-set-attr ::set-active-page :active-page)
 
 (rf/reg-event-db
  ::set-pageloader-active?

@@ -4,9 +4,6 @@
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
             [stylefy.core :as stylefy]
-            [secretary.core :as secretary :refer-macros [defroute]]
-            [goog.events :as gevents]
-            [goog.history.EventType :as EventType]
             [goog.labs.userAgent.device :as device]
             [clojure.string :as str]
             [cljs-karaoke.protocols :as protocols]
@@ -17,7 +14,7 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events :as events]
-            [cljs-karaoke.mongo :as mongo]
+            ;; [cljs-karaoke.mongo :as mongo]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.modals :as modals]
             [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
@@ -30,15 +27,16 @@
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
             [cljs-karaoke.views.navbar :as navbar]
-            [cljs-karaoke.views.editor  :refer [editor-component]]
+            [cljs-karaoke.editor.view  :refer [editor-component]]
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
-            [goog.debug :as gdebug]
+            [cljs-karaoke.router :as router]
             [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
              :refer [ centered screen-centered
                      top-left parent-style]]
+            [shadow.loader :as loader]
             ["shake.js" :as Shake]))
 
 (stylefy/init)
@@ -59,13 +57,15 @@
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
+
+(declare save-song fetch-all)
 (defn save-current []
   (let [name (rf/subscribe [::s/current-song])
         lyrics (rf/subscribe [::s/lyrics])]
-    (mongo/save-song @name @lyrics)))
+    (save-song @name @lyrics)))
 
 (defn fetch-all-saved-songs []
-  (.. (mongo/fetch-all)
+  (.. (fetch-all)
       (then #(js->clj % :keywordize-keys true))
       (catch
           (fn [err]
@@ -164,6 +164,29 @@
       [song-progress]])])
 
 
+(defn editor []
+  (if-not (loader/loaded? "editor")
+    (loader/load "editor" #(editor-component))
+    ;; (require '[cljs-karaoke.editor.core])
+    ;; ( '[cljs-karaoke.editor.view :refer [editor-component]]))
+    [editor-component]))
+
+(defn pages [page-name params]
+  (case page-name
+    :home     [default-view]
+    :editor   [editor-component]
+    ;; :songs            [playback-view]
+    ;; :song             (do
+    ;; (:cljs-karaoke.events.songs/load-song params)
+    ;; [playback-view]]
+    ;; :song-with-offset (do
+    ;; (:cljs-karaoke.events.songs/load-song params)
+    ;; [playback-view]]
+    :playlist [playlist-view-component]
+    :playback [playback-view]
+    [default-view]))
+
+
 (defn app
   "main app component"
   []
@@ -177,9 +200,10 @@
    [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
    ;; [logo-animation]
    ;; [:div.page-content.roll-in-blurred-top
-   (when-let [_ (and
+   (pages @(rf/subscribe [::s/current-view]) @(rf/subscribe [::s/current-song]))
+   #_(when-let [_ (and)
                  @(rf/subscribe [::s/initialized?])
-                 @(rf/subscribe [::s/current-view]))]
+                 @(rf/subscribe [::s/current-view])]
        (condp = @(rf/subscribe [::s/current-view])
          :home     [default-view]
          :playback [playback-view]
@@ -189,7 +213,7 @@
 (defn ^:export load-song-global [s]
   (songs/load-song s))
 
-(defn init-routing! []
+#_(defn init-routing! []
   ;; (let [h (History.)]
     (secretary/set-config! :prefix "#")
     (defroute "/" []
@@ -247,8 +271,9 @@
 (defn init! []
   (println "init!")
   (rf/dispatch-sync [::events/init-db])
+  (router/app-routes)
   (mount-components!)
-  (init-routing!)
+  ;; (init-routing!)
   (if mobile?
     (do
       (println "mobile device, ignoring keybindings")
@@ -293,7 +318,7 @@
 (defmethod aud/process-audio-event :timeupdate
   [event]
   (when-let [a @(rf/subscribe [::s/audio])]
-    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])))
+    (rf/dispatch ^:flush-dom [::events/set-player-current-time (.-currentTime a)])))
 
 (defmethod aud/process-audio-event :playing
   [event]

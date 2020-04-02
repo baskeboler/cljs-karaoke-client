@@ -47,11 +47,11 @@
    (get-from-localstorage "custom-song-delays"))
 
 
-(defn set-location-href [url]
-  (set! (.-href js/location) url))
+#_(defn set-location-href [url]
+   (set! (.-href js/location) url))
 
-(defn set-location-hash [path]
-  (set! (.-hash js/location) (str "#" path)))
+#_(defn set-location-hash [path]
+   (set! (.-hash js/location) (str "#" path)))
 
 (rf/reg-event-fx
  ::save-to-localstorage
