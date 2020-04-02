@@ -12,7 +12,9 @@
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.styles :refer [default-page-styles]]
-            [stylefy.core :as stylefy]))
+            [stylefy.core :as stylefy]
+            [goog.string :as gstr]
+            [cljs-karaoke.router :as router]))
 (defn playlist-controls [i song]
   [:div.playlist-controls.field.has-addons])
 
@@ -23,10 +25,11 @@
    [:span.icon>i.fas.fa-fw.fa-folder-open]])
 
 (defn play-song-btn [pos]
-  [:button.button
-   {:on-click #(do
-                 (rf/dispatch [::playlist-events/jump-to-playlist-position pos])
-                 (rf/dispatch [::view-events/view-action-transition :go-to-playback]))}
+  [:a.button
+   {:href (router/url-for :song :song-name (-> @(rf/subscribe [::subs/playlist]) :songs (nth pos) gstr/urlEncode))
+    :on-click #(do
+                 (rf/dispatch [::playlist-events/jump-to-playlist-position pos]))}
+                 ;; (rf/dispatch [::view-events/view-action-transition :go-to-playback]))}
                                
    [:span.icon>i.fas.fa-fw.fa-play]])
 

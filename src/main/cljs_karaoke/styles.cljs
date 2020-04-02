@@ -75,3 +75,7 @@
   {:background-color "rgba(255,255,255,0.7)"
    :padding          "2em 1em"
    :border-radius    "0.5em"})
+
+
+(def ^:export shadow-style
+  {:box-shadow "0px 5px 12px 4px #797878"})

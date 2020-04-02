@@ -1,13 +1,13 @@
 (ns cljs-karaoke.playback
   (:require [re-frame.core :as rf]
-            [cljs.core.async :as async :refer [go go-loop <! >! chan]]
+            ;; [cljs.core.async :as async :refer [go go-loop <! >! chan]]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.subs.audio :as a-subs]
             [cljs-karaoke.events :as events]
-            [cljs-karaoke.events.views :as views-events]
+            ;; [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.events.audio :as audio-events]
-            [cljs-karaoke.songs :as songs]))
+            [cljs-karaoke.events.audio :as audio-events]))
+            ;; [cljs-karaoke.songs :as songs]))
 
 (defn play []
   (let [audio (rf/subscribe [::s/audio])

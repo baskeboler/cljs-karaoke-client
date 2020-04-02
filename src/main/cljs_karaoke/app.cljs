@@ -4,9 +4,6 @@
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
             [stylefy.core :as stylefy]
-            [secretary.core :as secretary :refer-macros [defroute]]
-            [goog.events :as gevents]
-            [goog.history.EventType :as EventType]
             [goog.labs.userAgent.device :as device]
             [clojure.string :as str]
             [cljs-karaoke.protocols :as protocols]
@@ -17,6 +14,7 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events :as events]
+            ;; [cljs-karaoke.mongo :as mongo]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.modals :as modals]
             [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
@@ -29,15 +27,16 @@
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
             [cljs-karaoke.views.navbar :as navbar]
-            [cljs-karaoke.views.editor  :refer [editor-component]]
+            [cljs-karaoke.editor.view  :refer [editor-component]]
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
-            [goog.debug :as gdebug]
+            [cljs-karaoke.router :as router]
             [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
              :refer [ centered screen-centered
                      top-left parent-style]]
+            [shadow.loader :as loader]
             ["shake.js" :as Shake]))
 
 (stylefy/init)
@@ -59,6 +58,18 @@
 (def bg-style (rf/subscribe [::s/bg-style]))
 
 
+(declare save-song fetch-all)
+(defn save-current []
+  (let [name (rf/subscribe [::s/current-song])
+        lyrics (rf/subscribe [::s/lyrics])]
+    (save-song @name @lyrics)))
+
+(defn fetch-all-saved-songs []
+  (.. (fetch-all)
+      (then #(js->clj % :keywordize-keys true))
+      (catch
+          (fn [err]
+            (println "error fetching" err)))))
 
 (defn current-frame-display []
   (let [frame (rf/subscribe [::s/frame-to-display])]
@@ -153,6 +164,22 @@
       [song-progress]])])
 
 
+(defn editor []
+  (if-not (loader/loaded? "editor")
+    (loader/load "editor" #(editor-component))
+    ;; (require '[cljs-karaoke.editor.core])
+    ;; ( '[cljs-karaoke.editor.view :refer [editor-component]]))
+    [editor-component]))
+
+(defn pages [page-name]
+  (case page-name
+    :home     [default-view]
+    :editor   [editor-component]
+    :playlist [playlist-view-component]
+    :playback [playback-view]
+    [default-view]))
+
+
 (defn app
   "main app component"
   []
@@ -164,54 +191,10 @@
    [modals/modals-component]
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
-   ;; [logo-animation]
-   ;; [:div.page-content.roll-in-blurred-top
-   (when-let [_ (and
-                 @(rf/subscribe [::s/initialized?])
-                 @(rf/subscribe [::s/current-view]))]
-       (condp = @(rf/subscribe [::s/current-view])
-         :home     [default-view]
-         :playback [playback-view]
-         :playlist [playlist-view-component]
-         :editor   [editor-component]))])
+   (pages @(rf/subscribe [::s/current-view]))])
 
 (defn ^:export load-song-global [s]
   (songs/load-song s))
-
-(defn init-routing! []
-  ;; (let [h (History.)]
-    (secretary/set-config! :prefix "#")
-    (defroute "/" []
-      (println "home path")
-      ;; (rf/dispatch-sync [::playlist-events/playlist-load])
-      (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
-    (defroute "/songs/:song"
-      [song query-params]
-      (println "song: " song)
-      (println "query params: " query-params)
-      (rf/dispatch [::events/set-pageloader-active? true])
-      ;; (rf/dispatch [::events/set-pageloader-exiting? false])
-      (rf/dispatch [::views-events/set-current-view :playback])
-      (if-some [offset (:offset query-params)]
-        (rf/dispatch [::events/set-lyrics-delay (long offset)])
-        ;; (do
-        (rf/dispatch [::song-events/update-song-hash song]))
-      (songs/load-song song)
-      (when-some [_ (:show-opts query-params)]
-        (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
-
-    ;; Quick and dirty history configuration.
-    (defroute "/party-mode" []
-      (println "fuck yea! party mode ON")
-      (rf/dispatch [::playlist-events/set-loop? true])
-      (rf/dispatch [::playlist-events/playlist-load]))
-    (defroute "/playlist" []
-      (rf/dispatch-sync [::views-events/set-current-view :playlist]))
-    (defroute "/editor" []
-      (rf/dispatch [::views-events/view-action-transition :go-to-editor]))
-    (gevents/listen ^js @(rf/subscribe [::s/history]) ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
-    (doto ^js @(rf/subscribe [::s/history]) (.setEnabled true)))
-
 
 (defn get-sharing-url []
   (let [l        js/location
@@ -236,8 +219,8 @@
 (defn init! []
   (println "init!")
   (rf/dispatch-sync [::events/init-db])
+  (router/app-routes)
   (mount-components!)
-  (init-routing!)
   (if mobile?
     (do
       (println "mobile device, ignoring keybindings")
@@ -246,7 +229,7 @@
         (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
         (rf/dispatch-sync [::audio-events/set-recording-enabled? false])))
     (init-keybindings!)))
-  
+
 
 (defn ^:dev/after-load start-app []
   (println "start app, mounting components")
@@ -282,7 +265,7 @@
 (defmethod aud/process-audio-event :timeupdate
   [event]
   (when-let [a @(rf/subscribe [::s/audio])]
-    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])))
+    (rf/dispatch ^:flush-dom [::events/set-player-current-time (.-currentTime a)])))
 
 (defmethod aud/process-audio-event :playing
   [event]

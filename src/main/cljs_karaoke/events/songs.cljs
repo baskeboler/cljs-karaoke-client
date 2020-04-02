@@ -55,13 +55,14 @@
 ;;   (rf/dispatch [::audio-events-closed])
 ;;   {:db db}))
 
-(rf/reg-event-fx
- ::update-song-hash
- (fn-traced
-  [{:keys [db]} [_ song-name]]
-  (let [offset (get-in db [:custom-song-delay song-name] (get db :lyrics-delay 0))]
-    {:db db
-     :dispatch [::events/set-location-hash (str "/songs/" song-name "?offset=" offset)]})))
+(comment
+ (rf/reg-event-fx)
+  ::update-song-hash
+  (fn-traced
+   [{:keys [db]} [_ song-name]]
+   (let [offset (get-in db [:custom-song-delay song-name] (get db :lyrics-delay 0))]
+     {:db db
+      :dispatch [::events/set-location-hash (str "/songs/" song-name "?offset=" offset)]})))
 
 (rf/reg-event-db
  ::toggle-loading-song
@@ -104,7 +105,7 @@
                 [::events/set-playing? false]
                 [::metrics-events/load-user-metrics-from-localstorage]
                 [::setup-audio-events song-name]
-                [::update-song-hash song-name]
+                ;; [::update-song-hash song-name]
                 ;; [::set-first-playback-position-updated? false]
                 ;; [::common-events/set-page-title (str "Karaoke :: " song-name)]
                 [::events/set-current-song song-name]
@@ -205,5 +206,5 @@
            new-rate (cond
                       (> new-rate 3.0) 3.0
                       (< new-rate 0.1) 0.1
-                      :otherwise       new-rate)])))
+                      :else       new-rate)])))
  (fn-traced [db _] db))

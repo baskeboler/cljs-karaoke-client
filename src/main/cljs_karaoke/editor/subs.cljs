@@ -1,4 +1,4 @@
-(ns cljs-karaoke.subs.editor
+(ns cljs-karaoke.editor.subs
   (:require [re-frame.core :as rf]
             [clojure.string :as cstr]
             [cljs-karaoke.protocols :as p]
