@@ -7,8 +7,6 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.songs :as song-events]
-            ;; [cljs-karaoke.remote-control.commands :as cmds]
-            ;; [cljs-karaoke.events.http-relay :as remote-events]
             [cljs-karaoke.audio :as aud]
             [goog.string :as gstr]
             [cljs-karaoke.router :as router]
@@ -22,7 +20,6 @@
 
 (defn song-table-pagination []
   (let [song-list    (rf/subscribe [::s/available-songs])
-        ;; song-count   (count song-list)
         current-page (rf/subscribe [::s/song-list-current-page])
         page-size    (rf/subscribe [::s/song-list-page-size])
         filter-text  (rf/subscribe [::s/song-list-filter])
@@ -65,7 +62,6 @@
         page-size               (rf/subscribe [::s/song-list-page-size])
         filter-text             (rf/subscribe [::s/song-list-filter])
         page-offset             (rf/subscribe [::s/song-list-offset])]
-        ;; remote-control-enabled? (rf/subscribe [:cljs-karaoke.subs.http-relay/remote-control-enabled?])]
     [:div.card.song-table-component.flip-in-hor-bottom
      [:div.card-header]
      [:div.card-content
@@ -76,8 +72,6 @@
         [:tr
          [:th "Song"]
          [:th]]]
-         ;; (when @remote-control-enabled?
-           ;; [:th]]]]
        [:tbody
         (doall
          (for [name (->> @(rf/subscribe [::s/available-songs])

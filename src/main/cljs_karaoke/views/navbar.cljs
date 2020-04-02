@@ -26,9 +26,6 @@
         (stylefy/use-style
          logo-styles
          {:title "header logo" :src "/images/sing.svg"})]]
-      ;; [:object.header-logo
-        ;; {:data "images/header-logo.svg"
-         ;; :title "header logo"}]
       [:a
        {:role     :button
         :class    (concat
@@ -44,22 +41,8 @@
        [navbar-item (router/url-for :home) "control"]
        [navbar-item (router/url-for :playlist) "playlist"]
        [navbar-item
-        ;; (songs/song-url (if @(rf/subscribe [::s/current-song])
-                          ;; @(rf/subscribe [::s/current-song])
-                          ;; "thriller"
-        ;; (router/url-for :song :song-name
-                        ;; (if @(rf/subscribe [::s/current-song])
-                          ;; @(rf/subscribe [::s/current-song])
-                          ;; "thriller"))
         (router/url-for :playback)
         "playback"]
-       #_[:a.navbar-item
-
-           {:on-click #(do
-                        (rf/dispatch [::views-events/set-current-view :song @(rf/subscribe [::s/current-song])])
-                        ;; (rf/dispatch [::views-events/view-action-transition :go-to-playback])
-                        (rf/dispatch [::events/set-navbar-menu-active? false]))}
-           "playback"]
        [navbar-item  (router/url-for :editor) "lyrics editor"]]
       [:div.navbar-end
        (when @(rf/subscribe [::user-subs/user-ready?])

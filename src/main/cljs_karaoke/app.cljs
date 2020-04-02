@@ -171,17 +171,10 @@
     ;; ( '[cljs-karaoke.editor.view :refer [editor-component]]))
     [editor-component]))
 
-(defn pages [page-name params]
+(defn pages [page-name]
   (case page-name
     :home     [default-view]
     :editor   [editor-component]
-    ;; :songs            [playback-view]
-    ;; :song             (do
-    ;; (:cljs-karaoke.events.songs/load-song params)
-    ;; [playback-view]]
-    ;; :song-with-offset (do
-    ;; (:cljs-karaoke.events.songs/load-song params)
-    ;; [playback-view]]
     :playlist [playlist-view-component]
     :playback [playback-view]
     [default-view]))
@@ -198,55 +191,10 @@
    [modals/modals-component]
    [page-loader/page-loader-component]
    [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
-   ;; [logo-animation]
-   ;; [:div.page-content.roll-in-blurred-top
-   (pages @(rf/subscribe [::s/current-view]) @(rf/subscribe [::s/current-song]))
-   #_(when-let [_ (and)
-                 @(rf/subscribe [::s/initialized?])
-                 @(rf/subscribe [::s/current-view])]
-       (condp = @(rf/subscribe [::s/current-view])
-         :home     [default-view]
-         :playback [playback-view]
-         :playlist [playlist-view-component]
-         :editor   [editor-component]))])
+   (pages @(rf/subscribe [::s/current-view]))])
 
 (defn ^:export load-song-global [s]
   (songs/load-song s))
-
-#_(defn init-routing! []
-  ;; (let [h (History.)]
-    (secretary/set-config! :prefix "#")
-    (defroute "/" []
-      (println "home path")
-      ;; (rf/dispatch-sync [::playlist-events/playlist-load])
-      (rf/dispatch-sync [::views-events/view-action-transition :go-to-home]))
-    (defroute "/songs/:song"
-      [song query-params]
-      (println "song: " song)
-      (println "query params: " query-params)
-      (rf/dispatch [::events/set-pageloader-active? true])
-      ;; (rf/dispatch [::events/set-pageloader-exiting? false])
-      (rf/dispatch [::views-events/set-current-view :playback])
-      (if-some [offset (:offset query-params)]
-        (rf/dispatch [::events/set-lyrics-delay (long offset)])
-        ;; (do
-        (rf/dispatch [::song-events/update-song-hash song]))
-      (songs/load-song song)
-      (when-some [_ (:show-opts query-params)]
-        (rf/dispatch-sync [::views-events/set-view-property :playback :options-enabled? true])))
-
-    ;; Quick and dirty history configuration.
-    (defroute "/party-mode" []
-      (println "fuck yea! party mode ON")
-      (rf/dispatch [::playlist-events/set-loop? true])
-      (rf/dispatch [::playlist-events/playlist-load]))
-    (defroute "/playlist" []
-      (rf/dispatch-sync [::views-events/set-current-view :playlist]))
-    (defroute "/editor" []
-      (rf/dispatch [::views-events/view-action-transition :go-to-editor]))
-    (gevents/listen ^js @(rf/subscribe [::s/history]) ^js EventType/NAVIGATE #(secretary/dispatch! (.-token ^js %)))
-    (doto ^js @(rf/subscribe [::s/history]) (.setEnabled true)))
-
 
 (defn get-sharing-url []
   (let [l        js/location
@@ -273,7 +221,6 @@
   (rf/dispatch-sync [::events/init-db])
   (router/app-routes)
   (mount-components!)
-  ;; (init-routing!)
   (if mobile?
     (do
       (println "mobile device, ignoring keybindings")
@@ -282,7 +229,7 @@
         (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
         (rf/dispatch-sync [::audio-events/set-recording-enabled? false])))
     (init-keybindings!)))
-  
+
 
 (defn ^:dev/after-load start-app []
   (println "start app, mounting components")

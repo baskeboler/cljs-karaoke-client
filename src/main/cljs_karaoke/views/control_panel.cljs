@@ -9,11 +9,9 @@
             [cljs-karaoke.songs :as songs :refer [song-table-component]]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
-            ;; [cljs-karaoke.events.http-relay :as relay-events]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.views.lyrics :refer [frame-text]]
-            ;; [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.subs.http-relay :as relay-subs]
             [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.components.menus :as menus :refer [menu-component]]
@@ -57,34 +55,6 @@
     :data-tooltip "EXPORT SYNC INFO"}
    [:span.icon
     [:i.fas.fa-file-export]]])
-    ;; "export sync data"]])
-
-;; (defn enable-remote-control-btn []
-    ;; [:button.button.is-info.tooltip
-     ;; {:on-click     (fn [_]
-                      ;; (if-not @(rf/subscribe [::relay-subs/http-relay-listener-id])
-                        ;; (rf/dispatch-sync [::relay-events/init-http-relay-listener])
-                      ;; (remote-control/show-remote-control-id)
-      ;; :data-tooltip "Remote Control information"
-     ;; [:span.icon
-      ;; [:i.fas.fa-wifi]]]])
-
-;; (defn camera-btn []
-    ;; [:button.button
-     ;; {:on-click     (fn [_]
-                      ;; (if-not @(rf/subscribe [::relay-subs/http-relay-listener-id])
-                        ;; (rf/dispatch-sync [::relay-events/init-http-relay-listener])
-                      ;; (remote-control/show-remote-control-id)]
-      ;; :data-tooltip "Enabled camera"]
-     ;; [:span.icon>i.fa.fa-camera]])
-
-;; (defn remote-control-btn []
-   ;; [:button.button.is-info.tooltip
-     ;; {:on-click     (fn [_]
-                      ;; (remote-control/show-remote-control-settings)]
-      ;; :data-tooltip "Control Remote Karaoke"]
-     ;; [:span.icon
-      ;; [:i.fas.fa-satellite-dish]]])
 
 (defn toggle-display-lyrics []
   (rf/dispatch [::events/toggle-display-lyrics]))
@@ -126,16 +96,11 @@
       [export-sync-data-btn]]
      [:div.control
       [toggle-song-list-btn]]
-     ;; [:div.control
-      ;; [enable-remote-control-btn]]
-     ;; [:div.control
-       ;; [remote-control-btn]]]
      (when @input-available?
        [:div.control
         [enable-audio-input-button]])]))
 
 (defn playback-controls-panel []
-  ;; (let [remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])]
   [:div.card>div.card-content
    [toggle-display-lyrics-link]
    [delay-select-component]
@@ -144,12 +109,8 @@
    [:div.field
     [:div.control
      [save-custom-delay-btn]]]
-     ;; (when @remote-control-enabled?
-       ;; [remote-control/remote-control-component]]]
    [audio-input/audio-viz]])
 
-;; (defn show-playback-controls-modal []
-  ;; (common))
 
 (defn- toggle-menu-btn []
   [:button.button.is-small.is-outlined.is-primary
@@ -168,7 +129,6 @@
         current-song       (rf/subscribe [::s/current-song])
         lyrics-loaded?     (rf/subscribe [::s/lyrics-loaded?])
         song-list-visible? (rf/subscribe [::s/song-list-visible?])
-        ;; remote-control-enabled? (rf/subscribe [::relay-subs/remote-control-enabled?])
         input-available?   (rf/subscribe [::audio-subs/audio-input-available?])]
     [:div.control-panel
      (stylefy/use-style
@@ -178,7 +138,6 @@
                 ["song-playing"])})
 
      [:div.columns>div.column.is-12>h1.title.is-2 "Control Panel"]
-     ;; [:div.columns>div.column.is-12 (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
      [:div.columns 
       (when @display-menu?
         [:div.column.is-3
@@ -189,10 +148,3 @@
          (when-not @display-menu?
            [toggle-menu-btn])
          [song-table-component]])]]))
-
-#_[:div.column
-   [playback-controls-panel]]
-;; [audio-input/test-viz]]]
-#_(when @display-lyrics?
-    [:div.column (stylefy/use-style {:background-color "rgba(1,1,1, .3)"})
-     [lyrics-view @lyrics]])
