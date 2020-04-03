@@ -109,29 +109,21 @@
       {:href (router/url-for :home)}
       [:i.fas.fa-home.fa-fw]])
    (when-not @(rf/subscribe [::s/song-paused?])
-     ;; [:div.control
       [icon-button "pause" "warning" pause])
    (when-not @(rf/subscribe [::s/song-paused?])
-     ;; [:div.control
       [icon-button "stop" "danger" stop])
    (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
               @(rf/subscribe [::audio-subs/recording-enabled?]))
-      ;; [:div.control
        [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
         (rf/subscribe [::audio-subs/recording-button-enabled?])])
-  ;; [:div.control
    [icon-button "step-forward" "info" #(do
                                          (stop)
                                          (rf/dispatch [::playlist-events/playlist-next]))]
-  ;; [:div.control
    [icon-button "random" "warning" load-random-song]
   ;; [:div.control
-   [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]
-;; [:div.control
+   ;; [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]
    [increase-playback-rate-btn]
-;; [:div.control
    [decrease-playback-rate-btn]
-  ;; [:div.control
    [icon-button "share-alt" "success"
     #(show-export-text-info-modal
       {:title "Share Link"
