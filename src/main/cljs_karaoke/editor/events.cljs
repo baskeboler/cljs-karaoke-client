@@ -1,4 +1,4 @@
-(ns cljs-karaoke.events.editor
+(ns cljs-karaoke.editor.events
   (:require [clojure.string :as cstr]
             [cljs-karaoke.lyrics :as lyrics]
             [cljs-karaoke.events.common :as common-events]

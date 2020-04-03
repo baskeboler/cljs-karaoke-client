@@ -1,7 +1,7 @@
 (ns cljs-karaoke.components.menus
   (:require [stylefy.core :as stylefy]
             [re-frame.core :as rf]
-            [cljs-karaoke.remote-control :as remote-control]
+            ;; [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.modals :as modals]
             [cljs-karaoke.events.songs :as song-events]
@@ -52,11 +52,12 @@
                      :on-click decrease-rate})
    (map->EventMenuItem {:label "Next Random Song"
                         :event [::song-events/trigger-load-random-song]})])
-(def remote-control-items
-  [(map->FnMenuItem {:label    "show local ID"
-                     :on-click identity})
-   (map->FnMenuItem {:label "signal remote karaoke"
-                     :on-click identity})])
+(comment
+  (def remote-control-items
+    [(map->FnMenuItem {:label    "show local ID"
+                       :on-click identity})
+     (map->FnMenuItem {:label "signal remote karaoke"
+                        :on-click identity})]))
 
 (def lyrics-items
   [(map->FnMenuItem {:label    "export song delays"
@@ -71,7 +72,7 @@
                      :on-click modals/show-delay-select-modal})])
 
 (defn menu-component []
-  [:aside.menu
+  [:aside.menu.swing-in-top-fwd
    [:p.menu-label "Playback"]
    [:ul.menu-list
     (doall
@@ -105,8 +106,8 @@
                             :show-lyrics   {}}}
    :audio          {:label "Audio"
                     :links {:toggle-audio-input {}}}
-   :remote-control {:start-remote-control-listener {}
-                    :send-remote-control-signal    {}}
+   ;; :remote-control {:start-remote-control-listener {}
+                    ;; :send-remote-control-signal    {}}
    :lyrics         {:export-delays        {}
                     :persist-saved-delays {}}})
 

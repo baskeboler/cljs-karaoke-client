@@ -1,19 +1,18 @@
 (ns cljs-karaoke.views.playback
   (:require [re-frame.core :as rf]
-            [secretary.core :as routing]
             [cljs-karaoke.subs :as s]
+            [cljs-karaoke.router :as router]
             [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            [cljs-karaoke.audio-input :refer [enable-audio-input-button spectro-overlay]]
             [stylefy.core :as stylefy]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.playback :as playback :refer [play pause stop]]
             [cljs-karaoke.styles :as styles
              :refer [time-display-style centered
-                     top-left parent-style
+                     top-left parent-style shadow-style
                      top-right logo-bg-style]]
             [cljs-karaoke.modals :refer [show-export-text-info-modal]]
             [cljs-karaoke.utils :as utils :refer [icon-button]]
@@ -98,39 +97,32 @@
 
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
-   ;; (stylefy/use-style top-right)
+   (stylefy/use-style shadow-style)
    #_[:div.control
       [enable-audio-input-button]]
    (when-not (= :playback @(rf/subscribe [::s/current-view]))
      ;; [:div.control
       [icon-button "play" "primary" play])
    (when @(rf/subscribe [::s/display-home-button?])
-     ;; [:div.control
-      [icon-button "home" "default" #(rf/dispatch [::views-events/set-current-view :home])])
+     [:div.control>a.button.is-small.is-default
+      {:href (router/url-for :home)}
+      [:i.fas.fa-home.fa-fw]])
    (when-not @(rf/subscribe [::s/song-paused?])
-     ;; [:div.control
       [icon-button "pause" "warning" pause])
    (when-not @(rf/subscribe [::s/song-paused?])
-     ;; [:div.control
       [icon-button "stop" "danger" stop])
    (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
               @(rf/subscribe [::audio-subs/recording-enabled?]))
-      ;; [:div.control
        [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
         (rf/subscribe [::audio-subs/recording-button-enabled?])])
-  ;; [:div.control
    [icon-button "step-forward" "info" #(do
                                          (stop)
                                          (rf/dispatch [::playlist-events/playlist-next]))]
-  ;; [:div.control
    [icon-button "random" "warning" load-random-song]
   ;; [:div.control
-   [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]
-;; [:div.control
+   ;; [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]
    [increase-playback-rate-btn]
-;; [:div.control
    [decrease-playback-rate-btn]
-  ;; [:div.control
    [icon-button "share-alt" "success"
     #(show-export-text-info-modal
       {:title "Share Link"

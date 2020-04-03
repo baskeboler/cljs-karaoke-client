@@ -35,7 +35,9 @@
  ::add-song
  (fn-traced
   [{:keys [db]} [_ song-name]]
-  {:db (if-not (protocols/contains-song? (:playlist db) song-name)
+
+  {:db (if-not (or (nil? (:playlist db))
+                   (protocols/contains-song? (:playlist db) song-name))
          (do
            (println "song not in playlist, adding.")
            (-> db
