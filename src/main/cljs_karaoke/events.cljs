@@ -329,7 +329,7 @@
  ::handle-fetch-background-config-complete
  (fn-traced [db _] db))
 
-(ri/reg-event-db
+(rf/reg-event-db
    ::set-location-hash
    (rf/after
     (fn [db [_ new-hash]]
