@@ -1,10 +1,10 @@
-(ns cljs-karaoke.views.editor
+(ns cljs-karaoke.editor.view
   (:require [re-frame.core :as rf]
             [goog.string :as gstr]
             [reagent.core :as reagent :refer [atom]]
             [stylefy.core :as stylefy]
             ;; [cljs-karaoke.components.autocomplete :refer [autocomplete-input]]
-            [cljs-karaoke.events.editor :as editor-events]
+            [cljs-karaoke.editor.events :as editor-events]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.audio :as audio-events]
@@ -13,7 +13,7 @@
             [cljs-karaoke.modals :as modals]
             [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.views.playback :as playback]
-            [cljs-karaoke.subs.editor :as editor-subs]
+            [cljs-karaoke.editor.subs :as editor-subs]
             [thi.ng.color.core :as color]
             [cljs-karaoke.styles :refer [default-page-styles]]
             [cljs-karaoke.lyrics :as lyrics]

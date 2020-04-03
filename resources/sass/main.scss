@@ -154,6 +154,10 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
   }
 
   .menu {
+      padding: 1em;
+      background-color: white;
+      opacity: 0.8;
+      border-radius: 0.3em;
       .menu-list {
           li>a {
               text-transform: capitalize;
@@ -384,6 +388,10 @@ html {
             height: 100%;
             width: 100%;
         }
+        .button {
+            padding: 0;
+            border: none;
+        }
     }
 }
 
@@ -414,8 +422,12 @@ html {
 
   .playback-controls {
       width: unset;
+      min-width: 300px;
       left: unset;
       right: 0;
+      .button {
+          padding: calc(0.5em - 2px) 1em;
+      }
   }
 
   .current-frame {
@@ -426,4 +438,9 @@ html {
   .app {
     margin-top: 2em;
   }
+}
+
+.swing-in-top-fwd {
+	  -webkit-animation: swing-in-top-fwd 0.5s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
+	  animation: swing-in-top-fwd 0.5s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
 }

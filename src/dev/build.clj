@@ -78,7 +78,7 @@
                   song)]]
     [:body
      [:script
-      (str "location.assign('/#/songs/" song "?offset=" offset "');")]]])
+      (str "location.assign('/sing/" song "/offset/" offset "');")]]])
   ([song offset]
    (seo-page song offset default-seo-image))
   ([song]

@@ -37,16 +37,16 @@
        
 (defn icon-button
   ([icon button-type callback enabled?]
-   [:div.control
-    [:p.control
+   ;; [:div.control
+   [:p.control
      [:a.button.is-small
       {:class      [ (str "is-" button-type)]
        :disabled   (not @enabled?)
        :on-click   callback
        :aria-label icon
        :title      icon}
-      [:span.icon.is-small
-       [:i
-        {:class ["fa" (str "fa-" icon)]}]]]]])
+      ;; [:span.icon.is-small
+      [:i
+       {:class ["fas" "fa-fw" (str "fa-" icon)]}]]])
   ([icon button-type callback]
    (icon-button icon button-type callback (atom true))))

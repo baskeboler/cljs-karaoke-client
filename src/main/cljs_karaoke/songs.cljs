@@ -7,11 +7,12 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.remote-control.commands :as cmds]
-            [cljs-karaoke.events.http-relay :as remote-events]
             [cljs-karaoke.audio :as aud]
+            [goog.string :as gstr]
+            [cljs-karaoke.router :as router]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
-            [cljs.core.async :as async :refer [<! >! chan go go-loop]]))
+            [cljs.core.async :as async :refer [<! >! chan go go-loop]]
+            [cljs-karaoke.protocols :refer [handle-route]]))
 
 (defn song-title [name]
   (-> name
@@ -19,7 +20,6 @@
 
 (defn song-table-pagination []
   (let [song-list    (rf/subscribe [::s/available-songs])
-        ;; song-count   (count song-list)
         current-page (rf/subscribe [::s/song-list-current-page])
         page-size    (rf/subscribe [::s/song-list-page-size])
         filter-text  (rf/subscribe [::s/song-list-filter])
@@ -50,14 +50,18 @@
        :name      "filter-input"
        :on-change #(rf/dispatch [::song-list-events/set-song-filter
                                  (-> % .-target .-value)])}]]))
-     
+
+(defn song-url [song-name]
+  (if @(rf/subscribe [::s/has-delay? song-name])
+    (router/url-for :song-with-offset :song-name (gstr/urlEncode song-name) :offset @(rf/subscribe [::s/song-delay song-name]))
+    (router/url-for :song :song-name (gstr/urlEncode song-name))))
+
 (defn song-table-component
   []
   (let [current-page            (rf/subscribe [::s/song-list-current-page])
         page-size               (rf/subscribe [::s/song-list-page-size])
         filter-text             (rf/subscribe [::s/song-list-filter])
-        page-offset             (rf/subscribe [::s/song-list-offset])
-        remote-control-enabled? (rf/subscribe [:cljs-karaoke.subs.http-relay/remote-control-enabled?])]
+        page-offset             (rf/subscribe [::s/song-list-offset])]
     [:div.card.song-table-component.flip-in-hor-bottom
      [:div.card-header]
      [:div.card-content
@@ -67,12 +71,10 @@
        [:thead
         [:tr
          [:th "Song"]
-         [:th]
-         (when @remote-control-enabled?
-           [:th])]]
+         [:th]]]
        [:tbody
         (doall
-         (for [name (->> @(rf/subscribe [::s/available-songs]) 
+         (for [name (->> @(rf/subscribe [::s/available-songs])
                          (filter #(clojure.string/includes?
                                    (clojure.string/lower-case %)
                                    (clojure.string/lower-case @filter-text)))
@@ -84,15 +86,9 @@
            [:tr {:key name}
             [:td title]
             [:td [:a
-                  {:href (str "#/songs/" name)}
-                  [:i.fas.fa-play]]]
-            (when @remote-control-enabled?
-              [:td
-               [:a
-                {:on-click (fn []
-                             (let [cmd (cmds/play-song-command name)]
-                               (rf/dispatch [::remote-events/remote-control-command cmd])))}
-                "Play remotely"]])]))]]
+                  {:href (song-url name)} ;(str "#/songs/" name)}
+                  [:i.fas.fa-play]]]]))]]
+
       [song-table-pagination]]]))
 
 (defn load-song
@@ -101,3 +97,16 @@
   ([]
    (when-let [song @(rf/subscribe [::s/playlist-current])]
      (load-song song))))
+
+(defmethod handle-route :song
+  [{:keys [params]}]
+  (load-song (:song-name params))
+  :playback)
+
+(defmethod handle-route :song-with-offset
+  [{:keys [params]}]
+  (let [{:keys [song-name offset]} params]
+    (load-song song-name)
+    (rf/dispatch [::events/set-custom-song-delay song-name (js/parseInt offset)])
+    (rf/dispatch [::events/set-lyrics-delay (js/parseInt offset)])
+    :playback))

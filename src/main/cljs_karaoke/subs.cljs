@@ -47,6 +47,26 @@
  (fn-traced [db _]
             (get-in db [:custom-song-delay (:current-song db)])))
 
+(rf/reg-sub
+ ::all-song-delays
+ (fn-traced
+  [db _]
+  (:custom-song-delay db)))
+
+(rf/reg-sub
+ ::song-delay
+ :<- [::all-song-delays]
+ (fn-traced
+  [all-delays [_ song-name]]
+  (get-in all-delays [song-name] 0)))
+
+(rf/reg-sub
+ ::has-delay?
+ :<- [::all-song-delays]
+ (fn-traced
+  [all-delays [_ song-name]]
+  (some?
+   (get all-delays song-name nil))))
 
 (rf/reg-sub
  ::current-frame

@@ -33,3 +33,7 @@
 (defprotocol ^:export Storable
   (to-json [this])
   (from-json [this json]))
+
+
+(defmulti handle-route "route handling multimethod" :action)
+(defmethod handle-route :default [arg] (:action arg))
