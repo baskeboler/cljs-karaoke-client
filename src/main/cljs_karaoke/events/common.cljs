@@ -1,8 +1,9 @@
 (ns cljs-karaoke.events.common
   (:require [re-frame.core :as rf :include-macros true]
             [day8.re-frame.tracing :refer-macros [fn-traced]]
-            [reagent.core :as reagent :refer [atom]]))
-
+            [reagent.core :as reagent :refer [atom]]
+            [pushy.core :as pushy]
+            [cljs-karaoke.router.core :refer [router]]))
 (defn reg-set-attr [evt-name attr-name]
   (cond
     (keyword? attr-name)
@@ -47,11 +48,13 @@
    (get-from-localstorage "custom-song-delays"))
 
 
-#_(defn set-location-href [url]
+(defn set-location-href [url]
    (set! (.-href js/location) url))
 
-#_(defn set-location-hash [path]
-   (set! (.-hash js/location) (str "#" path)))
+(defn set-location-hash [path]
+  (pushy/set-token! router path))
+  ;; (. js/location (replace path)))
+  ;; (set! (.-pathname js/location) path))
 
 (rf/reg-event-fx
  ::save-to-localstorage

@@ -37,3 +37,7 @@
 
 (defmulti handle-route "route handling multimethod" :action)
 (defmethod handle-route :default [arg] (:action arg))
+
+(defprotocol ViewDispatcher
+  "View dispatcher protocol"
+  (dispatch-view [this]))

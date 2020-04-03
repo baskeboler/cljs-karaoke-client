@@ -20,6 +20,7 @@
             [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
             [cljs-karaoke.audio-input :refer [ spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
+            [cljs-karaoke.views.dispatcher]
             [cljs-karaoke.views.billboards :refer [billboards-component]]
             [cljs-karaoke.views.page-loader :as page-loader]
             [cljs-karaoke.views.seek-buttons :as seek-buttons]
@@ -31,7 +32,7 @@
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
-            [cljs-karaoke.router :as router]
+            [cljs-karaoke.router.core :as router]
             [cljs-karaoke.key-bindings :refer [init-keybindings!]]
             [cljs-karaoke.styles :as styles
              :refer [ centered screen-centered

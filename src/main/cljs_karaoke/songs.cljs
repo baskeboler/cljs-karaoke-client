@@ -7,13 +7,14 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.songs :as song-events]
+            [cljs-karaoke.events.views :as view-events]
             [cljs-karaoke.audio :as aud]
             [goog.string :as gstr]
-            [cljs-karaoke.router :as router]
+            [cljs-karaoke.router.core :as router]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
             [cljs.core.async :as async :refer [<! >! chan go go-loop]]
-            [cljs-karaoke.protocols :refer [handle-route]]))
-
+            [cljs-karaoke.protocols :refer [handle-route ViewDispatcher dispatch-view]]
+            [pushy.core :as pushy]))
 (defn song-title [name]
   (-> name
       (str/replace #"_" " ")))
@@ -110,3 +111,8 @@
     (rf/dispatch [::events/set-custom-song-delay song-name (js/parseInt offset)])
     (rf/dispatch [::events/set-lyrics-delay (js/parseInt offset)])
     :playback))
+
+;; (defmethod handle-route :random-song
+  ;; [_]
+  ;; (let [random-song-name (rand-nth @(rf/subscribe [::s]))]))
+

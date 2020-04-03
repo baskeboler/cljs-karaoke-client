@@ -14,7 +14,7 @@
             [cljs-karaoke.styles :refer [default-page-styles]]
             [stylefy.core :as stylefy]
             [goog.string :as gstr]
-            [cljs-karaoke.router :as router]))
+            [cljs-karaoke.router.core :as router]))
 (defn playlist-controls [i song]
   [:div.playlist-controls.field.has-addons])
 

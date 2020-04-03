@@ -12,8 +12,8 @@
             [cljs-karaoke.events.common :as common-events
              :refer [reg-set-attr
                      save-to-localstorage get-from-localstorage
-                     get-custom-delays-from-localstorage]]
-                     ;; set-location-hash]]
+                     get-custom-delays-from-localstorage
+                     set-location-hash]]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
@@ -329,7 +329,7 @@
  ::handle-fetch-background-config-complete
  (fn-traced [db _] db))
 
-#_(rf/reg-event-db
+(ri/reg-event-db
    ::set-location-hash
    (rf/after
     (fn [db [_ new-hash]]

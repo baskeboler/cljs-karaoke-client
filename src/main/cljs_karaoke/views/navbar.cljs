@@ -6,7 +6,7 @@
             [cljs-karaoke.songs :as songs]
             [cljs-karaoke.styles :refer [shadow-style]]
             [cljs-karaoke.subs.user :as user-subs]
-            [cljs-karaoke.router :as router]
+            [cljs-karaoke.router.core :as router]
             [stylefy.core :as stylefy]))
 (defn navbar-item [path name]
   [:a.navbar-item
