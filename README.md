@@ -34,7 +34,7 @@ Another difficulty was obtaining the song audio track, since the lyrics are sync
 - Experimental webcam recording and video export to webm file. The audio channel in the exported video is the result of mixing the microphone input with effects and the song track.
 - Remote control. Run the application on a big screen and control playback from a different application instance (for example, from your mobile device!)
 - Build pre-renders song pages with SEO tags so you can share links in social networks as pretty looking cards with song name and an image if available.
-![Twitter card example](./docs/twittercard.png "example twitter card")
+  - ![Twitter card example](./docs/twittercard.png "example twitter card")
 
 ## Running locally
 
