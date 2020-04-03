@@ -104,7 +104,6 @@
      ;; [:div.control
       [icon-button "play" "primary" play])
    (when @(rf/subscribe [::s/display-home-button?])
-     ;; [:div.control
      [:div.control>a.button.is-small.is-default
       {:href (router/url-for :home)}
       [:i.fas.fa-home.fa-fw]])

@@ -387,10 +387,10 @@ html {
         a, p {
             height: 100%;
             width: 100%;
-            &.button {
-                padding: 0;
-                border: none;
-            }
+        }
+        .button {
+            padding: 0;
+            border: none;
         }
     }
 }
@@ -422,8 +422,12 @@ html {
 
   .playback-controls {
       width: unset;
+      min-width: 300px;
       left: unset;
       right: 0;
+      .button {
+          padding: calc(0.5em - 2px) 1em;
+      }
   }
 
   .current-frame {
