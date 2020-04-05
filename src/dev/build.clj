@@ -4,13 +4,18 @@
             [hiccup.page :refer [html5]]
             [clojure.tools.reader :as reader]
             [clojure.java.io :as io :refer [input-stream]]
-            [clojure.string :as cstr])
+            [clojure.string :as cstr]
+            [clojure.string :as str])
   (:import [java.net URLConnection URLEncoder URL]
-           [java.nio.charset StandardCharsets]))
-
+           [java.nio.charset StandardCharsets]
+           [java.time Instant]
+           [java.nio.file Path Paths]))
 (def site-url-prefix "https://karaoke.uyuyuy.xyz")
-
-
+(def background-images-file "resources/public/data/backgrounds.edn")
+(def songs-file "resources/public/data/songs.edn")
+(def delays-file "resources/public/data/delays.edn")
+(def project-images-directory "resources/public/images")
+(def project-images-path-prefix "/images")
 (defn url->filename [url-str]
   (-> (URL. url-str)
       .toString
@@ -55,15 +60,48 @@
                                (println "failed to download " url)
                                nil))]]
             [filename file]))))
+(defn- timestamp-extension []
+  (-> (Instant/now) (.getEpochSecond)))
+
+(defn- backup-background-images-file []
+  (io/copy (io/file background-images-file)
+           (io/file (str background-images-file ".bak." (timestamp-extension)))))
+
+(defn- external-location? [l]
+  (str/starts-with? l "http"))
+
+(defn import-external-bg-images []
+  (backup-background-images-file)
+  (let [image-map (get-images)]
+        
+    (->> (for [[song-name image-url] image-map
+               :when (external-location? image-url)
+               :let [filename (url->filename image-url)
+                     is ()
+                     download-filename (str project-images-directory "/covers/" filename)
+                     f (try
+                         (download-file image-url download-filename)
+                         (catch Exception e
+                           nil))
+                     new-image-path (when-not (nil? f)
+                                      (str project-images-path-prefix "/covers/" (.getName f)))]]
+           (do
+             (println song-name " -- " new-image-path)
+             [song-name (if-not (nil? f)
+                          new-image-path
+                          image-url)]))
+         (into {})
+         (merge image-map)
+         (spit background-images-file))))
 
 (defn sitemap-urls [songs]
   (map #(str site-url-prefix "/songs/" (cstr/replace % " " "%20")) songs))
 
 (defn get-songs []
-  (reader/read-string (slurp "resources/public/data/songs.edn")))
+  (reader/read-string (slurp songs-file)))
 
 (defn get-delays []
-  (reader/read-string (slurp "resources/public/data/delays.edn")))
+  (reader/read-string (slurp delays-file)))
 
 (defn valid-url? [url]
   (print "checking url " url ": ")
@@ -76,7 +114,7 @@
       false)))
 
 (defn get-images []
-  (reader/read-string (slurp "resources/public/data/backgrounds.edn")))
+  (reader/read-string (slurp background-images-file)))
 
 (defn get-valid-images []
   (into

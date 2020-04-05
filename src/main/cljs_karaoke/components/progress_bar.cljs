@@ -1,5 +1,6 @@
 (ns cljs-karaoke.components.progress-bar
-  (:require [stylefy.core :as stylefy]))
+  (:require [reagent.core]
+            [stylefy.core :as stylefy]))
 
 (def progress-bar-style
   {:width            "calc(100% - 1rem)"
@@ -12,8 +13,8 @@
    :border-radius    "0.3em"
    :box-shadow "0 0 1rem 0.1rem black"})
 
-(def progress-bar-label-style 
-  {:position :absolute 
+(def progress-bar-label-style
+  {:position :absolute
    :bottom 0
    :left 0
    :margin 0
