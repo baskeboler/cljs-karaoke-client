@@ -73,7 +73,7 @@
 (defn import-external-bg-images []
   (backup-background-images-file)
   (let [image-map (get-images)]
-        
+
     (->> (for [[song-name image-url] image-map
                :when (external-location? image-url)
                :let [filename (url->filename image-url)
@@ -105,13 +105,15 @@
 
 (defn valid-url? [url]
   (print "checking url " url ": ")
-  (try
-    (with-open [_ (input-stream url)]
-      (println "OK!")
-      true)
-    (catch Exception e
-      (println "FAILED!")
-      false)))
+  (if-not (external-location? url)
+    true
+    (try
+      (with-open [_ (input-stream url)]
+        (println "OK!")
+        true)
+      (catch Exception e
+        (println "FAILED!")
+        false))))
 
 (defn get-images []
   (reader/read-string (slurp background-images-file)))
