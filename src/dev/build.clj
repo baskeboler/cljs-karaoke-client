@@ -19,7 +19,7 @@
 (defn url->filename [url-str]
   (-> (URL. url-str)
       .toString
-      (cstr/replace  #"\/|:|\.|-" "_")))
+      (cstr/replace  #"\/|:|\.|-|#|\?" "_")))
       ;; last))
 (def download-folder "./downloads/")
 
