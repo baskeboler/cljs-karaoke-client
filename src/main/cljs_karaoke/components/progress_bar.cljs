@@ -41,7 +41,11 @@
              value-bar-style {}
              style {}
              label nil}}]
-  (let [progress-value (/ (* current-value 100.0) max-value)
+  (let [progress-value (if (and (<= current-value max-value)
+                                (>= current-value 0))
+                         (/ (* current-value 100.0) max-value)
+                         0)
+                                
         bar-style      (merge
                         {:width            (str progress-value "%")
                          :height           "100%"
