@@ -15,7 +15,7 @@
 (defn ^:export parent-style []
   ;; {:transition       "background-image 1s ease-out"
   {:background-size  "cover"
-   :background-image (str "url(\"images/" (first wallpapers) "\")")
+   :background-image (str "url(\"/images/" (first wallpapers) "\")")
    :animation        (str (random-kenburn)
                           " 5s ease-in-out both")})
 
