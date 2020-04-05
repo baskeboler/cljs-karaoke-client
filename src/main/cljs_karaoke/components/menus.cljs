@@ -1,6 +1,7 @@
 (ns cljs-karaoke.components.menus
   (:require [stylefy.core :as stylefy]
             [re-frame.core :as rf]
+            [cljs-karaoke.audio-input]
             ;; [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.modals :as modals]
@@ -71,6 +72,10 @@
    (map->FnMenuItem {:label "Adjust lyrics delay"
                      :on-click modals/show-delay-select-modal})])
 
+(def audio-items
+  [(map->EventMenuItem {:label "Enable Audio Input"
+                        :event [:cljs-karaoke.events.modals/modal-push
+                                [cljs-karaoke.audio-input/enable-audio-input-confirm-dialog]]})]) 
 (defn menu-component []
   [:aside.menu.swing-in-top-fwd
    [:p.menu-label "Playback"]
@@ -85,6 +90,12 @@
        (for [item remote-control-items]
          ^{:key (str "remote-control-item-" (:label item))}
          [menu-item item]))]
+   [:p.menu-label "Audio"]
+   [:ul.menu-list
+    (doall
+     (for [item audio-items]
+       ^{:key (str "audio-item-" (:label item))}
+       [menu-item item]))]
    [:p.menu-label "Lyrics"]
    [:ul.menu-list
     (doall

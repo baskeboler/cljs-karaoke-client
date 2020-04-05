@@ -3,12 +3,58 @@
             [clojure.java.shell :refer [sh]]
             [hiccup.page :refer [html5]]
             [clojure.tools.reader :as reader]
-            [clojure.java.io :refer [input-stream]]
+            [clojure.java.io :as io :refer [input-stream]]
             [clojure.string :as cstr])
-  (:import [java.net URLEncoder]
+  (:import [java.net URLConnection URLEncoder URL]
            [java.nio.charset StandardCharsets]))
 
 (def site-url-prefix "https://karaoke.uyuyuy.xyz")
+
+
+(defn url->filename [url-str]
+  (-> (URL. url-str)
+      .toString
+      (cstr/replace  #"\/|:|\.|-" "_")))
+      ;; last))
+(def download-folder "./downloads/")
+
+(def content-type->extension-mapping
+  {"image/jpeg" ".jpg"
+   "image/jpg"  ".jpg"
+   "image/png"  ".png"
+   "image/gif"  ".gif"
+   "image/bmp"  ".bmp"})
+
+(defn- normalize-filename [name input-str]
+  (if-not (URLConnection/guessContentTypeFromName name)
+    (str name (get content-type->extension-mapping
+                   (URLConnection/guessContentTypeFromStream input-str)
+                   ""))
+    name))
+
+(defn download-file
+  ([url filename]
+   (with-open [in (input-stream url)]
+     (let [filename (normalize-filename filename in)
+           f (io/file filename)]
+       (io/make-parents f)
+       (io/copy in f)
+       (println "Saved url to " filename)
+       f)))
+  ([url]
+   (download-file url (str download-folder (url->filename url)))))
+
+(declare get-images)
+(defn download-all-images []
+  (let [image-map (get-images)]
+    (into {}
+          (for [[filename url] image-map
+                :let [file (try
+                             (download-file url)
+                             (catch Exception e
+                               (println "failed to download " url)
+                               nil))]]
+            [filename file]))))
 
 (defn sitemap-urls [songs]
   (map #(str site-url-prefix "/songs/" (cstr/replace % " " "%20")) songs))

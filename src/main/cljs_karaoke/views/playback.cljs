@@ -1,9 +1,9 @@
 (ns cljs-karaoke.views.playback
   (:require [re-frame.core :as rf]
             [cljs-karaoke.subs :as s]
+            [cljs-karaoke.components.progress-bar :refer [progress-bar-component]]
             [cljs-karaoke.router.core :as router]
             [cljs-karaoke.subs.audio :as audio-subs]
-            [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.playlists :as playlist-events]
@@ -16,31 +16,53 @@
                      top-right logo-bg-style]]
             [cljs-karaoke.modals :refer [show-export-text-info-modal]]
             [cljs-karaoke.utils :as utils :refer [icon-button]]
-            [cljs-karaoke.events.playlists :as playlist-events]
             [goog.string :as gstr :refer [urlEncode]]))
+
 (defn lyrics-timing-progress []
   (let [time-remaining (rf/subscribe [::s/time-until-next-event])]
-    ;; (fn []
-    [:progress.progress.is-small.is-danger.lyrics-timing
-     {:max 3000
-      :value (- 3000 (if (> @time-remaining 3000) 3000 @time-remaining))}]))
+    (fn []
+      [progress-bar-component
+       :max-value 3000
+       :style {:margin   "0 0.5rem"
+               :width    "calc(100% - 1rem)"
+               :position :absolute
+               :bottom   "0.8rem"
+               :left     0}
+       :current-value (- 3000
+                         (if (> @time-remaining 3000)
+                           3000
+                           @time-remaining))
+       :value-bar-style {:background-color :hotpink}])))
+
 (defn song-progress []
   (let [dur (rf/subscribe [::s/song-duration])
         cur (rf/subscribe [::s/song-position])]
     (fn []
-      [:progress.progress.is-small.is-primary.song-progress
-       {:max (if (number? @dur) @dur 0)
-        :value (if (number? @cur) @cur 0)}
-       (str (if (pos? @dur)
-              (long (* 100 (/ @cur @dur)))
-              0) "%")])))
+      [progress-bar-component
+       :max-value (if (number? @dur) @dur 0)
+       :current-value (if  (number? @cur) @cur 0)
+       :color :blue
+       :label (gstr/format "%d%%" (int (* 100 (/ @cur @dur))))
+       :style {:position :absolute
+               :display :block
+               :left 0
+               :bottom "0.1rem"
+               :height "0.4rem"
+               :margin "0 0.5rem"
+               :width "calc(100% - 1rem)"}])))
+      ;; [:progress.progress.is-small.is-primary.song-progress
+       ;; {:max (if (number? @dur) @dur 0)
+        ;; :value (if (number? @cur) @cur 0)
+       ;; (str (if (pos? @dur)
+              ;; (long (* 100 (/ @cur @dur)))
+              ;; 0 "%"])))
+
 (defn seek [offset]
   (let [audio            (rf/subscribe [::s/audio])
         pos              (rf/subscribe [::s/player-current-time])]
     ;; (when-not (nil? @player-status)
       ;; (async/close! @player-status)
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
-
 
 (defn increase-playback-rate-btn []
   (let [r (rf/subscribe [::s/audio-playback-rate])]
@@ -74,8 +96,9 @@
                            {:class "has-text-danger has-background-light"} {})))
      [:span.hours hours] ":"
      [:span.minutes mins] ":"
-     [:span.seconds secs] "."
-     [:span.milis (-> ms (mod 1000) long)]]))
+     [:span.seconds secs]]))
+     ;; "."
+     ;; [:span.milis (-> ms (mod 1000) long)]]))
 (defn show-sharing-url []
   (let [song-name (rf/subscribe [::s/current-song])]))
 
@@ -89,11 +112,10 @@
   [:a.dropdown-item
    {:href "#"
     :on-click on-click}
-   [:i.fas.fa-fw {:class [icon]}]label])
+   [:i.fas.fa-fw {:class [icon]}] label])
 (defn more-options-menu []
   [:div.dropdown-menu {:role :menu}
    [:div.dropdown-content]])
-    
 
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
@@ -102,19 +124,19 @@
       [enable-audio-input-button]]
    (when-not (= :playback @(rf/subscribe [::s/current-view]))
      ;; [:div.control
-      [icon-button "play" "primary" play])
+     [icon-button "play" "primary" play])
    (when @(rf/subscribe [::s/display-home-button?])
      [:div.control>a.button.is-small.is-default
       {:href (router/url-for :home)}
       [:i.fas.fa-home.fa-fw]])
    (when-not @(rf/subscribe [::s/song-paused?])
-      [icon-button "pause" "warning" pause])
+     [icon-button "pause" "warning" pause])
    (when-not @(rf/subscribe [::s/song-paused?])
-      [icon-button "stop" "danger" stop])
+     [icon-button "stop" "danger" stop])
    (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
               @(rf/subscribe [::audio-subs/recording-enabled?]))
-       [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
-        (rf/subscribe [::audio-subs/recording-button-enabled?])])
+     [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
+      (rf/subscribe [::audio-subs/recording-button-enabled?])])
    [icon-button "step-forward" "info" #(do
                                          (stop)
                                          (rf/dispatch [::playlist-events/playlist-next]))]

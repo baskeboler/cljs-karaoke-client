@@ -266,7 +266,7 @@
 (defmethod aud/process-audio-event :timeupdate
   [event]
   (when-let [a @(rf/subscribe [::s/audio])]
-    (rf/dispatch ^:flush-dom [::events/set-player-current-time (.-currentTime a)])))
+    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])))
 
 (defmethod aud/process-audio-event :playing
   [event]
