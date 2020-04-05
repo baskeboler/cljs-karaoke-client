@@ -177,7 +177,10 @@
     (doall
      (doseq [s    songs
              :let [delay (get delays s)
-                   im (get images s default-seo-image)]]
+                   im (get images s default-seo-image)
+                   im (if-not (external-location? im)
+                        (str site-url-prefix im)
+                        im)]]
        (println "Prerendering " s)
        (spit (str "public/songs/" s ".html")
              (html5 (rest (if-not (nil? delay)
