@@ -4,8 +4,7 @@
             [hiccup.page :refer [html5]]
             [clojure.tools.reader :as reader]
             [clojure.java.io :as io :refer [input-stream]]
-            [clojure.string :as cstr]
-            [clojure.string :as str])
+            [clojure.string :as cstr])
   (:import [java.net URLConnection URLEncoder URL]
            [java.nio.charset StandardCharsets]
            [java.time Instant]
@@ -22,6 +21,9 @@
       (cstr/replace  #"\/|:|\.|-|#|\?" "_")))
       ;; last))
 (def download-folder "./downloads/")
+
+(defn- url-encode [s]
+  (URLEncoder/encode s))
 
 (def content-type->extension-mapping
   {"image/jpeg" ".jpg"
@@ -157,14 +159,14 @@
                image)
      (meta-tag "og:site_name" "Karaoke Party")
      (meta-tag "og:type" "website")
-     (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" song))
+     (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" (url-encode song)))
      (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
-     [:link {:rel :canonical :href (str "https://karaoke.uyuyuy.xyz/sing/" song)}]
+     [:link {:rel :canonical :href (str "https://karaoke.uyuyuy.xyz/sing/" (url-encode song))}]
      [:title (str "Karaoke Party :: "
                   song)]]
     [:body
      [:script
-      (str "location.assign('/sing/" song "/offset/" offset "');")]]])
+      (str "location.assign('/sing/" (url-encode song) "/offset/" offset "');")]]])
   ([song offset]
    (seo-page song offset default-seo-image))
   ([song]
