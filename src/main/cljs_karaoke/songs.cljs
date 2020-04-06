@@ -101,12 +101,16 @@
 
 (defmethod handle-route :song
   [{:keys [params]}]
-  (load-song (:song-name params))
+  (load-song (-> (:song-name params)
+                 (str/replace "+" " ")))
+                 
   :playback)
 
 (defmethod handle-route :song-with-offset
   [{:keys [params]}]
-  (let [{:keys [song-name offset]} params]
+  (let [{:keys [song-name offset]} params
+        song-name (-> song-name
+                      (str/replace "+" " "))]
     (load-song song-name)
     (rf/dispatch [::events/set-custom-song-delay song-name (js/parseInt offset)])
     (rf/dispatch [::events/set-lyrics-delay (js/parseInt offset)])
