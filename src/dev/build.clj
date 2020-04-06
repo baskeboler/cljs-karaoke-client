@@ -97,7 +97,7 @@
          (spit background-images-file))))
 
 (defn sitemap-urls [songs]
-  (map #(str site-url-prefix "/songs/" (cstr/replace % " " "%20")) songs))
+  (map #(str site-url-prefix "/songs/" (url-encode %)) songs))
 
 (defn get-songs []
   (reader/read-string (slurp songs-file)))
