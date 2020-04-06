@@ -55,23 +55,31 @@
    {:on-click #(modals/show-export-text-info-modal
                 {:title "Export synced lyrics"
                  :text (print-frames-str @(rf/subscribe [::editor-subs/frames]))})}
-   "Export Lyrics"])
+   [:span.icon.is-small>i.fas.fa-file-export]])
+   ;; "Export Lyrics"])
 
 (defn download-btn []
   [:button.button
    {:on-click #(create-text-file-download
-                :file-name (str @(rf/subscribe [::editor-subs/song-name]) ".edn")
+                :file-name (str
+                            (if (str/blank? @(rf/subscribe [::editor-subs/song-name]))
+                              "unknown"
+                              @(rf/subscribe [::editor-subs/song-name]))
+                            ".edn")
                 :text-content (print-frames-str @(rf/subscribe [::editor-subs/frames]))
                 :content-type "application/edn")}
-   [:i.fas.fa-fw.fa-download]])
+   [:span.icon.is-small>i.fas.fa-fw.fa-download]])
+
 (defn import-frames-btn []
   [:button.button
-   {:on-click (fn []
+   {:data-tooltip "import frames from file"
+    :on-click (fn []
                 (modals/show-input-text-modal
                  {:title "import lyrics"
                   :text ""
                   :on-submit #(rf/dispatch [::editor-events/load-frames %])}))}
-   "import lyrics"])
+   [:span.icon.is-small>i.fas.fa-fw.fa-file-import]])
+   ;; "import lyrics"])
 
 (comment
   (def editor-styles
@@ -287,6 +295,14 @@
                   {:width "256px"}}
    [:img {:src   "/images/art_window.svg"}]])
 
+
+(defn- button-group [& buttons]
+  [:div.buttons.has-addons
+   (doall
+    (for [[b button-id] (map vector buttons (repeatedly random-uuid))]
+      ^{:key (str button-id)}
+      b))])
+
 (defn  ^:export editor-component []
   (let [text            (rf/subscribe [::editor-subs/current-frame-property :text])
         text-done?      (rf/subscribe [::editor-subs/current-frame-property :text-done?])
@@ -307,9 +323,10 @@
        [:div.columns
         [:div.column.is-one-third
          [:div.columns>div.column
-          [export-btn]
-          [download-btn]
-          [import-frames-btn]]
+          [button-group
+           [export-btn]
+           [download-btn]
+           [import-frames-btn]]]
          [:div.columns>div.column
           [frames-table]]]
         [:div.column.is-two-thirds

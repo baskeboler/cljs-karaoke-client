@@ -5,8 +5,9 @@
             [cljs-karaoke.search :as search]
             [cljs-karaoke.styles :refer [wallpapers]]
             [cljs-karaoke.events.common :as common-events]
-            [ajax.core :as ajax]))
-
+            [ajax.core :as ajax]
+            [shadow.loader :as loader :refer [loaded? load with-module]]))
+;; [cljs-karaoke.mongo :as mongo]))
 ;; (defonce fetch-bg-from-web-enabled? true)
 
 (defn rand-wallpaper []
@@ -48,14 +49,31 @@
             :dispatch [::update-bg-image-flow-complete]
             :halt?    true}]})
 
+(defn- check-bg-updates
+  [push-count backgrounds]
+  (when (and (not (zero? push-count))
+             (zero? (mod push-count 5)))
+    (println "[mongo backend] pushing backgrounds")
+    (cljs-karaoke.mongo/save-backgrounds backgrounds)
+    (println "[mongo backend] backgrounds pushed")))
 
 (rf/reg-event-db
  ::inc-google-search-count
+ (rf/after
+  (fn [db _]
+    (if (loaded? "mongo")
+      (check-bg-updates (:google-search-count db)
+                        (:song-backgrounds db))
+      (with-module "mongo"
+        #(check-bg-updates (:google-search-count db)
+                           (:song-backgrounds db))))))
  (fn-traced
   [db _]
   (-> db
       (update :google-search-count inc))))
-            
+
+
+   
 (rf/reg-event-fx
  ::search-images
  (rf/after

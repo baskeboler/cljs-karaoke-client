@@ -44,31 +44,31 @@
                            :pretty-print        false
                            :optimization        :advanced
                            :strip-type-prefixes #{"cljs.pprint"}}
-        :module-loader true
-        :modules          {:main {:entries [cljs-karaoke.app]
-                                  :init-fn cljs-karaoke.app/init!}
+        :module-loader    true
+        :modules          {:main  {:entries [cljs-karaoke.app]
+                                   :init-fn cljs-karaoke.app/init!}
                            ;; :editor {:entries [cljs-karaoke.editor.core
-                                              ;; cljs-karaoke.editor.subs
-                                              ;; cljs-karaoke.editor.view
-                                    ;; :depends-on #{:main}}
-                           :mongo {:entries [cljs-karaoke.mongo]
+                           ;; cljs-karaoke.editor.subs
+                           ;; cljs-karaoke.editor.view
+                           ;; :depends-on #{:main}}
+                           :mongo {:entries    [cljs-karaoke.mongo]
                                    :depends-on #{:main}}}
         :asset-path       "/js"
- 
-        :dev-http         {8089 "public/"}
-        :devtools         {
-                           :http-port      8089
-                           :http-handler   shadow.http.push-state/handle
-                           :http-root      "public"
-                           :watch-dir      "resources"
-                           :preloads       [devtools.preload day8.re-frame-10x.preload
-                                            shadow.remote.runtime.cljs.browser]
-                           ;; :after-load     cljs-karaoke.app/init!
-                           :ignore-warning true}
-        :dev              {:compiler-options
-                           {:optimization :none
-                            :closure-defines
-                            {re_frame.trace.trace_enabled?                true 
-                             "re_frame.trace.trace_enabled_QMARK_"        true
-                             "day8.re_frame.tracing.trace_enabled_QMARK_" true
-                             "goog.DEBUG"                                 true}}}}}}
+        
+        :dev-http {8089 "public/"}
+        :devtools {
+                   :http-port      8089
+                   :http-handler   shadow.http.push-state/handle
+                   :http-root      "public"
+                   :watch-dir      "resources"
+                   :preloads       [devtools.preload day8.re-frame-10x.preload
+                                    shadow.remote.runtime.cljs.browser]
+                   ;; :after-load     cljs-karaoke.app/init!
+                   :ignore-warning true}
+        :dev      {:compiler-options
+                   {:optimization :none
+                    :closure-defines
+                    {re_frame.trace.trace_enabled?                true 
+                     "re_frame.trace.trace_enabled_QMARK_"        true
+                     "day8.re_frame.tracing.trace_enabled_QMARK_" true
+                     "goog.DEBUG"                                 true}}}}}}

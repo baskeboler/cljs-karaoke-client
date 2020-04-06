@@ -395,3 +395,7 @@
 (rf/reg-sub
  ::history
  (fn [db _] (:history db)))
+
+(rf/reg-sub
+ ::song-backgrounds
+ (fn [db _] (:song-backgrounds db)))
