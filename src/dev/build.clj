@@ -70,7 +70,7 @@
            (io/file (str background-images-file ".bak." (timestamp-extension)))))
 
 (defn- external-location? [l]
-  (str/starts-with? l "http"))
+  (cstr/starts-with? l "http"))
 
 (defn import-external-bg-images []
   (backup-background-images-file)
@@ -200,15 +200,15 @@
    If you're minifying static files, please use YUI."
   [css]
   (-> css
-      (clojure.string/replace #"[\n|\r]" "")
-      (clojure.string/replace #"/\*.*?\*/" "")
-      (clojure.string/replace #"\s+" " ")
-      (clojure.string/replace #"\s*:\s*" ":")
-      (clojure.string/replace #"\s*,\s*" ",")
-      (clojure.string/replace #"\s*\{\s*" "{")
-      (clojure.string/replace #"\s*}\s*" "}")
-      (clojure.string/replace #"\s*;\s*" ";")
-      (clojure.string/replace #";}" "}")))
+      (cstr/replace #"[\n|\r]" "")
+      (cstr/replace #"/\*.*?\*/" "")
+      (cstr/replace #"\s+" " ")
+      (cstr/replace #"\s*:\s*" ":")
+      (cstr/replace #"\s*,\s*" ",")
+      (cstr/replace #"\s*\{\s*" "{")
+      (cstr/replace #"\s*}\s*" "}")
+      (cstr/replace #"\s*;\s*" ";")
+      (cstr/replace #";}" "}")))
 
 (defn minify-css-inplace [path]
   (println "minifying " path)
