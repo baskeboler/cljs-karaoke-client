@@ -106,8 +106,9 @@
 
 (defn playback-view []
   [:div.playback-view
-   ^{:class "edge-stop-btn"} [playback-controls]
    [spectro-overlay]
+   ^{:class "edge-stop-btn"}
+   [playback-controls]
    [current-frame-display]
    (comment)
    #_[playback-debug-panel]

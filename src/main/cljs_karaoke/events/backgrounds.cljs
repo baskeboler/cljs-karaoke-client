@@ -48,6 +48,14 @@
             :dispatch [::update-bg-image-flow-complete]
             :halt?    true}]})
 
+
+(rf/reg-event-db
+ ::inc-google-search-count
+ (fn-traced
+  [db _]
+  (-> db
+      (update :google-search-count inc))))
+            
 (rf/reg-event-fx
  ::search-images
  (rf/after
@@ -64,7 +72,8 @@
                           "&q=" q)
                 :response-format (ajax/json-response-format {:keywords? true})
                 :on-success callback-event
-                :on-failure error-event}}))
+                :on-failure error-event}
+   :dispatch [::inc-google-search-count]}))
 (rf/reg-event-fx
  ::init-update-bg-image-flow
  ;; ::update-bg-image

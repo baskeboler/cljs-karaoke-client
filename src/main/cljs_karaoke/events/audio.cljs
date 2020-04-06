@@ -27,9 +27,10 @@
       out)))
 
 (defn init-audio-input-flow []
-  {:rules [;; {:when :seen?
-           ;;  :events ::set-audio-context
-           ;;  :dispatch [::fetch-reverb-buffer]}
+  {:rules [
+           {:when :seen?
+            :events ::set-audio-context
+            :dispatch [::fetch-reverb-buffer]}
            {:when :seen?
             :events ::set-reverb-buffer
             :dispatch [::setup-audio-input]}
@@ -375,8 +376,8 @@
  (fn-traced
   [{:keys [db]} _]
   {:db db
-   :dispatch-n [[::init-audio-context]
-                [::fetch-reverb-buffer]]
+   :dispatch-n [[::init-audio-context]]
+                ;; [::fetch-reverb-buffer]]
    :async-flow (init-audio-input-flow)}))
 
 (def recorded-blobs (atom []))

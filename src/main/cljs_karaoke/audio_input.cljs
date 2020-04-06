@@ -27,15 +27,16 @@
                                             "Get me outta here"]]}]]
     modal))
 
-(defn ^export audio-viz []
+(defn ^:export audio-viz []
   (when-let  [freq-data (rf/subscribe [::audio-subs/freq-data])]
-    (when-not (empty? @freq-data)
-      [:div.audio-spectrum
-       (doall
-        (for [[i v] (mapv (fn [a b] [b a])  @freq-data (map inc (range)))]
-          ^{:key (str "bar-" i)}
-          [:span.freq-bar
-           {:style {:height (str (* 100 v) "%")}}]))])))
+    (fn []
+      (when-not (empty? @freq-data)
+        [:div.audio-spectrum
+         (doall
+          (for [[i v] (mapv (fn [a b] [b a])  @freq-data (map inc (range)))]
+            ^{:key (str "bar-" i)}
+            [:span.freq-bar
+             {:style {:height (str (* 100 v) "%")}}]))])))) 
 
 (defn test-viz []
   [:div.audio-spectrum
@@ -44,7 +45,7 @@
      [:span.freq-bar
       {:style {:height (* 5 i)}}])])
 
-(defn ^export enable-audio-input-button []
+(defn ^:export enable-audio-input-button []
   [:button.button.is-danger
    (merge
     {:on-click #(rf/dispatch [::modal-events/modal-push [enable-audio-input-confirm-dialog]])}
@@ -52,13 +53,13 @@
       {:disabled true}))
    [:span.icon>i.fa.fa-microphone-alt]])
 
-(defn spectro-overlay []
+(defn ^:export spectro-overlay []
   (when-let  [freq-data (rf/subscribe [::audio-subs/freq-data])]
-    (when-not (empty? @freq-data)
-      [:div.audio-spectrum-overlay
-       (doall
-        (for [[i v] (mapv (fn [a b] [b a])  @freq-data (map inc (range)))]
-          ^{:key (str "bar-" i)}
-          [:span.freq-bar
-           {:style {:height (str (* 100 v) "%")}}]))])))
-
+    (fn []
+      (when-not (empty? @freq-data)
+       [:div.audio-spectrum-overlay
+        (doall
+         (for [[i v] (mapv (fn [a b] [b a])  @freq-data (map inc (range)))]
+           ^{:key (str "bar-" i)}
+           [:span.freq-bar
+            {:style {:height (str (* 100 v) "%")}}]))]))))

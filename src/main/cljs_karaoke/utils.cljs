@@ -50,3 +50,24 @@
        {:class ["fas" "fa-fw" (str "fa-" icon)]}]]])
   ([icon button-type callback]
    (icon-button icon button-type callback (atom true))))
+
+(defn ^:export create-file-download
+  [& {:keys [file-name file-blob]}]
+  (let [url (.. js/window -URL (createObjectURL file-blob))
+        a (.. js/document (createElement "a"))]
+    (set! (.. a -style -display ) "none")
+    (set! (. a -href ) url)
+    (set! (. a -download) file-name)
+    (.. js/document -body (appendChild a))
+    (.click a)
+    (js/setTimeout
+     (fn []
+       (.. js/document -body (removeChild a))
+       (.. js/window -URL (revokeObjectURL url)))
+     100)))
+
+
+(defn ^:export create-text-file-download
+  [& {:keys [text-content file-name content-type]}]
+  (let [blob (js/Blob. #js [text-content] #js {:type content-type})]
+    (create-file-download :file-name file-name :file-blob blob)))

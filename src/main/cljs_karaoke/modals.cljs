@@ -43,7 +43,8 @@
      {:on-click #(rf/dispatch [::modal-events/modal-pop])}
      "Dismiss"]
     (for [[i btn] (map-indexed vector btns)]
-      ^{:key (str "footer-button-" i)} btn)]))
+      ^{:key (str "footer-button-" i)}
+      btn)]))
    
 
 

@@ -5,6 +5,7 @@
             [stylefy.core :as stylefy]
             ;; [cljs-karaoke.components.autocomplete :refer [autocomplete-input]]
             [cljs-karaoke.editor.events :as editor-events]
+            [cljs-karaoke.utils :refer [create-text-file-download]]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.audio :as audio-events]
@@ -56,6 +57,13 @@
                  :text (print-frames-str @(rf/subscribe [::editor-subs/frames]))})}
    "Export Lyrics"])
 
+(defn download-btn []
+  [:button.button
+   {:on-click #(create-text-file-download
+                :file-name (str @(rf/subscribe [::editor-subs/song-name]) ".edn")
+                :text-content (print-frames-str @(rf/subscribe [::editor-subs/frames]))
+                :content-type "application/edn")}
+   [:i.fas.fa-fw.fa-download]])
 (defn import-frames-btn []
   [:button.button
    {:on-click (fn []
@@ -300,6 +308,7 @@
         [:div.column.is-one-third
          [:div.columns>div.column
           [export-btn]
+          [download-btn]
           [import-frames-btn]]
          [:div.columns>div.column
           [frames-table]]]

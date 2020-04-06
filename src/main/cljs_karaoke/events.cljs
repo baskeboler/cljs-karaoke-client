@@ -114,7 +114,7 @@
                           :can-play?                  false
                           ;; :highlight-status nil
                           :playing?                   false
-                          :effects-audio-ready? false
+                          :effects-audio-ready?       false
                           :toasty?                    false
                           :player-current-time        0
                           :song-duration              0
@@ -136,7 +136,8 @@
                           :billboards                 []
                           :modals                     []
                           :history                    (History.)
-                          :notifications              []}
+                          :notifications              []
+                          :google-search-count        0}
              ;; :dispatch-n [[::fetch-custom-delays]
              ;; [::fetch-song-background-config]}
              ;; [::init-song-bg-cache]]}))
