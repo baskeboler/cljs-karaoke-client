@@ -48,6 +48,22 @@
         (fn [err]
           (println "error " err))))))
 
+(defn ^:export save-delays [delays]
+  (wrap-chan
+   (.. client
+       -auth
+       (loginWithCredential (AnonymousCredential.))
+       (then
+        (fn [_]
+          (.. db
+              (collection "custom-song-delays")
+              (updateOne
+               (clj->js {:owner_id (.. client -auth -user -id)})
+               (clj->js {:$set {:owner_id     (.. client -auth -user -id)
+                                :updated_at   (js/Date.now)
+                                :delayMapping (clj->js delays)}})
+               #js {:upsert true})))))))
+
 (defn ^:export save-backgrounds [backgrounds]
   (wrap-chan
    (.. client

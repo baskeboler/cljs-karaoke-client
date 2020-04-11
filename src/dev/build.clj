@@ -4,7 +4,9 @@
             [hiccup.page :refer [html5]]
             [clojure.tools.reader :as reader]
             [clojure.java.io :as io :refer [input-stream]]
-            [clojure.string :as cstr])
+            [clojure.string :as cstr]
+            [mongo :as m])
+            ;; [clojure.string :as str])
   (:import [java.net URLConnection URLEncoder URL]
            [java.nio.charset StandardCharsets]
            [java.time Instant]
@@ -74,12 +76,12 @@
 
 (defn import-external-bg-images []
   (backup-background-images-file)
-  (let [image-map (get-images)]
-
-    (->> (for [[song-name image-url] image-map
+  (let [image-map (get-images)
+        from-mongo (m/new-backgrounds)]
+    (->> (for [[song-name image-url] (merge from-mongo  image-map)
                :when (external-location? image-url)
                :let [filename (url->filename image-url)
-                     is ()
+                     ;; is ()
                      download-filename (str project-images-directory "/covers/" filename)
                      f (try
                          (download-file image-url download-filename)
@@ -93,7 +95,7 @@
                           new-image-path
                           image-url)]))
          (into {})
-         (merge image-map)
+         (merge from-mongo image-map)
          (spit background-images-file))))
 
 (defn sitemap-urls [songs]
@@ -141,11 +143,21 @@
 (def default-seo-image
   "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
 
+(def cmap
+  {\' "\\'"})
+
+(defn- escape-song-name [n]
+  (cstr/escape n cmap))
+
 (defn seo-page
   ([song offset image]
    [:html
     [:head
      [:meta {:charset :utf-8}]
+     [:link {:async true
+             :href "/css/main.css"
+             :rel :stylesheet}]
+     (meta-tag "viewport" "width=device-width, initial-scale=1")
      (meta-tag
       "twitter:image:src"
       image)
@@ -163,10 +175,23 @@
      (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
      [:link {:rel :canonical :href (str "https://karaoke.uyuyuy.xyz/sing/" (url-encode song))}]
      [:title (str "Karaoke Party :: "
-                  song)]]
+                  song)]
+     [:style#_stylefy-constant-styles_]
+     [:style#_stylefy-styles_]]
     [:body
+     [:div#root]
+     [:script {:src "/js/main.js"}]
+     [:audio#main-audio {:crossOrigin :anonymous
+                         :style "display:none;"}]
+     [:audio#effects-audio {:crossOrigin :anonymous
+                            :style "display:none;"
+                            :src "/media/250-milliseconds-of-silence.mp3"}]
+     [:video#main-video {:crossOrigin :anonymous
+                         :style "display:none;"}]
      [:script
-      (str "location.assign('/sing/" (url-encode song) "/offset/" offset "');")]]])
+      (str "cljs_karaoke.app.load_song_global('"
+           (escape-song-name song)
+           "');")]]])
   ([song offset]
    (seo-page song offset default-seo-image))
   ([song]

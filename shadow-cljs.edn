@@ -27,7 +27,9 @@
   [stylefy "1.10.1"]
   [bidi "2.1.6"]
   [kibu/pushy "0.3.8"]
-  [bardo "0.1.2-SNAPSHOT"]]
+  [bardo "0.1.2-SNAPSHOT"]
+  ;; [org.mongodb/mongodb-driver-sync "3.12.3"]
+  [com.novemberain/monger "3.5.0"]]
 
  :nrepl {:port 9999}
 

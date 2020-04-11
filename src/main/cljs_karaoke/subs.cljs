@@ -259,9 +259,34 @@
             (:playing? db)))
 
 (rf/reg-sub
+ ::user-custom-song-delay-map
+ (fn-traced
+  [db _]
+  (:user-custom-song-delay db)))
+
+(rf/reg-sub
+ ::custom-song-delay-map
+ (fn-traced
+  [db _]
+  (:custom-song-delay db)))
+
+
+(rf/reg-sub
  ::custom-song-delay
- (fn-traced [db [_ song-name]]
-            (get-in db [:custom-song-delay song-name] (:lyrics-delay db))))
+ :<- [::custom-song-delay-map]
+ :<- [::user-custom-song-delay-map]
+ (fn-traced
+  [[delay-map user-delay-map] [_ song-name]]
+  (let [final-delay-map (merge delay-map user-delay-map)]
+    (get-in final-delay-map [ song-name] 0))))
+
+(rf/reg-sub
+ ::user-song-delay-count
+ :<- [::user-custom-song-delay-map]
+ (fn-traced
+  [delays _]
+  (-> delays keys count)))
+
 
 (rf/reg-sub
  ::verified-songs
@@ -275,7 +300,7 @@
             (-> db
                 :custom-song-delay
                 (pr-str))))
-
+ 
 (rf/reg-sub
  ::modals
  (fn-traced [db _]
@@ -329,9 +354,39 @@
             (#{:playlist :home :editor} view)))
 
 (rf/reg-sub
+ ::backgrounds-loaded?
+ (fn-traced
+  [db _]
+  (:song-backgrounds-loaded? db)))
+
+(rf/reg-sub
+ ::song-delays-loaded?
+ (fn-traced
+  [db _]
+  (:song-delays-loaded db)))
+
+(rf/reg-sub
+ ::views-state-ready?
+ (fn-traced
+  [db _]
+  (:views-state-ready? db)))
+
+
+
+(rf/reg-sub
  ::initialized?
  (fn-traced [db _]
             (:initialized? db)))
+
+(rf/reg-sub
+ ::app-ready?
+ :<- [::initialized?]
+ :<- [::backgrounds-loaded?]
+ :<- [::song-delays-loaded?]
+ :<- [::views-state-ready?]
+ (fn-traced
+  [[initialized? bgloaded? delaysloaded? vsready?] _]
+  (and initialized? bgloaded? delaysloaded? vsready?)))
 
 (rf/reg-sub
  ::pageloader-active?

@@ -16,7 +16,7 @@
                      top-right logo-bg-style]]
             [cljs-karaoke.modals :refer [show-export-text-info-modal]]
             [cljs-karaoke.utils :as utils :refer [icon-button]]
-            [goog.string :as gstr :refer [urlEncode]]))
+            [goog.string :as gstr :refer [urlEncode format]]))
 
 (defn lyrics-timing-progress []
   (let [time-remaining (rf/subscribe [::s/time-until-next-event])]
@@ -42,7 +42,7 @@
        :max-value (if (number? @dur) @dur 0)
        :current-value (if  (number? @cur) @cur 0)
        :color :blue
-       :label (gstr/format "%d%%" (int (* 100 (/ @cur @dur))))
+       :label (format "%d%%" (int (* 100 (/ @cur @dur))))
        :style {:position :absolute
                :display :block
                :left 0
@@ -50,18 +50,10 @@
                :height "0.4rem"
                :margin "0 0.5rem"
                :width "calc(100% - 1rem)"}])))
-      ;; [:progress.progress.is-small.is-primary.song-progress
-       ;; {:max (if (number? @dur) @dur 0)
-        ;; :value (if (number? @cur) @cur 0)
-       ;; (str (if (pos? @dur)
-              ;; (long (* 100 (/ @cur @dur)))
-              ;; 0 "%"])))
 
 (defn seek [offset]
   (let [audio            (rf/subscribe [::s/audio])
         pos              (rf/subscribe [::s/player-current-time])]
-    ;; (when-not (nil? @player-status)
-      ;; (async/close! @player-status)
     (set! (.-currentTime @audio) (+ @pos (/ (double offset) 1000.0)))))
 
 (defn increase-playback-rate-btn []
@@ -87,18 +79,15 @@
                   (/ (* 60.0 60.0 1.0))
                   (mod 60.0)
                   long)]
-    ;; (println  hours ":" mins ":" secs)
     [:div.time-display
      (stylefy/use-style time-display-style
                         (merge
                          {}
                          (if @(rf/subscribe [::audio-subs/recording?])
                            {:class "has-text-danger has-background-light"} {})))
-     [:span.hours hours] ":"
-     [:span.minutes mins] ":"
-     [:span.seconds secs]]))
-     ;; "."
-     ;; [:span.milis (-> ms (mod 1000) long)]]))
+     [:span.hours (format "%02d" hours)] ":"
+     [:span.minutes (format "%02d" mins)] ":"
+     [:span.seconds (format "%02d" secs)]]))
 (defn show-sharing-url []
   (let [song-name (rf/subscribe [::s/current-song])]))
 
@@ -120,10 +109,7 @@
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
    (stylefy/use-style shadow-style)
-   #_[:div.control
-      [enable-audio-input-button]]
    (when-not (= :playback @(rf/subscribe [::s/current-view]))
-     ;; [:div.control
      [icon-button "play" "primary" play])
    (when @(rf/subscribe [::s/display-home-button?])
      [:div.control>a.button.is-small.is-default
@@ -141,8 +127,6 @@
                                          (stop)
                                          (rf/dispatch [::playlist-events/playlist-next]))]
    [icon-button "random" "warning" load-random-song]
-  ;; [:div.control
-   ;; [icon-button "trash" "danger" #(clear-cached-song-bg-image @(rf/subscribe [::s/current-song]))]
    [increase-playback-rate-btn]
    [decrease-playback-rate-btn]
    [icon-button "share-alt" "success"
