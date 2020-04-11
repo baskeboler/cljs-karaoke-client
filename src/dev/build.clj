@@ -6,6 +6,7 @@
             [clojure.java.io :as io :refer [input-stream]]
             [clojure.string :as cstr]
             [mongo :as m])
+            ;; [clojure.string :as str])
   (:import [java.net URLConnection URLEncoder URL]
            [java.nio.charset StandardCharsets]
            [java.time Instant]
@@ -142,6 +143,12 @@
 (def default-seo-image
   "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
 
+(def cmap
+  {\' "\\'"})
+
+(defn- escape-song-name [n]
+  (cstr/escape n cmap))
+
 (defn seo-page
   ([song offset image]
    [:html
@@ -164,7 +171,9 @@
      (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
      [:link {:rel :canonical :href (str "https://karaoke.uyuyuy.xyz/sing/" (url-encode song))}]
      [:title (str "Karaoke Party :: "
-                  song)]]
+                  song)]
+     [:style#_stylefy-constant-styles_]
+     [:style#_stylefy-styles_]]
     [:body
      [:div#root]
      [:script {:src "/js/main.js"}]
@@ -176,7 +185,9 @@
      [:video#main-video {:crossOrigin :anonymous
                          :style "display:none;"}]
      [:script
-      (str "cljs_karaoke.app.load_song_global('" (url-encode song) "');")]]])
+      (str "cljs_karaoke.app.load_song_global('"
+           (escape-song-name song)
+           "');")]]])
   ([song offset]
    (seo-page song offset default-seo-image))
   ([song]
