@@ -4,7 +4,8 @@
             [hiccup.page :refer [html5]]
             [clojure.tools.reader :as reader]
             [clojure.java.io :as io :refer [input-stream]]
-            [clojure.string :as cstr])
+            [clojure.string :as cstr]
+            [mongo :as m])
   (:import [java.net URLConnection URLEncoder URL]
            [java.nio.charset StandardCharsets]
            [java.time Instant]
@@ -74,12 +75,12 @@
 
 (defn import-external-bg-images []
   (backup-background-images-file)
-  (let [image-map (get-images)]
-
-    (->> (for [[song-name image-url] image-map
+  (let [image-map (get-images)
+        from-mongo (m/new-backgrounds)]
+    (->> (for [[song-name image-url] (merge from-mongo  image-map)
                :when (external-location? image-url)
                :let [filename (url->filename image-url)
-                     is ()
+                     ;; is ()
                      download-filename (str project-images-directory "/covers/" filename)
                      f (try
                          (download-file image-url download-filename)
@@ -93,7 +94,7 @@
                           new-image-path
                           image-url)]))
          (into {})
-         (merge image-map)
+         (merge from-mongo image-map)
          (spit background-images-file))))
 
 (defn sitemap-urls [songs]
@@ -166,7 +167,7 @@
                   song)]]
     [:body
      [:script
-      (str "location.assign('/sing/" (url-encode song) "/offset/" offset "');")]]])
+      (str "cljs_karaoke.app.load_song_global('" (url-encode song) "');")]]])
   ([song offset]
    (seo-page song offset default-seo-image))
   ([song]

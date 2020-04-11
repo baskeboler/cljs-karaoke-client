@@ -26,14 +26,20 @@
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [goog.events :as gevents]
             [cljs-karaoke.audio :as aud]
-            [cljs-karaoke.http.events :as http-events])
+            [cljs-karaoke.http.events :as http-events]
+            [shadow.loader :as loader :refer [loaded? with-module]])
   (:import goog.History))
+
+(defn with-mongo [some-fn]
+  (if (loaded? "mongo")
+    (some-fn)
+    (with-module "mongo"
+      some-fn)))
+
 (defonce fetch-bg-from-web-enabled? true)
 (def base-storage-url (:audio-files-prefix config-map))
 
-
 (declare save-custom-delays-to-localstore)
-
 
 (rf/reg-cofx
  ::pending-events
@@ -42,8 +48,7 @@
   (assoc coeffects :pending-events [])))
 
 (defn init-flow []
-  {
-   ;; :id    (gensym ::init-flow)
+  {;; :id    (gensym ::init-flow)
    :rules [{:when     :seen?
             :events   [::handle-fetch-background-config-complete]
             :dispatch [::init-song-bg-cache]}
@@ -59,8 +64,7 @@
             :halt?      true}
            {:when       :seen?
             :events     ::playlist-ready
-            :dispatch-n [
-                         ;; [::views-events/set-current-view :playback]
+            :dispatch-n [;; [::views-events/set-current-view :playback]
                          [::playlist-load]]}
            {:when       :seen-all-of?
             :events     [::song-bgs-loaded
@@ -119,6 +123,7 @@
                           :player-current-time        0
                           :song-duration              0
                           :custom-song-delay          {}
+                          :user-custom-song-delay {}
                           :song-backgrounds           {}
                           :metrics                    {}
                           :stop-channel               (chan)
@@ -188,16 +193,16 @@
    :dispatch-n dispatch-n-vec}))
 
 #_(rf/reg-event-fx
-    ::fetch-song-list
-    (fn-traced
-     [{:keys [db]} _]
-     {:db db
-      :http-xhrio {:method :get
-                   :uri "/data/songs.edn"
-                   :timeout 8000
-                   :response-format (ajax/text-response-format)
-                   :on-success [::handle-fetch-song-list-success]
-                   :on-failure [::http-fetch-fail [[::fetch-song-list-complete]]]}}))
+   ::fetch-song-list
+   (fn-traced
+    [{:keys [db]} _]
+    {:db db
+     :http-xhrio {:method :get
+                  :uri "/data/songs.edn"
+                  :timeout 8000
+                  :response-format (ajax/text-response-format)
+                  :on-success [::handle-fetch-song-list-success]
+                  :on-failure [::http-fetch-fail [[::fetch-song-list-complete]]]}}))
 
 (rf/reg-event-fx
  ::fetch-song-list
@@ -227,7 +232,7 @@
 (rf/reg-event-fx
  ::pageloader-exit-transition
  (fn-traced
-  [{:keys [db] } _]
+  [{:keys [db]} _]
   {:db db
    :dispatch [::set-pageloader-exiting? true]
    :dispatch-later [{:ms 3000
@@ -276,7 +281,6 @@
               "custom-song-delays"
               (:custom-song-delay db)
               ::save-custom-delays-to-localstorage-complete]}))
-
 
 (common-events/reg-identity-event ::save-custom-delays-to-localstorage-complete)
 
@@ -331,17 +335,17 @@
  (fn-traced [db _] db))
 
 (rf/reg-event-db
-   ::set-location-hash
-   (rf/after
-    (fn [db [_ new-hash]]
-      (println "setting new location hash")
-      (doto ^js (:history db) (.setEnabled false))
-      (set-location-hash new-hash)
-      (doto ^js (:history db) (.setEnabled true))))
-   (fn-traced
-    [db [_ new-hash]]
-    (-> db
-        (assoc :location-hash new-hash))))
+ ::set-location-hash
+ (rf/after
+  (fn [db [_ new-hash]]
+    (println "setting new location hash")
+    (doto ^js (:history db) (.setEnabled false))
+    (set-location-hash new-hash)
+    (doto ^js (:history db) (.setEnabled true))))
+ (fn-traced
+  [db [_ new-hash]]
+  (-> db
+      (assoc :location-hash new-hash))))
 
 (rf/reg-event-fx
  ::init-song-delays
@@ -434,19 +438,24 @@
   {:db       db
    :dispatch [::set-playing? true]}))
 
-
+(defn- custom-song-delay-changed? [db song-name delay]
+  (true?
+   (some-> db
+           :custom-song-delay
+           (get song-name)
+           (not= delay))))
 
 (rf/reg-event-fx
  ::set-custom-song-delay
  (fn-traced
   [{:keys [db]} [_ song-name delay]]
-  {:db (-> db
-           (update :custom-song-delay merge {song-name delay}))
-   :dispatch-n [
-                [::playlist-events/add-song song-name]
+  {:db         (if (custom-song-delay-changed? db song-name delay)
+                 (-> db
+                     (update-in [:user-custom-song-delay] merge {song-name delay}))
+                 (-> db
+                     (update-in [:user-custom-song-delay] dissoc song-name)))
+   :dispatch-n [[::playlist-events/add-song song-name]
                 [::save-custom-song-delays-to-localstorage]]}))
-
-
 
 (rf/reg-event-fx
  ::initial-audio-setup
@@ -475,3 +484,10 @@
   (. js/console (log "Initial Audio Setup Complete!"))
   (-> db (assoc :initial-audio-setup-complete? true))))
 
+(rf/reg-event-db
+ ::push-delays-to-mongo
+ (fn-traced
+  [db _]
+  (-> db
+      (update :custom-song-delay merge (:user-custom-song-delay db))
+      (assoc :user-custom-song-delay {}))))

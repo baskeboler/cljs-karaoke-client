@@ -38,7 +38,8 @@
              :refer [ centered screen-centered
                      top-left parent-style]]
             [shadow.loader :as loader]
-            ["shake.js" :as Shake]))
+            ["shake.js" :as Shake]
+            [cljs.core.async :as async]))
 
 (stylefy/init)
 
@@ -196,7 +197,15 @@
    (pages @(rf/subscribe [::s/current-view]))])
 
 (defn ^:export load-song-global [s]
-  (songs/load-song s))
+  (async/go-loop [_ (async/<! (async/timeout 1000))]
+    (if  @(rf/subscribe [::s/app-ready?])
+      (do
+        (println "app ready, loading song " s)
+        (songs/load-song s)
+        (rf/dispatch [::views-events/set-current-view :playback]))
+      (do
+        (println "Not yet ready, waiting ...")
+        (recur (async/<! (async/timeout 1000)))))))
 
 (defn get-sharing-url []
   (let [l        js/location
