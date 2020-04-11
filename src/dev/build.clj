@@ -166,6 +166,15 @@
      [:title (str "Karaoke Party :: "
                   song)]]
     [:body
+     [:div#root]
+     [:script {:src "/js/main.js"}]
+     [:audio#main-audio {:crossOrigin :anonymous
+                         :style "display:none;"}]
+     [:audio#effects-audio {:crossOrigin :anonymous
+                            :style "display:none;"
+                            :src "/media/250-milliseconds-of-silence.mp3"}]
+     [:video#main-video {:crossOrigin :anonymous
+                         :style "display:none;"}]
      [:script
       (str "cljs_karaoke.app.load_song_global('" (url-encode song) "');")]]])
   ([song offset]
