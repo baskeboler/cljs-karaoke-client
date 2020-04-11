@@ -27,6 +27,9 @@ Another difficulty was obtaining the song audio track, since the lyrics are sync
 ## Features 
 
 - Tons of songs
+- Background images for songs are dynamically fetched from the web after a google search during song load (if none is cached)
+  - Each user caches their local backgrounds and periodically pushes its urls to a mongo db, google custom search has a daily limit so I try to minimize its use.
+  - Initialization data (lyrics offsets, bg images ) improves during builds by consolidating data from users
 - Ability to sync lyrics by an offset in miliseconds (either from the control panel or by appending a query string to the url)
 - Automatic playlist built from previously synced songs
 - Export local song sync information so that it may be merged to the server-side sync data
@@ -35,6 +38,16 @@ Another difficulty was obtaining the song audio track, since the lyrics are sync
 - Remote control. Run the application on a big screen and control playback from a different application instance (for example, from your mobile device!)
 - Build pre-renders song pages with SEO tags so you can share links in social networks as pretty looking cards with song name and an image if available.
   - ![Twitter card example](./docs/twittercard.png "example twitter card")
+- Lyrics editor for syncing new tracks with lyrics.
+  - select an audio file 
+  - add text, split it into syllables (or just random chunks )
+  - play your track and tap the "sync" button for each piece
+  - if you want more accuracy you may slow down the track decreasing the playback rate
+
+## Working on 
+
+- Dynamic font sizes, already optimized font sizes for song titles but I am looking for a way to improve the lyrics display as well.
+- 
 
 ## Running locally
 
