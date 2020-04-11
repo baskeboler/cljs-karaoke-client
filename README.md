@@ -6,7 +6,7 @@ A web karaoke player implemented in clojurescript
 
 ## Demo 
 
-[Rolling Stones - All Over Now](https://karaoke.uyuyuy.xyz/sing/Rolling%20Stones-all%20over%20now%20rolling%20stones/offset/0)
+[Rolling Stones - All Over Now](https://karaoke.uyuyuy.xyz/songs/Rolling%20Stones-all%20over%20now%20rolling%20stones.html)
 
 ## Description 
 
@@ -47,7 +47,8 @@ Another difficulty was obtaining the song audio track, since the lyrics are sync
 ## Working on 
 
 - Dynamic font sizes, already optimized font sizes for song titles but I am looking for a way to improve the lyrics display as well.
-- 
+- A way to capture custom lyrics offsets from all users, integrating these as defaults in subsequent releases
+- Same thing with song backgrounds, currently google custom search is used to find images related to the song title, there is a quota for this service and it is pretty low, the less we need to search the better.
 
 ## Running locally
 
