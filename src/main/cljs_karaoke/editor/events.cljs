@@ -6,10 +6,11 @@
             [re-frame.core :as rf]
             [day8.re-frame.tracing :refer-macros [fn-traced]]))
 (def editor-states #{:text-entry :segment-selection :segment-timing :frame-preview})
-(def editor-actions #{:reset :confirm-text :confirm-segments :confirm-timing :select-frame :preview-frame})
+(def editor-actions #{:reset :confirm-text :confirm-segments :confirm-timing :select-frame :preview-frame :copy-frame-here})
 (def editor-transitions
-  {:text-entry        {:confirm-text :segment-selection
-                       :reset        :text-entry}
+  {:text-entry        {:confirm-text    :segment-selection
+                       :reset           :text-entry
+                       :copy-frame-here :text-entry}
    :segment-selection {:reset            :text-entry
                        :confirm-segments :segment-timing}
    :segment-timing    {:reset          :text-entry
@@ -76,12 +77,14 @@
         frame-id     (if (nil? frame-id)
                        (str (random-uuid))
                        frame-id)
-        segments     (vals (get-in db [:editor-state :current-frame :segments]))
-        segments     (map merge segments (map (fn [o] {:offset o}) offsets))
-        events       (map lyrics/create-lyrics-event segments)
+        segments     (sort-by
+                      :id
+                      (vals (get-in db [:editor-state :current-frame :segments])))
+        segments     (mapv merge (into [] segments) (mapv (fn [o] {:offset o}) offsets))
+        events       (mapv lyrics/create-lyrics-event segments)
         frame-offset (-> events first :offset)
         frame        (lyrics/->LyricsFrame frame-id
-                                           (map #(update % :offset (fn [off] (- off frame-offset))) events)
+                                           (mapv #(update % :offset (fn [off] (- off frame-offset))) events)
                                            :frame-event
                                            -1
                                            frame-offset)]
@@ -136,6 +139,40 @@
                        (assoc-in [:editor-state :current-state] :segment-timing))
          :dispatch [::delete-frame frame-id]})
       {:db db}))))
+
+(rf/reg-event-fx
+ ::copy-frame
+ (fn-traced
+  [{:keys [db]} [_ frame-id offset]]
+  (let [frames (get-in db [:editor-state :frames])
+        frame  (-> (filterv #(= frame-id (:id %)) frames)
+                   first
+                   (assoc :offset offset))]
+    (if-not (nil? frame)
+      (let [events   (mapv #(update % :offset (partial + (:offset frame))) (:events frame))
+            events   (sort-by :offset events)
+            events   (map-indexed (fn [i evt] (assoc evt :id i)) events)
+            offsets  (mapv :offset events)
+            ;; offsets  (mapv (partial + (:offset frame)) offsets)
+            segments (into (sorted-map)
+                           (for [seg (mapv event->segment events)]
+                             [(:id seg) (dissoc seg :offset)]))
+            sizes    (mapv #(count (:text %)) (vals segments))]
+        {:db       (-> db
+                       (assoc-in [:editor-state :current-frame]
+                                 {:segments        segments
+                                  :segment-offsets offsets
+                                  :segment-sizes   sizes
+                                  :segment-size    0
+                                  :mode            :editing
+                                  :text-done?      true
+                                  :segments-done?  true
+                                  :offsets-done?   true 
+                                  :text            (apply str (mapv :text events))
+                                  :id              nil})
+                       (assoc-in [:editor-state :current-state] :segment-timing))})
+      {:db db}))))
+
 (rf/reg-event-db
  ::set-current-frame-property
  (fn-traced

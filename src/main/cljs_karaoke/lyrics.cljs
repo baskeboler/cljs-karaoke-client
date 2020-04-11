@@ -7,7 +7,7 @@
                      get-progress get-text get-offset played?
                      get-current-frame]]))
 
-(def frame-text-limit 128)
+(def frame-text-limit 96)
 (def rand-uuid random-uuid)
 (defn set-event-id [event]
   (if-not (nil? (:id event))

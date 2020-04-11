@@ -133,7 +133,13 @@
           "delete"]
          [:button.button.is-small
           {:on-click #(rf/dispatch [::editor-events/edit-frame id])}
-          "edit"]]]))]])
+          "edit"]
+         [:button.button.is-small
+          {:on-click #(rf/dispatch
+                       [::editor-events/copy-frame
+                        id
+                        @(rf/subscribe [::s/song-position-ms])])}
+          [:span.icon>i.fas.fa-copy]]]]))]])
 (defn- load-local-audio [evt]
   (let [f (.. ^js evt -currentTarget -files (item 0))
         reader (js/FileReader.)]
@@ -142,6 +148,7 @@
             (set! (.-src @(rf/subscribe [::s/audio]))
                   (.. e -target -result))))
     (.. reader (readAsDataURL f))))
+
 (defn frame-text-editor []
   [:div.columns>div.column.is-full
    [:div.columns>div.column.is-full>div.file.has-name>label.file-label
@@ -203,7 +210,7 @@
      [:div.is-size-2.mb-2
       (doall
        (for [[i seg] (map-indexed vector (vec
-                                          (sort-by :offset
+                                          (sort-by :id
                                                    (vec
                                                     (vals @segments)))))
              :let    [{:keys [text id]} seg]]
