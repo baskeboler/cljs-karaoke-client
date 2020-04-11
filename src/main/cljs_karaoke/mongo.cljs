@@ -60,7 +60,8 @@
               (updateOne (clj->js  {:owner_id (.. client -auth -user -id)})
                          (clj->js {:$set {:owner_id   (.. client -auth -user -id)
                                           :updated_at (js/Date.now)
-                                          :bgMapping  (clj->js backgrounds)}})
+                                          :bgMapping  (clj->js backgrounds)
+                                          :imported?  false}})
                          #js {:upsert true})))))))
 (defn ^:export fetch-all-by-owner []
   (wrap-chan
