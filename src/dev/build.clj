@@ -154,6 +154,10 @@
    [:html
     [:head
      [:meta {:charset :utf-8}]
+     [:link {:async true
+             :href "/css/main.css"
+             :rel :stylesheet}]
+     (meta-tag "viewport" "width=device-width, initial-scale=1")
      (meta-tag
       "twitter:image:src"
       image)
