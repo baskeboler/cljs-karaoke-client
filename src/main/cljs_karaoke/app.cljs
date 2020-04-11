@@ -201,8 +201,9 @@
     (if  @(rf/subscribe [::s/app-ready?])
       (do
         (println "app ready, loading song " s)
-        (songs/load-song s)
-        (rf/dispatch [::views-events/set-current-view :playback]))
+        (rf/dispatch [::song-events/navigate-to-song s]))
+      ;; (songs/load-song s)
+        ;; (rf/dispatch [::views-events/set-current-view :playback]))
       (do
         (println "Not yet ready, waiting ...")
         (recur (async/<! (async/timeout 1000)))))))
