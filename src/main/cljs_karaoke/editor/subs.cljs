@@ -93,11 +93,11 @@
         :otherwise                     res))
     frames)))
 
-(rf/reg-sub
- ::frame-count
- :<- [::frames]
- (fn [frames _]
-   (count frames)))
+;; (rf/reg-sub
+ ;; ::frame-count
+ ;; :<- [::frames]
+ ;; (fn [frames _]
+   ;; (count frames)))
 
 (defn flip [function]
   (fn

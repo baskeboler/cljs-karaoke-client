@@ -198,6 +198,9 @@
   ([song]
    (seo-page song -1000)))
 
+(defn- append-home-url [urls]
+  (conj urls site-url-prefix))
+
 (defn prerender []
   (let  [songs  (get-songs)
          delays (get-delays)
@@ -217,6 +220,7 @@
     (println "used " (count (keys images)) " custom images for seo image tags")
     (println "Generating sitemap")
     (->> (sitemap-urls songs)
+         append-home-url
          (cstr/join "\n")
          (spit "public/sitemap.txt"))
     (println "sitemap ready")))
