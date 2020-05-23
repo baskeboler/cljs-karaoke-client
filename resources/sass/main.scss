@@ -371,6 +371,7 @@ nav.navbar > div.navbar-brand > a.navbar-item > object.header-logo {
 html {
     overflow-y: auto;
     min-width: 240px;
+    transform: translate3d(0,0,0);
 }
 
 .playback-controls {
