@@ -9,11 +9,11 @@
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.songs :as songs]
             [cljs-karaoke.audio :as aud]
+            [cljs-karaoke.events :as events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.audio :as audio-events]
-            [cljs-karaoke.events :as events]
             ;; [cljs-karaoke.mongo :as mongo]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.modals :as modals]
@@ -198,10 +198,10 @@
 
 (defn ^:export load-song-global [s]
   (async/go-loop [_ (async/<! (async/timeout 1000))]
-    (if  @(rf/subscribe [::s/app-ready?])
+    (if  @(rf/subscribe [::s/initialized?])
       (do
         (println "app ready, loading song " s)
-        (rf/dispatch [::song-events/navigate-to-song s]))
+        (rf/dispatch-sync [::song-events/navigate-to-song s]))
       ;; (songs/load-song s)
         ;; (rf/dispatch [::views-events/set-current-view :playback]))
       (do
@@ -230,8 +230,8 @@
 
 (defn init! []
   (println "init!")
-  (rf/dispatch-sync [::events/init-db])
   (router/app-routes)
+  (rf/dispatch-sync [::events/init-db])
   (mount-components!)
   (if mobile?
     (do

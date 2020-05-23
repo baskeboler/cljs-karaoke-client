@@ -5,6 +5,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
+        "build": "npm run release",
         "test": "echo \"Error: no test specified\" && exit 1",
         "cljs-watch": "shadow-cljs watch app",
         "compile": "shadow-cljs compile app ",
