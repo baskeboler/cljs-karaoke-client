@@ -24,17 +24,18 @@
         "highlight.js": "9.15.10",
         "mongodb-stitch-browser-sdk": "^4.8.0",
         "path": "^0.12.7",
-        "react": "^16.13.0",
-        "react-dom": "^16.13.0",
+        "react": "^16.13.1",
+        "react-awesome-button": "^6.5.1",
+        "react-dom": "^16.13.1",
         "react-flip-move": "^3.0.4",
         "react-highlight.js": "^1.0.7",
         "shake.js": "^1.2.2"
     },
     "devDependencies": {
-        "@fortawesome/fontawesome-free": "^5.12.1",
-        "bulma": "^0.8.0",
-        "concurrently": "^5.1.0",
-        "node-sass": "^4.13.1",
-        "shadow-cljs": "^2.8.94"
+        "@fortawesome/fontawesome-free": "^5.13.0",
+        "bulma": "^0.8.2",
+        "concurrently": "^5.2.0",
+        "node-sass": "^4.14.1",
+        "shadow-cljs": "^2.9.8"
     }
 }

@@ -38,6 +38,12 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/solid.scss";
 @import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700%7CNunito:400,70&display=swap');
 
+html {
+    overflow-y: auto;
+    min-width: 240px;
+    /* transform: translate3d(0,0,0); */
+}
+ 
 .button, .navbar-item {
   text-transform: capitalize;
 }
@@ -368,12 +374,6 @@ nav.navbar > div.navbar-brand > a.navbar-item > object.header-logo {
   height: 2em;
 }
 
-html {
-    overflow-y: auto;
-    min-width: 240px;
-    transform: translate3d(0,0,0);
-}
-
 .playback-controls {
     position: absolute;
     display: flex;
@@ -444,4 +444,36 @@ html {
 .swing-in-top-fwd {
 	  -webkit-animation: swing-in-top-fwd 0.5s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
 	  animation: swing-in-top-fwd 0.5s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
+}
+
+.progress-bar {
+    width: calc(100% - 1rem);
+    display: block;
+    height: 0.8rem;
+    padding: 0px;
+    margin: 0 0.5rem;
+    background-color: rgba(255,255,255, 0.7);
+    border: 1px solid black;
+    border-radius: 0.3em;
+    box-shadow: 0 0 1rem 0.1rem black;
+    .progress-bar-value {
+        height: 100%;
+        border-radius: 0.3em;
+        margin: 0;
+        position: relative;
+        display: block;
+        transition: 0.5s width ease-out;
+    }
+    .progress-bar-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        text-align: center;
+        z-index: 2;
+        color: white;
+        text-shadow: 0 0 3px black;
+    }
 }
