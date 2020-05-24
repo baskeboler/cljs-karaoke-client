@@ -11,7 +11,7 @@
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.playback :as playback :refer [play pause stop]]
             [cljs-karaoke.styles :as styles
-             :refer [time-display-style centered
+             :refer [centered
                      top-left parent-style shadow-style
                      top-right logo-bg-style]]
             [cljs-karaoke.modals :refer [show-export-text-info-modal]]
@@ -80,11 +80,10 @@
                   (mod 60.0)
                   long)]
     [:div.time-display
-     (stylefy/use-style time-display-style
-                        (merge
-                         {}
-                         (if @(rf/subscribe [::audio-subs/recording?])
-                           {:class "has-text-danger has-background-light"} {})))
+     (merge
+      {}
+      (if @(rf/subscribe [::audio-subs/recording?])
+        {:class "has-text-danger has-background-light"} {}))
      [:span.hours (format "%02d" hours)] ":"
      [:span.minutes (format "%02d" mins)] ":"
      [:span.seconds (format "%02d" secs)]]))
