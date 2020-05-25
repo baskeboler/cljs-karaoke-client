@@ -1,5 +1,7 @@
 { "I'm in a Cowboy Band - Aquello que jamas será"
- {:description nil
-  :social {:instagram nil
-           :facebook :nil
-           :twitter nil}}}
+ {:description "Integrantes del grupo: Federico Petersen (guitarra y voz), Verónica Young (guitarra y voz), Federico Eguren (Percusión), Diego Comas (bajo)"
+  :title "I'm in a Cowboy Band"
+  :social      {:instagram "https://instagram.com/iminacowboyband"
+                :facebook  "https://facebook.com/iminacowboyband"
+                :twitter   "https://twitter.com/iminacowboyband"}
+  :image "/images/profiles/iminacowboyband.jpg"}}

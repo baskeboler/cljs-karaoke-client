@@ -26,6 +26,10 @@
          [footer]
          footer)])]])
 
+(defn show-modal-card-dialog [{:keys [title content footer] :as arg}]
+  (rf/dispatch [::modal-events/modal-push
+                [modal-card-dialog arg]]))
+
 (defn modals-component []
   [:div.modals
    (for [m @(rf/subscribe [::s/modals])]

@@ -26,7 +26,7 @@
       (when  @(rf/subscribe [::s/song-playing?])
         (stop)))))
 
-(defn ^:export init-keybindings! []
+(defn- init-keybindings! []
   (println "setting up keybindings")
   (key/bind! "ctrl-space"
              ::ctrl-space-kb

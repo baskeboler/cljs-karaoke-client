@@ -16,6 +16,8 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             ;; [cljs-karaoke.events.audio :as audio-events]
             ;; [cljs-karaoke.mongo :as mongo]
+            [cljs-karaoke.mobile]
+            [cljs-karaoke.key-bindings]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.modals :as modals]
             [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
@@ -34,8 +36,6 @@
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.router.core :as router]
-            [cljs-karaoke.key-bindings]
-            [cljs-karaoke.mobile]
             [cljs-karaoke.styles :as styles
              :refer [ centered screen-centered
                      top-left parent-style]]
