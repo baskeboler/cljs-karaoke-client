@@ -11,10 +11,8 @@
             [cljs-karaoke.events.notifications :as notification-events]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.audio :as aud]
-            ;; [pushy.core :as pushy]
-            ;; [cljs-karaoke.router.core :refer [router]]
             [cljs-karaoke.lyrics :refer [preprocess-frames]]
-            ;; [cljs.core.async :as async :refer [go go-loop <! >! chan]]
+            [cljs.core.async :as async :refer [go go-loop <! >! chan]]
             [cljs-karaoke.notifications :as n]))
 
 (defn load-song-flow [song-name]
@@ -183,7 +181,6 @@
  ::navigate-to-song
  (fn-traced
   [{:keys [db]} [_ song-name]]
-  ;; (pushy/set-token! router (str "/sing/" song-name))
   {:db db
    :dispatch [::update-song-hash song-name]}))
 
