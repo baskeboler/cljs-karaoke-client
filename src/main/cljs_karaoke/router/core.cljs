@@ -4,6 +4,7 @@
             ;; [re-frame.core :as rf]
             ;; [cljs-karaoke.events :as events]
             ;; [cljs-karaoke.events.songs :as song-events]
+            ;; [cljs-karaoke.key-bindings :as k]
             [cljs-karaoke.protocols :refer [handle-route dispatch-view]]))
 
 (def routes
@@ -38,3 +39,6 @@
   (pushy/start! router))
 
 (def url-for (partial bidi/path-for routes))
+
+;; (defmethod handle-route :default [arg])
+  

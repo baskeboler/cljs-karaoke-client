@@ -1,6 +1,7 @@
 (ns cljs-karaoke.key-bindings
   (:require [re-frame.core :as rf]
             [keybind.core :as key]
+            [mount.core :as mount :refer [defstate]]
             [cljs-karaoke.songs :as songs]
             [cljs-karaoke.playback :as playback :refer [play stop pause]]
             [cljs-karaoke.views.playback :refer [seek]]
@@ -10,7 +11,8 @@
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            [cljs-karaoke.events.songs :as song-events]))
+            [cljs-karaoke.events.songs :as song-events]
+            [cljs-karaoke.mobile :as mobile]))
             ;; [cljs-karaoke.remote-control :as remote-control]))
 
 (defn- handle-escape-key []
@@ -25,6 +27,7 @@
         (stop)))))
 
 (defn ^:export init-keybindings! []
+  (println "setting up keybindings")
   (key/bind! "ctrl-space"
              ::ctrl-space-kb
              (fn []
@@ -49,3 +52,14 @@
   (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
   (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch-sync [::song-events/inc-current-song-delay -250]))
   (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250])))
+
+(defn disable-keybindings! []
+  (key/disable!))
+
+(defn enable-keybindings! []
+  (key/enable!))
+
+(defstate keybindings
+  :start (when-not mobile/mobile?
+           (init-keybindings!))
+  :stop (key/unbind-all!))

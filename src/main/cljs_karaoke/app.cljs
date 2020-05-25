@@ -3,8 +3,9 @@
             [reagent.dom :refer [render]]
             [re-frame.core :as rf :include-macros true]
             [day8.re-frame.http-fx]
+            [day8.re-frame.async-flow-fx]
             [stylefy.core :as stylefy]
-            [goog.labs.userAgent.device :as device]
+            ;; [goog.labs.userAgent.device :as device]
             [clojure.string :as str]
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.songs :as songs]
@@ -13,7 +14,7 @@
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            [cljs-karaoke.events.audio :as audio-events]
+            ;; [cljs-karaoke.events.audio :as audio-events]
             ;; [cljs-karaoke.mongo :as mongo]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.modals :as modals]
@@ -33,29 +34,19 @@
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.router.core :as router]
-            [cljs-karaoke.key-bindings :refer [init-keybindings!]]
+            [cljs-karaoke.key-bindings]
+            [cljs-karaoke.mobile]
             [cljs-karaoke.styles :as styles
              :refer [ centered screen-centered
                      top-left parent-style]]
             [shadow.loader :as loader]
-            ["shake.js" :as Shake]
+            [cljs-karaoke.editor.core]
+
+            [mount.core :as mount]
             [cljs.core.async :as async]))
 
 (stylefy/init)
 
-(defn- ios? []
-  (-> (. js/navigator -platform)
-      (str/lower-case)
-      (str/includes? "ios")))
-
-(defn- mobile-device? []
-  (device/isMobile))
-
-(defonce shake (Shake. (clj->js {:threshold 15 :timeout 1000})))
-
-(.start shake)
-
-(defonce my-shake-event (Shake. (clj->js {:threshold 15 :timeout 1000})))
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
@@ -118,32 +109,31 @@
    (when (and
           @(rf/subscribe [::s/song-paused?])
           @(rf/subscribe [::s/can-play?]))
-     [:div (stylefy/use-style screen-centered)
+     [:div.screen-centered
       (when @(rf/subscribe
               [::s/view-property :playback :options-enabled?])
-        [:a
-         (stylefy/use-style
-          top-left
-          {:on-click #(rf/dispatch [::views-events/set-current-view :home])})
+        [:a.top-left
+          {:on-click #(rf/dispatch [::views-events/set-current-view :home])}
          [:span.icon
           [:i.fas.fa-cog.fa-3x]]])
-      [:a
+      [:a.centered
        (stylefy/use-style
-        (merge
-         centered
-         {:z-index 500})
+        ;; (merge
+         ;; centered
+       ;; {:style
+        {:z-index 500}
         {:on-click play})
        [:span.icon
         [:i.fas.fa-play.fa-5x
          (stylefy/use-style {:text-shadow "0px 0px 9px white"})]]]])
    (when-not @(rf/subscribe [::s/can-play?])
-     [:a
-      (stylefy/use-style
-       centered
+     [:a.centered
+      ;; (stylefy/use-style
+       ;; centered
        {:on-click
         #(if-let [song @(rf/subscribe [::s/current-song])]
            (songs/load-song song)
-           (songs/load-song))})
+           (songs/load-song))}
       [:span.icon
        [:i.fas.fa-sync.fa-5x]]])
    [seek-buttons/seek-component #(seek 10000) #(seek -10000)]
@@ -167,12 +157,12 @@
       [song-progress]])])
 
 
-(defn editor []
-  (if-not (loader/loaded? "editor")
-    (loader/load "editor" #(editor-component))
+;; (defn editor []
+  ;; (if-not (loader/loaded? "editor")
+    ;; (loader/load "editor" #(editor-component))
     ;; (require '[cljs-karaoke.editor.core])
-    ;; ( '[cljs-karaoke.editor.view :refer [editor-component]]))
-    [editor-component]))
+    ;; ( '[cljs-karaoke.editor.view :refer [editor-component]]))])
+    ;; [editor-component])])
 
 (defn pages [page-name]
   (case page-name
@@ -223,24 +213,13 @@
  
 (defn mount-components! []
   (render [app] app-root))
-
-(defn on-shake [evt] (trigger-toasty))
-
-(def mobile? (mobile-device?))
-
 (defn init! []
   (println "init!")
   (router/app-routes)
   (rf/dispatch-sync [::events/init-db])
   (mount-components!)
-  (if mobile?
-    (do
-      (println "mobile device, ignoring keybindings")
-      (. js/window (addEventListener "shake" on-shake false))
-      (when (ios?)
-        (rf/dispatch-sync [::audio-events/set-audio-input-available? false])
-        (rf/dispatch-sync [::audio-events/set-recording-enabled? false])))
-    (init-keybindings!)))
+  (mount/in-cljc-mode)
+  (mount/start))
 
 
 (defn ^:dev/after-load start-app []

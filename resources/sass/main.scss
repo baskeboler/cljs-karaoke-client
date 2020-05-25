@@ -48,6 +48,34 @@ html {
   text-transform: capitalize;
 }
 
+.centered {
+    /* position: absolute; */
+    display: block;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%,-50%);
+}
+.screen-centered {
+    position: fixed;
+    display: block;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%,-50%);
+}
+
+.top-left {
+    position: fixed;
+    display: block;
+    top: 0;
+    left: 0;
+    margin: 2em 2em;
+}
+
+.top-right {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+}
 .slide-out-top {
   -webkit-animation: slide-out-top 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
   animation: slide-out-top 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
