@@ -454,3 +454,16 @@
 (rf/reg-sub
  ::song-backgrounds
  (fn [db _] (:song-backgrounds db)))
+
+
+(rf/reg-sub
+ ::song-metadata
+ (fn [db _]
+   (:song-metadata db)))
+
+(rf/reg-sub
+ ::current-song-metadata
+ :<- [::current-song]
+ :<- [::song-metadata]
+ (fn [[current-song metadata] _]
+   (get metadata current-song)))

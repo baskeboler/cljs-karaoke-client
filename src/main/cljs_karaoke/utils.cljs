@@ -34,20 +34,31 @@
     (. js/document (execCommand "copy"))
     (. body (removeChild elem))))
 
+(defn generic-content-button
+  ([& {:keys [content button-type aria-label title callback enabled?]
+       :or   {aria-label  "none"
+              title       "no title"
+              callback    identity
+              enabled?    (atom true)
+              button-type "primary"}}]
+   [:p.control
+    [:a.button.is-small
+     {:class      [ (str "is-" button-type)]
+      :disabled   (not @enabled?)
+      :on-click   callback
+      :aria-label aria-label
+      :title      title}
+     content]]))
        
 (defn icon-button
   ([icon button-type callback enabled?]
-   ;; [:div.control
-   [:p.control
-     [:a.button.is-small
-      {:class      [ (str "is-" button-type)]
-       :disabled   (not @enabled?)
-       :on-click   callback
-       :aria-label icon
-       :title      icon}
-      ;; [:span.icon.is-small
-      [:i
-       {:class ["fas" "fa-fw" (str "fa-" icon)]}]]])
+   [generic-content-button
+    :button-type button-type
+    :enabled? enabled?
+    :title icon
+    :aria-label icon
+    :callback callback
+    :content [:i.fas.fa-fw {:class (str "fa-" icon)}]])
   ([icon button-type callback]
    (icon-button icon button-type callback (atom true))))
 

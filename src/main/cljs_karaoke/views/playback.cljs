@@ -128,6 +128,8 @@
    [icon-button "random" "warning" load-random-song]
    [increase-playback-rate-btn]
    [decrease-playback-rate-btn]
+   (when @(rf/subscribe [::s/current-song-metadata])
+     [icon-button "info" "info" identity])
    [icon-button "share-alt" "success"
     #(show-export-text-info-modal
       {:title "Share Link"
