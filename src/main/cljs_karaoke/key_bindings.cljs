@@ -13,7 +13,6 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.mobile :as mobile]))
-            ;; [cljs-karaoke.remote-control :as remote-control]))
 
 (defn- handle-escape-key []
   (println "esc pressed!")
@@ -47,8 +46,6 @@
                                             (stop)
                                             (rf/dispatch-sync [::playlist-events/playlist-next])))
   (key/bind! "t t" ::double-t #(trigger-toasty))
-  ;; (key/bind! "alt-x" ::alt-x #(remote-control/show-remote-control-id))
-  ;; (key/bind! "alt-s" ::alt-s #(remote-control/show-remote-control-settings))
   (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
   (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch-sync [::song-events/inc-current-song-delay -250]))
   (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250])))

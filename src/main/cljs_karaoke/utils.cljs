@@ -58,7 +58,7 @@
     :title icon
     :aria-label icon
     :callback callback
-    :content [:i.fas.fa-fw {:class (str "fa-" icon)}]])
+    :content [:span.icon>i.fas.fa-fw {:class (str "fa-" icon)}]])
   ([icon button-type callback]
    (icon-button icon button-type callback (atom true))))
 

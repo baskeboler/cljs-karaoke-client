@@ -33,7 +33,8 @@
 (defn modals-component []
   [:div.modals
    (for [m @(rf/subscribe [::s/modals])]
-     m)])
+     ^{:key (str "modal_" (hash m))}
+      m)])
 
 (defn footer-buttons
   ([]

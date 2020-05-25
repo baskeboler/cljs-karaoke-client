@@ -18,8 +18,11 @@
     [:div.content description]]
    (when-let [{:keys [facebook instagram twitter]} social]
      [:footer.card-footer
-      [:a.card-footer-item {:href facebook} [:i.fab.fa-3x.fa-fw.fa-facebook]]
-      [:a.card-footer-item {:href instagram} [:i.fab.fa-3x.fa-fw.fa-instagram]]
-      [:a.card-footer-item {:href twitter} [:i.fab.fa-3x.fa-fw.fa-twitter]]])])
+      (when facebook
+        [:a.card-footer-item {:href facebook} [:i.fab.fa-3x.fa-fw.fa-facebook]])
+      (when instagram
+        [:a.card-footer-item {:href instagram} [:i.fab.fa-3x.fa-fw.fa-instagram]])
+      (when twitter
+        [:a.card-footer-item {:href twitter} [:i.fab.fa-3x.fa-fw.fa-twitter]])])])
     
          
