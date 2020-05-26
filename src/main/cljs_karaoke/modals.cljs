@@ -10,7 +10,7 @@
   [:div.modal.is-active
    {:key (random-uuid)}
    [:div.modal-background]
-   [:div.modal-card
+   [:div.modal-card.slide-in-top
     [:header.modal-card-head
      [:p.modal-card-title title]
      [:button.delete

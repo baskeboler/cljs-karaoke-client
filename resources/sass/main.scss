@@ -102,6 +102,10 @@ html {
   animation-delay: 2s;
 }
 
+.slide-in-top{
+    animation: slide-in-top 1s both;
+}
+
 .current-frame {
   position: fixed;
   display: block;
