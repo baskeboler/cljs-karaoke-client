@@ -5,7 +5,6 @@
             [day8.re-frame.http-fx]
             [day8.re-frame.async-flow-fx]
             [stylefy.core :as stylefy]
-            ;; [goog.labs.userAgent.device :as device]
             [clojure.string :as str]
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.songs :as songs]
@@ -14,8 +13,6 @@
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.views :as views-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            ;; [cljs-karaoke.events.audio :as audio-events]
-            ;; [cljs-karaoke.mongo :as mongo]
             [cljs-karaoke.mobile]
             [cljs-karaoke.key-bindings]
             [cljs-karaoke.subs :as s]
@@ -119,25 +116,18 @@
           [:i.fas.fa-cog.fa-3x]]])
       [:div.field.is-grouped
         (stylefy/use-style
-        ;; (merge
-         ;; centered
-       ;; {:style
          {:z-index 500})
-        [:p.control>a.button.is-size-2.is-primary.is-rounded
+        [:p.control>a.button.is-size-2.is-primary
          {:on-click play}
-         ;; [:span.icon
          [:span.icon>i.fas.fa-play.fa-fw
            (stylefy/use-style {:text-shadow "0px 0px 9px white"})]]
         (when @(rf/subscribe [::s/current-song-metadata])
-          [:p.control>a.button.is-size-2.is-info.is-rounded
+          [:p.control>a.button.is-size-2.is-info
            {:on-click show-song-metadata-modal}
-           ;; [:span.icon
            [:span.icon>i.fas.fa-info.fa-fw
              (stylefy/use-style {:text-shadow "0px 0px 9px white"})]])]])
    (when-not @(rf/subscribe [::s/can-play?])
      [:a.centered
-      ;; (stylefy/use-style
-       ;; centered
        {:on-click
         #(if-let [song @(rf/subscribe [::s/current-song])]
            (songs/load-song song)
@@ -165,12 +155,6 @@
       [song-progress]])])
 
 
-;; (defn editor []
-  ;; (if-not (loader/loaded? "editor")
-    ;; (loader/load "editor" #(editor-component))
-    ;; (require '[cljs-karaoke.editor.core])
-    ;; ( '[cljs-karaoke.editor.view :refer [editor-component]]))])
-    ;; [editor-component])])
 
 (defn pages [page-name]
   (case page-name
@@ -200,8 +184,6 @@
       (do
         (println "app ready, loading song " s)
         (rf/dispatch-sync [::song-events/navigate-to-song s]))
-      ;; (songs/load-song s)
-        ;; (rf/dispatch [::views-events/set-current-view :playback]))
       (do
         (println "Not yet ready, waiting ...")
         (recur (async/<! (async/timeout 1000)))))))
