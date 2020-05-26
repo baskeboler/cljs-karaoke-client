@@ -32,7 +32,8 @@
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
             [cljs-karaoke.views.navbar :as navbar]
             [cljs-karaoke.editor.view  :refer [editor-component]]
-            [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display]]
+            [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display
+                                                 show-song-metadata-modal]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.router.core :as router]
@@ -116,16 +117,23 @@
           {:on-click #(rf/dispatch [::views-events/set-current-view :home])}
          [:span.icon
           [:i.fas.fa-cog.fa-3x]]])
-      [:a.centered
-       (stylefy/use-style
+      [:div.field.is-grouped
+        (stylefy/use-style
         ;; (merge
          ;; centered
        ;; {:style
-        {:z-index 500}
-        {:on-click play})
-       [:span.icon
-        [:i.fas.fa-play.fa-5x
-         (stylefy/use-style {:text-shadow "0px 0px 9px white"})]]]])
+         {:z-index 500})
+        [:p.control>a.button.is-size-2.is-primary.is-rounded
+         {:on-click play}
+         ;; [:span.icon
+         [:span.icon>i.fas.fa-play.fa-fw
+           (stylefy/use-style {:text-shadow "0px 0px 9px white"})]]
+        (when @(rf/subscribe [::s/current-song-metadata])
+          [:p.control>a.button.is-size-2.is-info.is-rounded
+           {:on-click show-song-metadata-modal}
+           ;; [:span.icon
+           [:span.icon>i.fas.fa-info.fa-fw
+             (stylefy/use-style {:text-shadow "0px 0px 9px white"})]])]])
    (when-not @(rf/subscribe [::s/can-play?])
      [:a.centered
       ;; (stylefy/use-style
