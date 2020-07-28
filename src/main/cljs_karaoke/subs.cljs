@@ -144,19 +144,32 @@
      position)))
 
 
+;; (rf/reg-sub
+;;  ::next-lyrics-event-old
+;;  :<- [::current-frame]
+;;  :<- [::song-position]
+;;  :<- [::current-song-delay]
+;;  :<- [::next-frame]
+;;  (fn-traced
+;;   [[{:keys [events offset] :as frame} position delay next-frame] _]
+;;   (let [position-ms   (+ (* -1 delay)
+;;                          (* 1000 position)
+;;                          (* -1 offset))
+;;         next-in-frame (first
+;;                        (filter #(> (:offset %) position-ms) events))]
+;;     (if (some? next-in-frame)
+;;       next-in-frame
+;;       (first (:events next-frame))))))
+
 (rf/reg-sub
  ::next-lyrics-event
  :<- [::current-frame]
- :<- [::song-position]
- :<- [::current-song-delay]
+ :<- [::song-position-ms-adjusted]
  :<- [::next-frame]
  (fn-traced
-  [[{:keys [events offset] :as frame} position delay next-frame] _]
-  (let [position-ms   (+ (* -1 delay)
-                         (* 1000 position)
-                         (* -1 offset))
-        next-in-frame (first
-                       (filter #(> (:offset %) position-ms) events))]
+  [[{:keys [events offset] :as frame} position next-frame] _]
+  (let [next-in-frame (first
+                       (filter #(> (+ offset (:offset %)) position) events))]
     (if (some? next-in-frame)
       next-in-frame
       (first (:events next-frame))))))
