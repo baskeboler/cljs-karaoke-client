@@ -151,7 +151,7 @@
     [:span.icon
      [:i.fas.fa-stop]]]
    (when-not @(rf/subscribe [::s/song-paused?])
-     [:div.edge-progress-bar
+     [:div.edge-progress-bar {:style {:position :relative}}
       [song-progress]])])
 
 

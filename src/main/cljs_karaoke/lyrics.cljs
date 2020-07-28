@@ -265,7 +265,11 @@
                                         (played? delta))
       (= :lyrics-event (:type this)) (-> (map->LyricsEvent this)
                                          (played? delta))
-      :else false)))
+      :else false))
+  nil
+  (get-text [this] "")
+  (get-offset [this] 0)
+  (played? [this delta] true))
 (defn ^:export create-lyrics-event [{:keys [offset text]}]
   (map->LyricsEvent
    {:id     (str (random-uuid))

@@ -3,6 +3,7 @@
             [stylefy.core :as stylefy]
             [goog.string :as gstr :refer [urlEncode format]]
             [cljs-karaoke.subs :as s]
+            [cljs-karaoke.config :as conf]
             [cljs-karaoke.components.progress-bar :refer [progress-bar-component]]
             [cljs-karaoke.components.band-card :refer [band-card-component]]
             [cljs-karaoke.router.core :as router]
@@ -140,4 +141,4 @@
    [icon-button "share-alt" "success"
     #(show-export-text-info-modal
       {:title "Share Link"
-       :text (str "https://karaoke.uyuyuy.xyz/songs/" (urlEncode @(rf/subscribe [::s/current-song])) ".html")})]])
+       :text (str (:app-url-prefix conf/config-map) "/songs/" (urlEncode @(rf/subscribe [::s/current-song])) ".html")})]])

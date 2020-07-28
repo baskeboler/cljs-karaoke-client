@@ -69,7 +69,7 @@
    (get all-delays song-name nil))))
 
 (rf/reg-sub
- ::current-frame
+ ::current-frame-backup
  :<- [::lyrics]
  :<- [::song-position]
  :<- [::current-song-delay]
@@ -77,7 +77,9 @@
             (when-not (empty? lyrics)
               (reduce
                (fn [res frame]
-                 (if (<= (protocols/get-offset frame) (+ (* -1 custom-song-delay) (* 1000 song-position)))
+                 (if (<= (protocols/get-offset frame)
+                         (+ (* -1 custom-song-delay)
+                            (* 1000 song-position)))
                    frame
                    res))
                nil
@@ -89,7 +91,24 @@
           ;; (protocols/get-offset frame)
           ;; (+ (* -1 custom-song-delay) (* 1000 song-position))
        ;; lyrics))))
-
+(rf/reg-sub
+ ::current-frame
+ :<- [::playback-song]
+ :<- [::song-position-ms-adjusted]
+ (fn-traced
+  [[song song-position] _]
+  (protocols/get-current-frame song song-position)))
+  ;; (let [lyrics frames]
+  ;;  (when-not (empty? lyrics)
+  ;;    (reduce
+  ;;     (fn [res frame]
+  ;;       (if (<= (protocols/get-offset frame)
+  ;;               (+ (* -1 custom-song-delay)
+  ;;                  (* 1000 song-position)))
+  ;;         frame
+  ;;         res))
+  ;;     nil
+  ;;     (vec lyrics))))))
 (rf/reg-sub
  ::previous-frame
  :<- [::lyrics]
@@ -467,3 +486,10 @@
  :<- [::song-metadata]
  (fn [[current-song metadata] _]
    (get metadata current-song)))
+
+(rf/reg-sub
+ ::playback-song
+ :<- [::current-song]
+ :<- [::lyrics]
+ (fn [[song-name frames] _]
+   (lyrics/create-song song-name frames)))
