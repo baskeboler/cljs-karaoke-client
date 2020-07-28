@@ -299,7 +299,8 @@
 
 (defn- image []
   [:figure.image {:style
-                  {:width "256px"}}
+                  {:width "256px"}
+                  :title "fuck you, this ui is beautiful"}
    [:img {:src   "/images/art_window.svg"}]])
 
 
