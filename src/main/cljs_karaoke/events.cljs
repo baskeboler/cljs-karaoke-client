@@ -131,7 +131,7 @@
                           :stop-channel               (chan)
                           :loop?                      true
                           :initialized?               false
-                          :base-storage-url           "https://karaoke-files.uyuyuy.xyz"
+                          :base-storage-url           "https://baskeboler.github.io/cljs-karaoke"
                           :current-view               :home
                           :pageloader-active?         true
                           :pageloader-exiting?        false
