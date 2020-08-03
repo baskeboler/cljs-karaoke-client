@@ -6,19 +6,19 @@
             ;; [cljs-karaoke.components.autocomplete :refer [autocomplete-input]]
             [cljs-karaoke.editor.events :as editor-events]
             [cljs-karaoke.utils :refer [create-text-file-download]]
-            [cljs-karaoke.events :as events]
-            [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.events.audio :as audio-events]
-            [cljs-karaoke.events.modals :as modal-events]
+            ;; [cljs-karaoke.events :as events]
+            ;; [cljs-karaoke.events.songs :as song-events]
+            ;; [cljs-karaoke.events.audio :as audio-events]
+            ;; [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.modals :as modals]
-            [cljs-karaoke.subs.audio :as audio-subs]
+            ;; [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.views.playback :as playback]
             [cljs-karaoke.editor.subs :as editor-subs]
             [thi.ng.color.core :as color]
             [cljs-karaoke.styles :refer [default-page-styles]]
             [cljs-karaoke.lyrics :as lyrics]
-            [clojure.string :as str]))
+            [clojure.string :as cstr]))
 (declare print-frames-str)
 
 (defn song-name-editor []
@@ -34,7 +34,7 @@
           :placeholder "Name of the song"}]
         [:p.subtitle.is-3
          {:on-click #(swap! editing? not)}
-         (if-not (str/blank? @song-name)
+         (if-not (cstr/blank? @song-name)
            @song-name
            "unknown")
          [:i.fas.fa-fw.fa-edit.fa-sm]])])))
@@ -62,7 +62,7 @@
   [:button.button
    {:on-click #(create-text-file-download
                 :file-name (str
-                            (if (str/blank? @(rf/subscribe [::editor-subs/song-name]))
+                            (if (cstr/blank? @(rf/subscribe [::editor-subs/song-name]))
                               "unknown"
                               @(rf/subscribe [::editor-subs/song-name]))
                             ".edn")
@@ -198,7 +198,7 @@
          ::stylefy/mode {:hover {:border-right "1px solid red"}}}
         {:on-click #(on-new-segment-select-fn (inc i))})
        (-> c
-           (clojure.string/replace #" " "&#160;")
+           (cstr/replace #" " "&#160;")
            (gstr/unescapeEntities))]))])
 
 (defn segment-timing-editor []
@@ -226,7 +226,7 @@
                    (= id (:id @active-segment))) {:border-top "solid 4px blue"}
               :otherwise                         {})))
           (-> text
-              (clojure.string/replace #" " "&#160;")
+              (cstr/replace #" " "&#160;")
               (gstr/unescapeEntities))]))]
      [:div.columns>div.column>div.buttons.field.has-addons
       [:div.control>button.button.is-large.is-danger
@@ -299,7 +299,8 @@
 
 (defn- image []
   [:figure.image {:style
-                  {:width "256px"}}
+                  {:width "256px"}
+                  :title "fuck you, this ui is beautiful"}
    [:img {:src   "/images/art_window.svg"}]])
 
 
@@ -311,14 +312,14 @@
       b))])
 
 (defn  ^:export editor-component []
-  (let [text            (rf/subscribe [::editor-subs/current-frame-property :text])
-        text-done?      (rf/subscribe [::editor-subs/current-frame-property :text-done?])
-        segments-done?  (rf/subscribe [::editor-subs/current-frame-property :segments-done?])
-        offsets-done?   (rf/subscribe [::editor-subs/current-frame-property :offsets-done?])
-        segment-sizes   (rf/subscribe [::editor-subs/current-frame-property :segment-sizes])
-        segment-offsets (rf/subscribe [::editor-subs/current-frame-property :segment-offsets])
-        segments        (rf/subscribe [::editor-subs/current-frame-property :segments])
-        size            (rf/subscribe [::editor-subs/current-frame-property :segment-size])]
+  ;; (let [text            (rf/subscribe [::editor-subs/current-frame-property :text])
+        ;; text-done?      (rf/subscribe [::editor-subs/current-frame-property :text-done?])
+        ;; segments-done?  (rf/subscribe [::editor-subs/current-frame-property :segments-done?])
+        ;; offsets-done?   (rf/subscribe [::editor-subs/current-frame-property :offsets-done?])
+        ;; segment-sizes   (rf/subscribe [::editor-subs/current-frame-property :segment-sizes])
+        ;; segment-offsets (rf/subscribe [::editor-subs/current-frame-property :segment-offsets])
+        ;; segments        (rf/subscribe [::editor-subs/current-frame-property :segments])
+        ;; size            (rf/subscribe [::editor-subs/current-frame-property :segment-size])
       [:div.editor
        (stylefy/use-style default-page-styles)
        [:div.columns.is-vcentered
@@ -353,7 +354,7 @@
           {:on-click #(do
                         (rf/dispatch [::editor-events/reset-frame])
                         (rf/dispatch [::editor-events/editor-action :reset]))}
-          "reset"]]]]))
+          "reset"]]]])
 
 (defn print-frames-str [frames]
   (pr-str (map lyrics/->map frames)))

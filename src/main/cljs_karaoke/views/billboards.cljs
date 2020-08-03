@@ -44,8 +44,7 @@
                          :min-pixel-size 10
                          :font-weight "bold"
                          :display-pixel-width              (dec w))]
-    {:transform      "translate3d(0,0,0)"
-     :font-size      (str s "px")
+    {:font-size      (str s "px")
      :color          "#FA7C91" ; :black
      :text-align     :center
      :z-index        10001

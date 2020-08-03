@@ -1,5 +1,6 @@
 (ns mongo
   (:require [monger.core :as mg]
+            [monger.operators :refer :all]
             [monger.collection :as mc])
   (:import [com.mongodb MongoOptions ServerAddress MongoClientSettings ConnectionString]
            [com.mongodb.client MongoClients MongoClient MongoDatabase MongoCollection]))
@@ -31,12 +32,26 @@
       (.getCollection collection-name)))
 
 (defn get-background-image-map [db]
-  (let [results (mc/find-maps db bg-collection)
+  (let [results (mc/find-maps db bg-collection {$or
+                                                [{:imported? {$exists false}}
+                                                 {:imported? false}]})
         results (sort-by :updated_at results)
         results (map :bgMapping results)]
     (->> (for [[k v] (apply merge results)]
            [(name k) v])
          (into {}))))
+
+(defn flag-backgrounds-as-imported
+  ([]
+   (flag-backgrounds-as-imported *karaoke-db*))
+  ([db]
+   (println "Flagging backgrounds un DB as imported")
+   (mc/update db bg-collection
+              {$or
+               [{:imported? {$exists false}}
+                {:imported? false}]}
+              {$set {:imported? true}}
+              {:multi true})))
 
 (defn new-backgrounds []
   (get-background-image-map *karaoke-db*))

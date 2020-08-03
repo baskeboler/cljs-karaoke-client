@@ -10,7 +10,7 @@
   [:div.modal.is-active
    {:key (random-uuid)}
    [:div.modal-background]
-   [:div.modal-card
+   [:div.modal-card.slide-in-top
     [:header.modal-card-head
      [:p.modal-card-title title]
      [:button.delete
@@ -26,10 +26,15 @@
          [footer]
          footer)])]])
 
+(defn show-modal-card-dialog [{:keys [title content footer] :as arg}]
+  (rf/dispatch [::modal-events/modal-push
+                [modal-card-dialog arg]]))
+
 (defn modals-component []
   [:div.modals
    (for [m @(rf/subscribe [::s/modals])]
-     m)])
+     ^{:key (str "modal_" (hash m))}
+      m)])
 
 (defn footer-buttons
   ([]

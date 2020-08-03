@@ -11,7 +11,7 @@
            [java.nio.charset StandardCharsets]
            [java.time Instant]
            [java.nio.file Path Paths]))
-(def site-url-prefix "https://karaoke.uyuyuy.xyz")
+(def site-url-prefix "https://karaoke-player.netlify.app")
 (def background-images-file "resources/public/data/backgrounds.edn")
 (def songs-file "resources/public/data/songs.edn")
 (def delays-file "resources/public/data/delays.edn")
@@ -172,9 +172,9 @@
                image)
      (meta-tag "og:site_name" "Karaoke Party")
      (meta-tag "og:type" "website")
-     (meta-tag "og:url" (str "https://karaoke.uyuyuy.xyz/songs/" (url-encode song)))
+     (meta-tag "og:url" (str "https://karaoke-player.netlify.app/songs/" (url-encode song)))
      (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
-     [:link {:rel :canonical :href (str "https://karaoke.uyuyuy.xyz/sing/" (url-encode song))}]
+     [:link {:rel :canonical :href (str "https://karaoke-player.netlify.app/sing/" (url-encode song))}]
      [:title (str "Karaoke Party :: "
                   song)]
      [:style#_stylefy-constant-styles_]

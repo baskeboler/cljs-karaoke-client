@@ -60,7 +60,8 @@
   [{:keys [db]} [_ song-name]]
   (let [offset (get-in db [:custom-song-delay song-name] (get db :lyrics-delay 0))]
     {:db db
-     :dispatch [::events/set-location-hash (str "/sing/" song-name "/offset/" offset)]})))
+     :dispatch-n [[::events/set-location-hash (str "/sing/" song-name "/offset/" offset)]
+                  [::events/set-lyrics-delay offset]]})))
 
 (rf/reg-event-db
  ::toggle-loading-song

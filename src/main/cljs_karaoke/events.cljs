@@ -19,6 +19,7 @@
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.notifications]
             [cljs-karaoke.events.audio :as audio-events]
+            [cljs-karaoke.events.song-info :as metadata-events]
             [cljs-karaoke.events.user :as user-events]
             [cljs-karaoke.events.metrics :as metrics-events]
             [cljs-karaoke.editor.events :as editor-events]
@@ -77,6 +78,7 @@
                          ::playlist-events/playlist-ready
                          ::views-events/views-state-ready
                          ::song-list-events/song-list-ready
+                         ::metadata-events/fetch-song-metadata-complete
                          ::fetch-song-list-complete]
             :dispatch-n [[::pageloader-exit-transition]
                          ;; [::set-pageloader-active? false]
@@ -129,7 +131,7 @@
                           :stop-channel               (chan)
                           :loop?                      true
                           :initialized?               false
-                          :base-storage-url           "https://karaoke-files.uyuyuy.xyz"
+                          :base-storage-url           "https://baskeboler.github.io/cljs-karaoke"
                           :current-view               :home
                           :pageloader-active?         true
                           :pageloader-exiting?        false
@@ -155,6 +157,7 @@
                           [::fetch-song-background-config]
                           [::initial-audio-setup]
                           [::audio-events/init-audio-data]
+                          [::metadata-events/fetch-song-metadata]
                           [::views-events/init-views-state]
                           ;; [::http-relay-events/init-http-relay-listener]
                           [::song-list-events/init-song-list-state]
@@ -424,9 +427,9 @@
   [{:keys [db]} [_ song-name]]
   {:db         (-> db
                    (assoc :current-song song-name))
-   :dispatch-n []}))
+   :dispatch-n [
                 ;; [::fetch-bg song-name]
-                ;; [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
+                [::set-lyrics-delay (get-in db [:custom-song-delay song-name] (get db :lyrics-delay))]]}))
 
 ;; (reg-set-attr ::set-player-status :player-status)
 ;; (reg-set-attr ::set-highlight-status :highlight-status)

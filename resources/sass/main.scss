@@ -38,10 +38,44 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/solid.scss";
 @import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700%7CNunito:400,70&display=swap');
 
+html {
+    overflow-y: auto;
+    min-width: 240px;
+    /* transform: translate3d(0,0,0); */
+}
+ 
 .button, .navbar-item {
   text-transform: capitalize;
 }
 
+.centered {
+    /* position: absolute; */
+    display: block;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%,-50%);
+}
+.screen-centered {
+    position: fixed;
+    display: block;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%,-50%);
+}
+
+.top-left {
+    position: fixed;
+    display: block;
+    top: 0;
+    left: 0;
+    margin: 2em 2em;
+}
+
+.top-right {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+}
 .slide-out-top {
   -webkit-animation: slide-out-top 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
   animation: slide-out-top 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
@@ -66,6 +100,10 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
   -webkit-animation: text-pop-up-bottom 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   animation: text-pop-up-bottom 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
   animation-delay: 2s;
+}
+
+.slide-in-top{
+    animation: slide-in-top 1s both;
 }
 
 .current-frame {
@@ -364,13 +402,8 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
   margin-top: 2em;
 }
 
-nav.navbar > div.navbar-brand > a.navbar-item > object.header-logo {
+nav.navbar > div.navbar-brand > a.navbar-item > .header-logo {
   height: 2em;
-}
-
-html {
-    overflow-y: auto;
-    min-width: 240px;
 }
 
 .playback-controls {
@@ -443,4 +476,67 @@ html {
 .swing-in-top-fwd {
 	  -webkit-animation: swing-in-top-fwd 0.5s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
 	  animation: swing-in-top-fwd 0.5s cubic-bezier(0.175, 0.885, 0.320, 1.275) both;
+}
+
+.progress-bar {
+    width: calc(100% - 1rem);
+    display: block;
+    height: 0.8rem;
+    padding: 0px;
+    margin: 0 0.5rem;
+    background-color: rgba(255,255,255, 0.7);
+    border: 1px solid black;
+    border-radius: 0.3em;
+    box-shadow: 0 0 1rem 0.1rem black;
+    .progress-bar-value {
+        height: 100%;
+        border-radius: 0.3em;
+        margin: 0;
+        position: relative;
+        display: block;
+        transition: 0.5s width ease-out;
+    }
+    .progress-bar-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        text-align: center;
+        z-index: 2;
+        color: white;
+        text-shadow: 0 0 3px black;
+    }
+}
+
+.time-display {
+    position: fixed;
+    display: block;
+    color: white;
+    font-weight: bold;
+    border-radius: 0.5em;
+    padding: 0.5em;
+    background-color: rgba(0,0,0,0.3);
+    bottom: 0;
+    z-index: 2;
+    @media screen and (min-width: 320px) {
+        bottom: 2em;
+        left: 50%;
+        transform: translate(-50%);
+        animation: slide-in-bottom 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+    @media screen and (min-width: 1024px){
+        left: 50%;
+        transform: translate(-50%);
+
+        bottom: unset;
+        margin: 0.5em;
+        top: 0;
+        animation: slide-in-top 0.5s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
+    }
+}
+
+.shadow {
+    box-shadow: 0px 5px 12px 4px #797878;
 }

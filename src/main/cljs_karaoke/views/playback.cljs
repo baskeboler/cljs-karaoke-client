@@ -1,22 +1,23 @@
 (ns cljs-karaoke.views.playback
   (:require [re-frame.core :as rf]
+            [stylefy.core :as stylefy]
+            [goog.string :as gstr :refer [urlEncode format]]
             [cljs-karaoke.subs :as s]
+            [cljs-karaoke.config :as conf]
             [cljs-karaoke.components.progress-bar :refer [progress-bar-component]]
+            [cljs-karaoke.components.band-card :refer [band-card-component]]
             [cljs-karaoke.router.core :as router]
             [cljs-karaoke.subs.audio :as audio-subs]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.playlists :as playlist-events]
-            [stylefy.core :as stylefy]
             [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.playback :as playback :refer [play pause stop]]
             [cljs-karaoke.styles :as styles
-             :refer [time-display-style centered
-                     top-left parent-style shadow-style
-                     top-right logo-bg-style]]
-            [cljs-karaoke.modals :refer [show-export-text-info-modal]]
-            [cljs-karaoke.utils :as utils :refer [icon-button]]
-            [goog.string :as gstr :refer [urlEncode format]]))
+             :refer [ shadow-style]]
+                     
+            [cljs-karaoke.modals :refer [show-export-text-info-modal show-modal-card-dialog]]
+            [cljs-karaoke.utils :as utils :refer [icon-button]]))
 
 (defn lyrics-timing-progress []
   (let [time-remaining (rf/subscribe [::s/time-until-next-event])]
@@ -80,14 +81,14 @@
                   (mod 60.0)
                   long)]
     [:div.time-display
-     (stylefy/use-style time-display-style
-                        (merge
-                         {}
-                         (if @(rf/subscribe [::audio-subs/recording?])
-                           {:class "has-text-danger has-background-light"} {})))
+     (merge
+      {}
+      (if @(rf/subscribe [::audio-subs/recording?])
+        {:class "has-text-danger has-background-light"} {}))
      [:span.hours (format "%02d" hours)] ":"
      [:span.minutes (format "%02d" mins)] ":"
      [:span.seconds (format "%02d" secs)]]))
+
 (defn show-sharing-url []
   (let [song-name (rf/subscribe [::s/current-song])]))
 
@@ -105,6 +106,12 @@
 (defn more-options-menu []
   [:div.dropdown-menu {:role :menu}
    [:div.dropdown-content]])
+
+(defn show-song-metadata-modal []
+  (let [metadata @(rf/subscribe [::s/current-song-metadata])
+        band-card [band-card-component metadata]]
+    (show-modal-card-dialog {:title "Band information"
+                             :content band-card})))
 
 (defn playback-controls []
   [:div.playback-controls.field.has-addons
@@ -129,7 +136,9 @@
    [icon-button "random" "warning" load-random-song]
    [increase-playback-rate-btn]
    [decrease-playback-rate-btn]
+   (when @(rf/subscribe [::s/current-song-metadata])
+     [icon-button "info" "info" show-song-metadata-modal])
    [icon-button "share-alt" "success"
     #(show-export-text-info-modal
       {:title "Share Link"
-       :text (str "https://karaoke.uyuyuy.xyz/songs/" (urlEncode @(rf/subscribe [::s/current-song])) ".html")})]])
+       :text (str (:app-url-prefix conf/config-map) "/songs/" (urlEncode @(rf/subscribe [::s/current-song])) ".html")})]])
