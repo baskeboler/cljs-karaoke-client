@@ -44,8 +44,10 @@
 
 (rf/reg-sub
  ::current-song-delay
- (fn-traced [db _]
-            (get-in db [:custom-song-delay (:current-song db)])))
+ (fn-traced
+  [db _]
+  (:lyrics-delay db)))
+  ;; (get-in db [:custom-song-delay (:current-song db)])))
 
 (rf/reg-sub
  ::all-song-delays
@@ -178,10 +180,11 @@
  ::current-frame-done?
  :<- [::current-frame]
  :<- [::next-lyrics-event]
+ :<- [::song-position-ms-adjusted]
  (fn-traced
-  [[{:keys [events offset] :as frame} evt] _]
-  (not ((set events) evt))))
-
+  [[{:keys [events offset] :as frame} evt pos] _]
+  ;; (not ((set events) evt))))
+  (protocols/played? frame pos)))
 (rf/reg-sub
  ::current-song
  (fn-traced [db _]
@@ -193,13 +196,15 @@
  :<- [::next-frame]
  :<- [::current-frame-done?]
  :<- [::song-position-ms-adjusted]
- :<- [::current-song-delay]
+ ;; :<- [::current-song-delay]
  (fn-traced
-  [[frame {:keys [next-offset] :as next-frame} done? position delay] _]
+  [[frame {:keys [offset] :as next-frame} done? position] _]
   (cond
     (not done?) frame
-    (>= 1500 (-   next-offset position)) next-frame
-    :else (if (some? frame) frame next-frame))))
+    (>= 1500 (-  offset position)) next-frame
+    :else
+    nil)))
+    ;; (if (some? frame) frame next-frame))))
 
 (rf/reg-sub
  ::time-until-next-event
@@ -209,7 +214,8 @@
  (fn-traced
   [[frame position evt] _]
   (-
-   (+ (:offset frame) (:offset evt))
+   (+ (protocols/get-offset frame) (protocols/get-offset evt))
+   ;; (+ (:offset frame) (:offset evt))
    position)))
 
 (rf/reg-sub
@@ -471,7 +477,8 @@
  ::song-frames-relative-positions
  :<- [::song-duration]
  :<- [::lyrics]
- :<- [::current-song-delay]
+ :<- [::lyrics-delay]
+                                        ;:<- [::current-song-delay]
  (fn  [[duration frames delay] _]
    (let [duration-ms (* duration 1000)]
      (map (comp (partial * (/ 1.0 duration-ms))

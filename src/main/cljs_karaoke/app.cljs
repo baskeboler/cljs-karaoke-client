@@ -66,7 +66,7 @@
   (let [frame (rf/subscribe [::s/frame-to-display])]
     (when (and
            @(rf/subscribe [::s/song-playing?])
-           ((comp not nil?) @frame)
+           (some? @frame)
            (not (str/blank? (frame-text-string @frame))))
       [:div.current-frame
        [frame-text @frame]])))

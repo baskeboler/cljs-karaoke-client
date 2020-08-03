@@ -42,6 +42,7 @@
                                            (rf/dispatch [::events/set-loop? true])
                                            (rf/dispatch [::playlist-events/playlist-load])))
   (key/bind! "alt-shift-p" ::alt-meta-play #(play))
+  (key/bind! "space" ::space-kb #(if @(rf/subscribe [::s/song-paused?]) (play) (pause)))
   (key/bind! "shift-right" ::shift-right #(do
                                             (stop)
                                             (rf/dispatch-sync [::playlist-events/playlist-next])))
