@@ -21,7 +21,7 @@
     "dependencies": {
         "bulma-tooltip": "^2.0.2",
         "create-react-class": "^15.6.3",
-        "highlight.js": "9.18.1",
+        "highlight.js": "10.1.2",
         "mongodb-stitch-browser-sdk": "^4.8.0",
         "path": "^0.12.7",
         "react": "^16.13.1",
