@@ -14,6 +14,13 @@
   (played? [this offset])
   (get-next-event [this offset]))
 
+(defprotocol ^:export PLyricsStats
+  (get-frame-count [this])
+  (get-word-count [this])
+  (get-avg-words-per-frame [this])
+  (get-max-words-frame [this])
+  (get-min-words-frame [this]))
+
 (defprotocol ^:export PSong
   (get-current-frame [this time] "returns the current frame a time miliseconds"))
 

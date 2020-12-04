@@ -5,7 +5,9 @@
             [cljs-karaoke.protocols :as protocols
              :refer [set-text reset-progress inc-progress
                      get-progress get-text get-offset played?
-                     get-current-frame]]))
+                     get-current-frame get-frame-count get-word-count
+                     get-avg-words-per-frame get-max-words-frame
+                     get-min-words-frame]]))
 
 (def frame-text-limit 96)
 (def rand-uuid random-uuid)
@@ -316,3 +318,29 @@
      :events (map ->map events)
      :offset offset
      :type   type}))
+
+(defn word-count [text]
+  (let [words (str/split text #" ")]
+    (count words)))
+
+(extend-protocol protocols/PLyricsStats
+  Song
+  (get-frame-count [this]
+    (-> this
+        :frames
+        count))
+  (get-word-count [this]
+    (let [frames (:frames this)
+          words-per-frame (map (comp word-count protocols/get-text) frames)]
+      (reduce + 0 words-per-frame)))
+  (get-avg-words-per-frame [this]
+    (/ (get-word-count this)
+       (get-frame-count this)))
+  (get-max-words-frame [this]
+    (let [frames (:frames this)
+          wpf (map (comp word-count protocols/get-text) frames)]
+      (apply max wpf)))
+  (get-min-words-frame [this]
+    (let [frames (:frames this)
+          wpf (map (comp word-count protocols/get-text) frames)]
+      (apply min wpf))))
