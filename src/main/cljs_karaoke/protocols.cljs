@@ -48,3 +48,6 @@
 (defprotocol ViewDispatcher
   "View dispatcher protocol"
   (dispatch-view [this]))
+
+(defprotocol ^:export Renderable
+  (render-component [this]))

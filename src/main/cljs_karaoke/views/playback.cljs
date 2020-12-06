@@ -17,7 +17,8 @@
              :refer [ shadow-style]]
                      
             [cljs-karaoke.modals :refer [show-export-text-info-modal show-modal-card-dialog]]
-            [cljs-karaoke.utils :as utils :refer [icon-button]]))
+            [cljs-karaoke.utils :as utils :refer [icon-button]]
+            [cljs-karaoke.components.stats-dialog :as stats]))
 
 (defn lyrics-timing-progress []
   (let [time-remaining (rf/subscribe [::s/time-until-next-event])]
@@ -134,6 +135,7 @@
                                          (stop)
                                          (rf/dispatch [::playlist-events/playlist-next]))]
    [icon-button "random" "warning" load-random-song]
+   [icon-button "chart-bar" "info" stats/show-stats-dialog]
    [increase-playback-rate-btn]
    [decrease-playback-rate-btn]
    (when @(rf/subscribe [::s/current-song-metadata])

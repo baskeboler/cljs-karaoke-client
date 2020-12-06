@@ -18,8 +18,9 @@
             [stylefy.core :as stylefy]
             [cljs-karaoke.audio-input :as audio-input :refer [enable-audio-input-button]]
             [cljs-karaoke.components.delay-select :refer [delay-select-component]]
-            [cljs-karaoke.components.song-info-panel :refer [song-info-table]]))
-
+            [cljs-karaoke.components.song-info-panel :refer [song-info-table]]
+            [cljs-karaoke.components.dropdown :as dropdown]
+            [cljs-karaoke.protocols :as protocols]))
 (defn lyrics-view [lyrics]
   [:div.tile.is-child.is-vertical
    (for [frame (vec lyrics)]
@@ -122,6 +123,14 @@
 
 (def control-panel-style
   {:transition "all 0.8s ease-out"})
+
+(defn a-dropdown-menu []
+  (protocols/render-component
+   (dropdown/dropdown-menu-button
+     [:i.fa.fa-ellipsis-v]
+     [(dropdown/url-item "item 1" "#")
+      (dropdown/url-item "item 2" "#")])))
+
 (defn control-panel []
   (let [lyrics             (rf/subscribe [::s/lyrics])
         display-menu?      (rf/subscribe [::s/view-property :home :display-menu?])
@@ -138,7 +147,10 @@
                 ["song-playing"])})
 
      [:div.columns>div.column.is-12>h1.title.is-2 "Control Panel"]
-     [:div.columns 
+     #_[:div.columns
+         [:div.column
+           [a-dropdown-menu]]]
+     [:div.columns
       (when @display-menu?
         [:div.column.is-3
          [toggle-menu-btn]

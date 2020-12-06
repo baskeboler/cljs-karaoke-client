@@ -54,7 +54,7 @@
   (when (and (not (zero? push-count))
              (zero? (mod push-count 5)))
     (println "[mongo backend] pushing backgrounds")
-    (cljs-karaoke.mongo/save-backgrounds backgrounds)
+    ;; (cljs-karaoke.mongo/save-backgrounds backgrounds)
     (println "[mongo backend] backgrounds pushed")))
 
 (rf/reg-event-db
@@ -72,8 +72,6 @@
   (-> db
       (update :google-search-count inc))))
 
-
-   
 (rf/reg-event-fx
  ::search-images
  (rf/after
@@ -92,6 +90,8 @@
                 :on-success callback-event
                 :on-failure error-event}
    :dispatch [::inc-google-search-count]}))
+
+
 (rf/reg-event-fx
  ::init-update-bg-image-flow
  ;; ::update-bg-image
