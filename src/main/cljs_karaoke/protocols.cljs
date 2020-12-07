@@ -19,7 +19,10 @@
   (get-word-count [this])
   (get-avg-words-per-frame [this])
   (get-max-words-frame [this])
-  (get-min-words-frame [this]))
+  (get-min-words-frame [this])
+  (get-frames-chart-data [this interval-length])
+  (get-words-chart-data [this interval-length]))
+
 
 (defprotocol ^:export PSong
   (get-current-frame [this time] "returns the current frame a time miliseconds"))

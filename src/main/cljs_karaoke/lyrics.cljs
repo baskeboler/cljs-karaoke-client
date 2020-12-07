@@ -1,13 +1,15 @@
 (ns cljs-karaoke.lyrics
-  (:require [re-frame.core :as rf]
+  (:require [reagent.core :as r]
             [clojure.string :as str]
+            ["chart.js"]
             [cljs.core :as core :refer [random-uuid]]
             [cljs-karaoke.protocols :as protocols
              :refer [set-text reset-progress inc-progress
                      get-progress get-text get-offset played?
                      get-current-frame get-frame-count get-word-count
                      get-avg-words-per-frame get-max-words-frame
-                     get-min-words-frame]]))
+                     get-min-words-frame get-frames-chart-data
+                     get-words-chart-data]]))
 
 (def frame-text-limit 96)
 (def rand-uuid random-uuid)
@@ -205,7 +207,7 @@
   ;; (-equiv [_ other]
   ;;   (and (instance? LyricsEvent other)
   ;;        (= id (:id other))))
-         
+
   ;; IPrintWithWriter
   ;; (-pr-writer [a writer _]
   ;;   (-write writer (str "#lyrics-event \""
@@ -307,22 +309,25 @@
 
 (extend-protocol ToMap
   LyricsEvent
-  (->map [{:keys [text offset id type  ] :as this}]
+  (->map [{:keys [text offset id type] :as this}]
     {:text   text
      :offset offset
      :id     id
      :type   type})
   LyricsFrame
-  (->map [{:keys [id events offset type ] :as this}]
+  (->map [{:keys [id events offset type] :as this}]
     {:id     id
      :events (map ->map events)
      :offset offset
      :type   type}))
 
 (defn word-count [text]
-  (let [words (str/split text #" ")]
-    (count words)))
+  (if (str/blank? (str/trim text))
+    0
+    (let [words (str/split text #" ")]
+      (count words))))
 
+(declare timed-frames timed-words)
 (extend-protocol protocols/PLyricsStats
   Song
   (get-frame-count [this]
@@ -343,4 +348,97 @@
   (get-min-words-frame [this]
     (let [frames (:frames this)
           wpf (map (comp word-count protocols/get-text) frames)]
-      (apply min wpf))))
+      (apply min wpf)))
+  (get-frames-chart-data [this interval-length]
+    (timed-frames this interval-length))
+  (get-words-chart-data [this interval-length]
+    (timed-words this interval-length)))
+
+(defn buckets
+  "returns a list of intervals of step length over [start end]"
+  [start end step]
+  (let [points (concat (range start end step) [end])
+        part1 (partition-all 2 points)
+        part2 (partition-all 2 (rest points))]
+    (filter #(= 2 (count %)) (interleave part1 part2))))
+
+(defn aprox-song-duration [song]
+  (let [frames (:frames song)
+        last-frame (last frames)
+        last-event (last (:events last-frame))]
+    (int
+     (+ (:offset last-frame) (:offset last-event) 2000))))
+
+(defn- frames-in-interval [song interval]
+  (let [[start end] interval
+        frames (:frames song)]
+    (count (filter
+            #(and (> (:offset %) start)
+                  (< (:offset %) end))
+            frames))))
+
+(defn- lyrics-evts [song]
+  (let [frames  (:frames song)
+        evts (map (comp :events
+                        (fn [frame]
+                          (update frame
+                                  :events
+                                  (fn [evts]
+                                    (map #(update % :offset (partial + (:offset frame)))
+                                         evts)))))
+                  frames)]
+    (apply concat evts)))
+
+(defn- words-in-interval [song interval]
+  (let [[start end] interval
+        evts (lyrics-evts song)
+        reducer (fn [res evt]
+                  (let [t (:offset evt)]
+                    (if (and (< t end) (> t start))
+                      (str res (:text evt))
+                      res)))
+        filtered-evts (filter #(and (> (:offset %) start) (< (:offset %) end)) evts)
+        words (reduce reducer ""
+                      filtered-evts)]
+    (word-count words)))
+
+(defn timed-frames [song interval-length]
+  (let  [intervals (buckets 0 (aprox-song-duration song) interval-length)]
+    (map #(frames-in-interval song %) intervals)))
+
+(defn timed-words [song interval-length]
+  (let [intervals (buckets 0 (aprox-song-duration song) interval-length)]
+    (map #(words-in-interval song %) intervals)))
+
+
+(defn- show-chart-fn [canvas-id data labels label]
+  (fn []
+    (let [ctx        (.. js/document
+                         (getElementById canvas-id)
+                         (getContext "2d"))
+          chart-data {:type                "bar"
+                      :responsive          true
+                      :maintainAspectRatio false
+                      :data                {:labels   labels
+                                            :datasets [{:data            data
+                                                        :label           label
+                                                        :backgroundColor "#90EE90"}]}}]
+     (js/Chart. ctx (clj->js chart-data)))))
+
+(defn bar-chart-component [data labels label]
+  (let [canvas-id  (str (gensym))
+        show-chart (show-chart-fn canvas-id data labels label)]
+    (r/create-class
+     {:component-did-mount #(show-chart)
+      :display-name        (str "bar-chart-component-" canvas-id)
+      :reagent-render      (fn []
+                             [:canvas {:id     canvas-id}])})))
+                                       ;; :width  "100%"
+                                       ;; :height 200}])})))
+(defn ^:export frames-chart [song]
+  (let [int-len 15000
+        data    (get-frames-chart-data song int-len)]
+    [bar-chart-component
+     data
+     (map str (take (count data) (iterate (partial + int-len) 0)))
+     "frames"]))
