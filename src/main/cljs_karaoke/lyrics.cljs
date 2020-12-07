@@ -2,6 +2,7 @@
   (:require [reagent.core :as r]
             [clojure.string :as str]
             ["chart.js"]
+            [thi.ng.color.core :as color]
             [cljs.core :as core :refer [random-uuid]]
             [cljs-karaoke.protocols :as protocols
              :refer [set-text reset-progress inc-progress
@@ -416,13 +417,19 @@
     (let [ctx        (.. js/document
                          (getElementById canvas-id)
                          (getContext "2d"))
+          datasets (if (map? data)
+                     (for [[k v] data]
+                       {:data v
+                        :label (apply str (rest (str k)))
+                        :backgroundColor (:col (color/as-css (color/random-rgb)))})
+                     [{:data data
+                       :label label
+                       :backgroundColor (:col (color/as-css (color/random-rgb)))}])  
           chart-data {:type                "bar"
                       :responsive          true
                       :maintainAspectRatio false
                       :data                {:labels   labels
-                                            :datasets [{:data            data
-                                                        :label           label
-                                                        :backgroundColor "#90EE90"}]}}]
+                                            :datasets datasets}}]
      (js/Chart. ctx (clj->js chart-data)))))
 
 (defn bar-chart-component [data labels label]
@@ -437,8 +444,10 @@
                                        ;; :height 200}])})))
 (defn ^:export frames-chart [song]
   (let [int-len 15000
-        data    (get-frames-chart-data song int-len)]
+        data    (get-frames-chart-data song int-len)
+        data-words (get-words-chart-data song int-len)]
     [bar-chart-component
-     data
-     (map str (take (count data) (iterate (partial + int-len) 0)))
+     {:frames data
+      :words data-words}
+     (map (comp str #(/ % 1000)) (take (count data) (iterate (partial + int-len) 0)))
      "frames"]))
