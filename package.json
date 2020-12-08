@@ -20,7 +20,6 @@
     "license": "ISC",
     "dependencies": {
         "bulma-tooltip": "^2.0.2",
-        "chart.js": "^2.9.4",
         "create-react-class": "^15.7.0",
         "highlight.js": "9.18.1",
         "mongodb-stitch-browser-sdk": "^4.8.0",

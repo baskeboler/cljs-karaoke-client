@@ -1,7 +1,8 @@
 (ns cljs-karaoke.lyrics
   (:require [reagent.core :as r]
             [clojure.string :as str]
-            ["chart.js"]
+            ;; ["chart.js"]
+            [chart-cljs.core :as chart]
             [thi.ng.color.core :as color]
             [cljs.core :as core :refer [random-uuid]]
             [cljs-karaoke.protocols :as protocols
@@ -412,42 +413,65 @@
     (map #(words-in-interval song %) intervals)))
 
 
-(defn- show-chart-fn [canvas-id data labels label]
-  (fn []
-    (let [ctx        (.. js/document
-                         (getElementById canvas-id)
-                         (getContext "2d"))
-          datasets (if (map? data)
-                     (for [[k v] data]
-                       {:data v
-                        :label (apply str (rest (str k)))
-                        :backgroundColor (:col (color/as-css (color/random-rgb)))})
-                     [{:data data
-                       :label label
-                       :backgroundColor (:col (color/as-css (color/random-rgb)))}])  
-          chart-data {:type                "bar"
-                      :responsive          true
-                      :maintainAspectRatio false
-                      :data                {:labels   labels
-                                            :datasets datasets}}]
-     (js/Chart. ctx (clj->js chart-data)))))
+;; (defn- show-chart-fn [canvas-id data labels label]
+;;   (fn []
+;;     (let [ctx        (.. js/document
+;;                          (getElementById canvas-id)
+;;                          (getContext "2d"))
+;;           datasets (if (map? data)
+;;                      (for [[k v] data]
+;;                        {:data v
+;;                         :label (apply str (rest (str k)))
+;;                         :backgroundColor (:col (color/as-css (color/random-rgb)))})
+;;                      [{:data data
+;;                        :label label
+;;                        :backgroundColor (:col (color/as-css (color/random-rgb)))}])  
+;;           chart-data {:type                "line"
+;;                       :responsive          true
+;;                       :options {:title {:display true
+;;                                         :text "stats"}}
+;;                       :maintainAspectRatio false
+;;                       :data                {:labels   labels
+;;                                             :datasets datasets}}]
+;;      (js/Chart. ctx (clj->js chart-data)))))
 
-(defn bar-chart-component [data labels label]
-  (let [canvas-id  (str (gensym))
-        show-chart (show-chart-fn canvas-id data labels label)]
-    (r/create-class
-     {:component-did-mount #(show-chart)
-      :display-name        (str "bar-chart-component-" canvas-id)
-      :reagent-render      (fn []
-                             [:canvas {:id     canvas-id}])})))
-                                       ;; :width  "100%"
+;; ;; (defn bar-chart-component [data labels label]
+;;   (let [canvas-id  (str (gensym))
+;;         show-chart (show-chart-fn canvas-id data labels label)]
+;;     (r/create-class
+;;      {:component-did-mount #(show-chart)
+;;       :display-name        (str "bar-chart-component-" canvas-id)
+;;       :reagent-render      (fn []
+;;                              [:canvas {:id     canvas-id}])})))
+;;                                        ;; :width  "100%"
                                        ;; :height 200}])})))
-(defn ^:export frames-chart [song]
-  (let [int-len 15000
-        data    (get-frames-chart-data song int-len)
-        data-words (get-words-chart-data song int-len)]
-    [bar-chart-component
-     {:frames data
-      :words data-words}
-     (map (comp str #(/ % 1000)) (take (count data) (iterate (partial + int-len) 0)))
-     "frames"]))
+;; (defn ^:export frames-chart [song]
+;;   (let [int-len 15000
+;;         data    (get-frames-chart-data song int-len)
+;;         data-words (get-words-chart-data song int-len)]
+;;     [bar-chart-component
+;;      {:frames data
+;;       :words data-words}
+;;      (map (comp str #(/ % 1000)) (take (count data) (iterate (partial + int-len) 0)))
+;;      "frames"]))
+
+(defn song-stats-chart-data [song]
+  (let   [int-len     15000
+          data-frames (get-frames-chart-data song int-len)
+          data-words  (get-words-chart-data song int-len)
+          datasets    (for [[k v] {:frames data-frames
+                                   :words data-words}]
+                        {:data            v
+                         :label           (apply str (rest (str k)))
+                         :backgroundColor (:col (color/as-css (color/random-rgb)))})
+          labels      (map (comp str #(/ % 1000)) (take (count data-frames) (iterate (partial + int-len) 0)))]
+    {:type                "line"
+     :responsive          true
+     :options             {:title {:display true
+                                   :text    "stats"}}
+     :maintainAspectRatio false
+     :data                {:labels   labels
+                           :datasets datasets}}))
+
+(defn frames-chart [song]
+  [chart/chart-component (song-stats-chart-data song)])
