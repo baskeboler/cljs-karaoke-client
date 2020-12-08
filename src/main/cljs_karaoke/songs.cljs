@@ -15,6 +15,8 @@
             [cljs.core.async :as async :refer [<! >! chan go go-loop]]
             [cljs-karaoke.protocols :refer [handle-route ViewDispatcher dispatch-view]]
             [pushy.core :as pushy]))
+(declare song-url)
+
 (defn song-title [name]
   (-> name
       (str/replace #"_" " ")))
@@ -89,7 +91,6 @@
             [:td [:a
                   {:href (song-url name)} ;(str "#/songs/" name)}
                   [:i.fas.fa-play]]]]))]]
-
       [song-table-pagination]]]))
 
 (defn load-song
@@ -103,7 +104,7 @@
   [{:keys [params]}]
   (load-song (-> (:song-name params)
                  (str/replace "+" " ")))
-                 
+
   :playback)
 
 (defmethod handle-route :song-with-offset

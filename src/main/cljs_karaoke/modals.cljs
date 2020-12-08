@@ -1,11 +1,13 @@
 (ns cljs-karaoke.modals
-  (:require [re-frame.core :as rf]
+  (:require [reagent.core :refer [atom]]
+            [re-frame.core :as rf]
             [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.subs :as s]
             [goog.string :as gstr]
             [cljs-karaoke.notifications :as notification]
             [cljs-karaoke.components.delay-select :refer [delay-select-component]]
             [cljs-karaoke.components.song-info-panel :refer [song-info-table]]))
+
 (defn modal-card-dialog [{:keys [title content footer]}]
   [:div.modal.is-active
    {:key (random-uuid)}
@@ -34,7 +36,7 @@
   [:div.modals
    (for [m @(rf/subscribe [::s/modals])]
      ^{:key (str "modal_" (hash m))}
-      m)])
+     m)])
 
 (defn footer-buttons
   ([]
@@ -50,8 +52,6 @@
     (for [[i btn] (map-indexed vector btns)]
       ^{:key (str "footer-button-" i)}
       btn)]))
-   
-
 
 (defn ^:export show-export-text-info-modal
   [{:keys [title text]}]
@@ -78,7 +78,7 @@
                                                            (catch (fn [e] (println "failed to copy " e))))}
                                            [:i.fas.fa-fw.fa-share-alt]
                                            "Copy to Clipboard"]]})]
-   (rf/dispatch [::modal-events/modal-push modal])))
+    (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn ^:export show-generic-tools-modal [{:keys [title content]}]
   (let [modal (modal-card-dialog
@@ -100,7 +100,7 @@
 
 (defn ^:export show-input-text-modal
   [{:keys [title text on-submit]}]
-  (let [input-text (reagent.core/atom "")
+  (let [input-text (atom "")
         modal      (modal-card-dialog
                     {:title   title
                      :content (fn []
@@ -111,10 +111,10 @@
                                     :value     @input-text
                                     :on-change #(reset! input-text (-> % .-target .-value))}]]])
                      :footer [:div.footer-container
-                               [:button.button.is-primary
-                                 {:on-click #(on-submit @input-text)}
-                                 "OK"]]})]
-      (rf/dispatch [::modal-events/modal-push modal])))
+                              [:button.button.is-primary
+                               {:on-click #(on-submit @input-text)}
+                               "OK"]]})]
+    (rf/dispatch [::modal-events/modal-push modal])))
 
 (defn show-export-sync-info-modal []
   (let [data @(rf/subscribe [::s/custom-song-delay-for-export])]

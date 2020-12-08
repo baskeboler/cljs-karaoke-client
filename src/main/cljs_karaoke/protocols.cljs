@@ -14,6 +14,16 @@
   (played? [this offset])
   (get-next-event [this offset]))
 
+(defprotocol ^:export PLyricsStats
+  (get-frame-count [this])
+  (get-word-count [this])
+  (get-avg-words-per-frame [this])
+  (get-max-words-frame [this])
+  (get-min-words-frame [this])
+  (get-frames-chart-data [this interval-length])
+  (get-words-chart-data [this interval-length]))
+
+
 (defprotocol ^:export PSong
   (get-current-frame [this time] "returns the current frame a time miliseconds"))
 
@@ -41,3 +51,6 @@
 (defprotocol ViewDispatcher
   "View dispatcher protocol"
   (dispatch-view [this]))
+
+(defprotocol ^:export Renderable
+  (render-component [this]))

@@ -513,3 +513,35 @@
  :<- [::lyrics]
  (fn [[song-name frames] _]
    (lyrics/create-song song-name frames)))
+
+(rf/reg-sub
+ ::current-song-frame-count
+ :<- [::playback-song]
+ (fn [song _]
+   (protocols/get-frame-count song)))
+
+
+(rf/reg-sub
+ ::current-song-word-count
+ :<- [::playback-song]
+ (fn [song _]
+   (protocols/get-word-count song)))
+
+(rf/reg-sub
+ ::current-song-avg-words-frame
+ :<- [::playback-song]
+ (fn [song _]
+   (protocols/get-avg-words-per-frame song)))
+
+
+(rf/reg-sub
+ ::current-song-max-words-frame
+ :<- [::playback-song]
+ (fn [song _]
+   (protocols/get-max-words-frame song)))
+
+(rf/reg-sub
+ ::current-song-min-words-frame
+ :<- [::playback-song]
+ (fn [song _]
+   (protocols/get-min-words-frame song)))
