@@ -2,7 +2,8 @@
   (:require [stylefy.core :as stylefy]))
 
 (def ^:export wallpapers
-  ["wp1.jpg"
+  ["fancy-pants.jpg"
+   "wp1.jpg"
    "Dolphin.jpg"
    "wp2.jpg"
    "wp3.jpg"
@@ -14,7 +15,7 @@
 
 (defn ^:export parent-style []
   ;; {:transition       "background-image 1s ease-out"
-  {:background-size  "cover"
+  {:background-size  "auto"
    :background-image (str "url(\"/images/" (first wallpapers) "\")")
    :animation        (str (random-kenburn)
                           " 5s ease-in-out both")})

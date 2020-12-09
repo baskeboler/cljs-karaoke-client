@@ -2,6 +2,7 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/8cdcf70f-1a6c-40bb-a3f0-02cb24eda852/deploy-status)](https://app.netlify.com/sites/karaoke-player/deploys)
 [![Nyancat Compliance Status](https://img.shields.io/badge/nyancat%20compliance-ridiculous-brightgreen)](https://www.youtube.com/watch?v=QH2-TGUlwu4)
+
 A web karaoke player implemented in clojurescript
 
 ## Demo 
@@ -82,6 +83,7 @@ The build will be located in the `/public` directory.
 - "alt-shift-p": play 
 - "shift-right": next song on playlist
 - "t t": toasty!
+- "h": show cheatsheet 
 
 ## Future work
 
