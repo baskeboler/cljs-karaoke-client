@@ -51,7 +51,7 @@
   (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
   (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch-sync [::song-events/inc-current-song-delay -250]))
   (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250]))
-  (key/bind! "h" ::help #(show-cheatsheet)))
+  (key/bind! "alt-shift-h" ::help #(show-cheatsheet)))
 
 (defn disable-keybindings! []
   (key/disable!))
