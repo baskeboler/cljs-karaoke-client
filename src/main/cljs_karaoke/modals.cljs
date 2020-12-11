@@ -8,7 +8,10 @@
             [cljs-karaoke.components.delay-select :refer [delay-select-component]]
             [cljs-karaoke.components.song-info-panel :refer [song-info-table]]))
 
-(defn modal-card-dialog [{:keys [title content footer]}]
+(declare footer-buttons)
+
+(defn modal-card-dialog [{:keys [title content footer]
+                          :or {footer [footer-buttons]}}]
   [:div.modal.is-active
    {:key (random-uuid)}
    [:div.modal-background]
@@ -28,7 +31,8 @@
          [footer]
          footer)])]])
 
-(defn show-modal-card-dialog [{:keys [title content footer] :as arg}]
+
+(defn show-modal-card-dialog [arg]
   (rf/dispatch [::modal-events/modal-push
                 [modal-card-dialog arg]]))
 

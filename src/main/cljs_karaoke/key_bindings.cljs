@@ -12,7 +12,8 @@
             [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.mobile :as mobile]))
+            [cljs-karaoke.mobile :as mobile]
+            [cljs-karaoke.views.cheatsheet :refer [show-cheatsheet]]))
 
 (defn- handle-escape-key []
   (println "esc pressed!")
@@ -49,7 +50,8 @@
   (key/bind! "t t" ::double-t #(trigger-toasty))
   (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
   (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch-sync [::song-events/inc-current-song-delay -250]))
-  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250])))
+  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250]))
+  (key/bind! "h" ::help #(show-cheatsheet)))
 
 (defn disable-keybindings! []
   (key/disable!))
