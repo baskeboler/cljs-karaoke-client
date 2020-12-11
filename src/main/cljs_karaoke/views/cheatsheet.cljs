@@ -11,7 +11,7 @@
    {:label "enable options in playbay mode"
     :shortcut [[:alt :o]]}
    {:label "enable control panel mode"
-    :shortcut [[[:alt :h]]]}
+    :shortcut [[:alt :h]]}
    {:label "audio seek backwards"
     :shortcut [:left]}
    {:label "audio seek forward"
@@ -25,7 +25,7 @@
    {:label "toasty!"
     :shortcut [:t :t]}
    {:label "show cheatsheet"
-    :shortcut [:?]}])
+    :shortcut [[:alt :shift :h]]}])
 
 (defn- kw->str [kw]
   (apply str (rest (str kw))))
