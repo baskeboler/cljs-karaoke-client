@@ -79,7 +79,8 @@
                          ::views-events/views-state-ready
                          ::song-list-events/song-list-ready
                          ::metadata-events/fetch-song-metadata-complete
-                         ::fetch-song-list-complete]
+                         ::fetch-song-list-complete
+                         ::fetch-new-song-list-complete]
             :dispatch-n [[::pageloader-exit-transition]
                          ;; [::set-pageloader-active? false]
                          [::initialized]]
@@ -153,6 +154,7 @@
              :dispatch-n [[::fetch-custom-delays]
                           [::metrics-events/load-user-metrics-from-localstorage]
                           [::fetch-song-list]
+                          [::fetch-new-song-list]
                           [::editor-events/init]
                           [::fetch-song-background-config]
                           [::initial-audio-setup]
@@ -231,6 +233,36 @@
   [db _]
   (println "fetch song list complete!")
   db))
+
+
+
+(rf/reg-event-fx
+ ::fetch-new-song-list
+ (fn-traced
+  [{:keys [db]} _]
+  {:db db
+   :dispatch [::http-events/get
+              {:url "/data/newsongs.edn"
+               :response-format (ajax/text-response-format)
+               :on-success ::handle-fetch-new-song-list-success
+               :on-error ::fetch-new-song-list-complete}]}))
+(rf/reg-event-fx
+ ::handle-fetch-new-song-list-success
+ (fn-traced
+  [{:keys [db]} [_ response]]
+  {:db (-> db
+           (assoc :new-songs (into #{} (reader/read-string response))))
+   :dispatch [::fetch-new-song-list-complete]}))
+
+(rf/reg-event-db
+ ::fetch-new-song-list-complete
+ (fn-traced
+  [db _]
+  (println "fetch NEW song list complete!")
+  db))
+
+
+
 
 (rf/reg-event-fx
  ::pageloader-exit-transition

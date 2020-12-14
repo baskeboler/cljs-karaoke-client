@@ -46,11 +46,11 @@
   (key/bind! "space" ::space-kb #(if @(rf/subscribe [::s/song-paused?]) (play) (pause)))
   (key/bind! "shift-right" ::shift-right #(do
                                             (stop)
-                                            (rf/dispatch-sync [::playlist-events/playlist-next])))
+                                            (rf/dispatch [::playlist-events/playlist-next])))
   (key/bind! "t t" ::double-t #(trigger-toasty))
   (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
-  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch-sync [::song-events/inc-current-song-delay -250]))
-  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250]))
+  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch [::song-events/inc-current-song-delay -250]))
+  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch [::song-events/inc-current-song-delay 250]))
   (key/bind! "alt-shift-h" ::help #(show-cheatsheet)))
 
 (defn disable-keybindings! []
