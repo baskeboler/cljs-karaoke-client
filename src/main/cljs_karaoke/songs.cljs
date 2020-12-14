@@ -1,20 +1,15 @@
 (ns cljs-karaoke.songs
-  (:require [reagent.core :as reagent :refer [atom]]
-            [re-frame.core :as rf :include-macros true]
+  (:require [re-frame.core :as rf :include-macros true]
             [clojure.string :as str]
             [cljs-karaoke.events.common]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.songs :as song-events]
-            [cljs-karaoke.events.views :as view-events]
-            [cljs-karaoke.audio :as aud]
             [goog.string :as gstr]
             [cljs-karaoke.router.core :as router]
-            [cljs-karaoke.lyrics :refer [preprocess-frames]]
-            [cljs.core.async :as async :refer [<! >! chan go go-loop]]
-            [cljs-karaoke.protocols :refer [handle-route ViewDispatcher dispatch-view]]
-            [pushy.core :as pushy]))
+            [cljs-karaoke.protocols :refer [handle-route]]))
+            
 (declare song-url)
 
 (defn song-title [name]
@@ -25,7 +20,7 @@
   (let [song-list    (rf/subscribe [::s/available-songs])
         current-page (rf/subscribe [::s/song-list-current-page])
         page-size    (rf/subscribe [::s/song-list-page-size])
-        filter-text  (rf/subscribe [::s/song-list-filter])
+        ;; filter-text  (rf/subscribe [::s/song-list-filter])
         page-offset  (rf/subscribe [::s/song-list-offset])
         next-fn      #(rf/dispatch [::song-list-events/set-song-list-current-page (inc @current-page)])
         prev-fn      #(rf/dispatch [::song-list-events/set-song-list-current-page (dec @current-page)])]
@@ -61,7 +56,7 @@
 
 (defn song-table-component
   []
-  (let [current-page            (rf/subscribe [::s/song-list-current-page])
+  (let [;;current-page            (rf/subscribe [::s/song-list-current-page])
         page-size               (rf/subscribe [::s/song-list-page-size])
         filter-text             (rf/subscribe [::s/song-list-filter])
         page-offset             (rf/subscribe [::s/song-list-offset])]
@@ -85,9 +80,11 @@
                          (drop @page-offset)
                          (take @page-size) ;(vec (sort (keys song-map)))
                          (into []))
-               :let [title (song-title name)]]
+               :let [title (song-title name)
+                     new? @(rf/subscribe [::s/new-song? name])]]
            [:tr {:key name}
-            [:td title]
+            [:td title
+             (when new? [:span.tag.is-primary.heading.mx-3 "NEW!"])]
             [:td [:a
                   {:href (song-url name)} ;(str "#/songs/" name)}
                   [:i.fas.fa-play]]]]))]]

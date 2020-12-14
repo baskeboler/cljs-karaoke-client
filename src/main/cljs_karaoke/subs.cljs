@@ -545,3 +545,14 @@
  :<- [::playback-song]
  (fn [song _]
    (protocols/get-min-words-frame song)))
+
+(rf/reg-sub
+ ::new-songs
+ (fn [db _]
+   (:new-songs db)))
+
+(rf/reg-sub
+ ::new-song?
+ :<- [::new-songs]
+ (fn [songs [_ song]]
+   (songs song)))
