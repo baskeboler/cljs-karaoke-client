@@ -1,0 +1,1 @@
+({:id "1058301d-8860-4fc9-86b9-9b73d2893383", :events ({:id "a9b4c8f5-b6a0-4bfe-a855-607096d9be05", :text "VERSE", :ticks 4800, :offset 0.0000M, :type :lyrics-event} {:id "ef81592f-8f3b-44c1-a6ea-97cb3f5805c1", :text "2ND", :ticks 35520, :offset 90352.8925M, :type :lyrics-event}), :type :frame-event, :ticks 4800, :offset 14117.6395M})
