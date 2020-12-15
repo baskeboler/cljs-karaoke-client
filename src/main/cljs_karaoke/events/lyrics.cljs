@@ -27,7 +27,7 @@
                    (assoc :lyrics-loaded? false)
                    (assoc :lyrics-fetching? true))
    :http-xhrio {:method          :get
-                :uri             (str events/base-storage-url "/lyrics/" name ".edn")
+                :uri             (str "/lyrics/" name ".edn")
                 :timeout         http-timeout
                 :response-format (ajax/text-response-format)
                 :on-success      [::handle-fetch-lyrics-success]
