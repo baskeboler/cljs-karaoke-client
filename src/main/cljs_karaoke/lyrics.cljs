@@ -1,33 +1,37 @@
 (ns cljs-karaoke.lyrics
   (:require [reagent.core :as r]
             [clojure.string :as str]
-            ;; ["chart.js"]
             [chart-cljs.core :as chart]
+            [cljs.reader :refer [register-tag-parser!]]
             [thi.ng.color.core :as color]
-            [cljs.core :as core :refer [random-uuid]]
+            [clj-karaoke.protocols :as p :refer [PSong PLyrics map-> get-text get-offset played? get-next-event]]
+            [clj-karaoke.song-data :refer [SongData]]
             [cljs-karaoke.protocols :as protocols
              :refer [set-text reset-progress inc-progress
-                     get-progress get-text get-offset played?
+                     get-progress 
                      get-current-frame get-frame-count get-word-count
                      get-avg-words-per-frame get-max-words-frame
                      get-min-words-frame get-frames-chart-data
                      get-words-chart-data]]))
-
+(def not-nil? (comp not nil?))
 (def frame-text-limit 96)
-(def rand-uuid random-uuid)
-(defn set-event-id [event]
-  (if-not (nil? (:id event))
-    (assoc event :id (random-uuid))
+
+(def generate-id 
+  (comp str gensym))
+
+(defn ensure-event-id [event]
+  (if (nil? (:id event))
+    (assoc event :id (generate-id))
     event))
 
 (defn to-relative-offset-events [base-offset]
   (fn [event]
     (-> event
-        (update :offset #(- % base-offset)))))
+        (update :offset #(+ % base-offset)))))
     ;; (s/transform [:offset] #(- % base-offset) event)))
 
 (defn to-relative-offset-events-with-id [base-offset]
-  (comp set-event-id (to-relative-offset-events base-offset)))
+  (comp ensure-event-id (to-relative-offset-events base-offset)))
 
 (defn update-events-to-relative-offset [base-offset]
   (fn [events]
@@ -43,25 +47,25 @@
   (reduce
    (fn [res fr]
      (let [last-frame (last res)
-           new-offset (if-not (nil? last-frame)
-                        (- (:offset fr) (:offset last-frame))
+           new-offset (if (not-nil? last-frame)
+                        (+ (:offset fr) (:offset last-frame))
                         (:offset fr))
            new-frame (->> fr
                           (assoc :relative-offset new-offset)
-                          (assoc :id (random-uuid)))
+                          (assoc :id (generate-id)))
                           ;; (s/setval [:relative-offset] new-offset)
                           ;; (s/setval [:id] (random-uuid)))
            #_(-> fr
                  (assoc :relative-offset new-offset)
-                 (set-event-id))]
+                 (ensure-event-id))]
        (conj (vec res) new-frame)))
    []
    (vec frames)))
 
 (defn- event-text [evt]
-  (if-not (or
-           (nil? evt)
-           (nil? (:text evt)))
+  (if (and
+       (not-nil? evt)
+       (not-nil? (:text evt)))
     (str/trim (:text evt))
     ""))
 
@@ -88,11 +92,11 @@
 (defn- partition-events-2 [events]
   (reduce
    (fn [res evt]
-     (let [last-grp (last res)
+     (let [last-grp        (last res)
            last-grp-length (reduce + 0 (map event-text last-grp))]
        (if (< last-grp-length frame-text-limit)
          (let [new-last (conj last-grp evt)
-               new-res (conj (-> res
+               new-res  (conj (-> res
                                  reverse rest reverse vec)
                              new-last)]
            new-res)
@@ -107,8 +111,8 @@
 
 (defn build-frame [grp]
   {:type :frame-event
-   :id (random-uuid)
-   :events (map set-event-id (vec grp))
+   :id (generate-id)
+   :events (map ensure-event-id (vec grp))
    :ticks (reduce min js/Number.MAX_VALUE (map :ticks (vec grp)))
    :offset (reduce min js/Number.MAX_VALUE (map :offset (vec grp)))})
 
@@ -136,14 +140,9 @@
   (mapv
    (fn [frame]
      (-> frame
-         (update
-          :events
-          (fn [evts]
-            (->> evts
-                 (mapv
-                  (fn [evt]
-                    (-> evt
-                        (assoc :id (rand-uuid))))))))))
+         (update :events
+                 (fn [evts]
+                   (mapv  #(ensure-event-id %) evts)))))
    frames))
   ;; (s/transform [s/ALL :events s/ALL]
                ;; (fn [evt]
@@ -152,12 +151,12 @@
 
 (defn preprocess-frames [frames]
   (let [no-dupes
-        (map (fn [fr]
-               (let [events (->> (into #{} (:events fr))
-                                 vec
-                                 (sort-by :offset))]
-                 (-> fr
-                     (assoc :events events))))
+        (mapv (fn [fr]
+                (let [events (->> (:events fr)
+                                  (into #{})
+                                  vec
+                                  (sort-by :offset))]
+                  (assoc fr :events events)))
              frames)
         frames-2 (split-frames-if-necessary (vec no-dupes))
         with-offset
@@ -174,9 +173,9 @@
                                                     (update-events-to-relative-offset-with-id
                                                      (:offset %)))))
                                      with-offset)]
-    ;; frames-2
     (-> with-relative-events
         (to-relative-frame-offsets))))
+
 (defrecord RLyricsDisplay [text progress progress-chan])
 
 (extend-protocol protocols/LyricsDisplay
@@ -198,67 +197,71 @@
 (defn read-lyrics-event [e]
   (let [values (cljs.reader/read-string e)]
     (map->LyricsEvent values)))
-(cljs.reader/register-tag-parser! "cljs-karaoke.lyrics.LyricsEvent" read-lyrics-event)
 
-(extend-protocol protocols/PLyrics
-  LyricsEvent
-  (get-text [this]
-    (:text this))
-  (get-offset [this]
-    (:offset this))
-  (played? [this delta]
-    (<= (:offset this) delta)))
+;; (register-tag-parser! "cljs-karaoke.lyrics.LyricsEvent" read-lyrics-event)
+
+;; (extend-protocol PLyrics
+;;   LyricsEvent
+;;   (get-text [this]
+;;     (:text this))
+;;   (get-offset [this]
+;;     (:offset this))
+;;   (played? [this delta]
+;;     (<= (:offset this) delta)))
 
 (defrecord ^:export LyricsFrame [id events type ticks offset])
 
-(extend-protocol  protocols/PLyrics
-  LyricsFrame
-  (get-text [this]
-    (frame-text-string this))
-  (get-offset [this]
-    (:offset this))
-  ;; (->> (:events this)
-         ;; (sort-by get-offset)
-         ;; first
-         ;; :offset
-         ;; (+ (:offset this)))
-  (played? [this delta]
-    (let [last-event-offset (->> (:events this)
-                                 last
-                                 :offset
-                                 (+ (:offset this)))]
-      (<= last-event-offset delta)))
-  (get-next-event [this offset]
-    (->> (:events this)
-         (filterv #(< offset (+ (:offset this) (:offset %))))
-         first))
+(extend-protocol  PLyrics
+  ;; LyricsFrame
+  ;; (get-text [this]
+  ;;   (frame-text-string this))
+  ;; (get-offset [this]
+  ;;   (:offset this))
+  ;; ;; (->> (:events this)
+  ;;        ;; (sort-by get-offset)
+  ;;        ;; first
+  ;;        ;; :offset
+  ;;        ;; (+ (:offset this)))
+  ;; (played? [this delta]
+  ;;   (let [last-event-offset (->> (:events this)
+  ;;                                last
+  ;;                                :offset
+  ;;                                (+ (:offset this)))]
+  ;;     (<= last-event-offset delta)))
+  ;; (get-next-event [this offset]
+  ;;   (->> (:events this)
+  ;;        (filterv #(< offset (+ (:offset this) (:offset %))))
+  ;;        first))
   object
   (get-text [this]
     (cond
-      (= :frame-event (:type this)) (-> (map->LyricsFrame this)
+      (= :frame-event (:type this)) (-> (map-> this)
                                         get-text)
-      (= :lyrics-event (:type this)) (-> (map->LyricsEvent this)
+      (= :lyrics-event (:type this)) (-> (map-> this)
                                          get-text)
       :else ""))
   (get-offset [this] (:offset this))
   (played? [this delta]
     (cond
-      (= :frame-event (:type this)) (-> (map->LyricsFrame this)
+      (= :frame-event (:type this)) (-> (map-> this)
                                         (played? delta))
-      (= :lyrics-event (:type this)) (-> (map->LyricsEvent this)
+      (= :lyrics-event (:type this)) (-> (map-> this)
                                          (played? delta))
       :else false))
   nil
   (get-text [this] "")
   (get-offset [this] 0)
-  (played? [this delta] true))
+  (played? [this delta] true)
+  (get-next-event [this delta] nil))
+
 (defn ^:export create-lyrics-event [{:keys [offset text]}]
   (map->LyricsEvent
-   {:id     (str (random-uuid))
+   {:id     (generate-id)
     :type   :lyrics-event
     :text   text
     :offset offset
     :ticks  -1}))
+
 (defn ^:export create-frame [obj]
   (->
    (->> obj
@@ -267,15 +270,15 @@
 
 (defrecord ^:export Song [name frames])
 
-(extend-protocol   protocols/PSong
-  Song
-  (get-current-frame  [this time]
-    (loop [the-frames (:frames this)
-           result     nil]
-      (cond
-        (empty? the-frames)         result
-        (not (played? result time)) result
-        :else                       (recur (rest the-frames) (first the-frames))))))
+;; (extend-protocol   PSong
+;;   Song
+;;   (get-current-frame  [this time]
+;;     (loop [the-frames (:frames this)
+;;            result     nil]
+;;       (cond
+;;         (empty? the-frames)         result
+;;         (not (played? result time)) result
+;;         :else                       (recur (rest the-frames) (first the-frames))))))
 
 (defn ^:export create-song [name frame-seq]
   (map->Song
@@ -306,26 +309,27 @@
       (count words))))
 
 (declare timed-frames timed-words)
+
 (extend-protocol protocols/PLyricsStats
-  Song
+  SongData
   (get-frame-count [this]
     (-> this
         :frames
         count))
   (get-word-count [this]
     (let [frames (:frames this)
-          words-per-frame (map (comp word-count protocols/get-text) frames)]
+          words-per-frame (map (comp word-count get-text) frames)]
       (reduce + 0 words-per-frame)))
   (get-avg-words-per-frame [this]
     (/ (get-word-count this)
        (get-frame-count this)))
   (get-max-words-frame [this]
     (let [frames (:frames this)
-          wpf (map (comp word-count protocols/get-text) frames)]
+          wpf (map (comp word-count get-text) frames)]
       (apply max wpf)))
   (get-min-words-frame [this]
     (let [frames (:frames this)
-          wpf (map (comp word-count protocols/get-text) frames)]
+          wpf (map (comp word-count get-text) frames)]
       (apply min wpf)))
   (get-frames-chart-data [this interval-length]
     (timed-frames this interval-length))
@@ -340,7 +344,12 @@
         part2 (partition-all 2 (rest points))]
     (filter #(= 2 (count %)) (interleave part1 part2))))
 
-(defn aprox-song-duration [song]
+(defn aprox-song-duration
+  "estimates song duration based on lyric events.
+   takes last lyrcis event timestamp and adds 2 seconds.
+   used for charting, actual song length is unknown
+   until audio is loaded"
+  [song]
   (let [frames (:frames song)
         last-frame (last frames)
         last-event (last (:events last-frame))]
@@ -356,15 +365,16 @@
             frames))))
 
 (defn- lyrics-evts [song]
-  (let [frames  (:frames song)
-        evts (map (comp :events
-                        (fn [frame]
-                          (update frame
-                                  :events
-                                  (fn [evts]
-                                    (map #(update % :offset (partial + (:offset frame)))
-                                         evts)))))
-                  frames)]
+  (let [frames (:frames song)
+        evts   (map (comp
+                     :events
+                     (fn [frame]
+                       (update frame
+                               :events
+                               (fn [evts]
+                                 (map #(update % :offset (partial + (:offset frame)))
+                                      evts)))))
+                    frames)]
     (apply concat evts)))
 
 (defn- words-in-interval [song interval]
@@ -387,7 +397,6 @@
 (defn timed-words [song interval-length]
   (let [intervals (buckets 0 (aprox-song-duration song) interval-length)]
     (map #(words-in-interval song %) intervals)))
-
 
 (defn song-stats-chart-data [song]
   (let   [int-len     15000

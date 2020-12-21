@@ -5,7 +5,8 @@
             [re-frame.core :as rf]
             [cljs-karaoke.lyrics :as l]
             [cljs-karaoke.subs :as subs]
-            [cljs-karaoke.protocols :as p]))
+            [clj-karaoke.protocols :as p]
+            [clj-karaoke.song-data :as sd :refer [SongData]]))
 
 (defn- clean-text
   [t]
@@ -24,7 +25,6 @@
 (def leading-icons
   #{"fa-music" "fa-fire" "fa-bolt" "fa-skull-crossbones" "fa-meteor" "fa-radiation" "fa-skull"})
 
-
 (defn leading-icon []
   [:span.icon (stylefy/use-style {:margin "0 0.5em"})
    [:i.fas.fa-fw
@@ -34,20 +34,22 @@
   (* -1 n))
 (defn- s->ms [s] (* 1000 s))
 
-(defn frame-text [frame]
-  (let [delay        (rf/subscribe [::subs/lyrics-delay])
-        current-time (rf/subscribe [::subs/player-current-time])]
-      [:div.frame-text
-       {:key (str "frame-" (:id frame))}
-       (doall
-        (for [e    (vec (:events frame))
-              :let [span-text (clean-text (p/get-text e))
-                    fr-offset (:offset frame)
-                    time-adjusted (+ (neg @delay) (s->ms @current-time) (neg fr-offset))]]
-          [:span {:key   (str "evt_" (:id e))
-                  :class (if (p/played? e time-adjusted)
-                           ["highlighted"]
-                           nil)}
-           (when (leading? (p/get-text e))
-             [leading-icon])
-           span-text]))]))
+(defn frame-text []
+  (let [song  (rf/subscribe [::subs/playback-song])
+        current-time (rf/subscribe [::subs/song-position-ms-adjusted])]
+    (fn []
+      (let [frame        (p/get-current-frame ^SongData @song @current-time)]
+        (into
+         [:div.frame-text]
+         (doall
+          (for [e    (:events frame)
+                :let [span-text (clean-text (p/get-text e))
+                      fr-offset (p/get-offset frame)
+                      time-adjusted (+  @current-time (neg fr-offset))]]
+            [:span {:key   (str "evt_" (hash e))
+                    :class (if (p/played? e time-adjusted)
+                             ["highlighted"]
+                             nil)}
+             (when (leading? (p/get-text e))
+               [leading-icon])
+             span-text])))))))

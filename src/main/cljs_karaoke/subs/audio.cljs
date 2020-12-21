@@ -1,5 +1,6 @@
 (ns cljs-karaoke.subs.audio
-  (:require [re-frame.core :as rf]))
+  (:require [re-frame.core :as rf]
+            [cljs-karaoke.subs.common :refer [reg-attr-sub]]))
 
 (rf/reg-sub
  ::audio-data
@@ -45,8 +46,8 @@
  (fn [mix _]
    (not (nil? mix))))
 
-(cljs-karaoke.subs/reg-attr-sub ::song-stream :song-stream)
-(cljs-karaoke.subs/reg-attr-sub ::effects-audio-ready? :effects-audio-ready?)
+(reg-attr-sub ::song-stream :song-stream)
+(reg-attr-sub ::effects-audio-ready? :effects-audio-ready?)
 ;; (rf/reg-sub
  ;; ::song-stream
  ;; (fn [db _]

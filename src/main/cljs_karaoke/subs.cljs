@@ -3,14 +3,12 @@
             [day8.re-frame.tracing :refer-macros [fn-traced]]
             [cljs-karaoke.playlists :as pl]
             [cljs-karaoke.lyrics :as lyrics]
-            [cljs-karaoke.protocols :as protocols]))
-
-(defn reg-attr-sub [name key]
-  (rf/reg-sub
-   name
-   (fn [db _]
-     (get db key))))
-
+            [clj-karaoke.song-data]
+            [clj-karaoke.lyrics-event]
+            [clj-karaoke.lyrics-frame]
+            [cljs-karaoke.protocols :as protocols]
+            [cljs-karaoke.subs.common :refer [reg-attr-sub]]
+            [clj-karaoke.protocols :as p]))
 (rf/reg-sub
  ::display-lyrics?
  (fn [db _]
@@ -33,9 +31,17 @@
   (.-playbackRate audio)))
 
 (rf/reg-sub
+ ::song
+ (fn-traced
+  [db _]
+  (:song db)))
+
+(rf/reg-sub
  ::lyrics
- (fn-traced [db _]
-            (:lyrics db)))
+ :<- [::playback-song]
+ (fn-traced
+  [song _]
+  (vec (:frames song))))
 
 (rf/reg-sub
  ::lyrics-loaded?
@@ -75,17 +81,18 @@
  :<- [::lyrics]
  :<- [::song-position]
  :<- [::current-song-delay]
- (fn-traced [[lyrics song-position custom-song-delay] _]
-            (when-not (empty? lyrics)
-              (reduce
-               (fn [res frame]
-                 (if (<= (protocols/get-offset frame)
-                         (+ (* -1 custom-song-delay)
-                            (* 1000 song-position)))
-                   frame
-                   res))
-               nil
-               (vec lyrics)))))
+ (fn
+   [[lyrics song-position custom-song-delay] _]
+   (when-not (empty? lyrics)
+     (reduce
+      (fn [res frame]
+        (if (<= (p/get-offset frame)
+                (+ (* -1 custom-song-delay)
+                   (* 1000 song-position)))
+          frame
+          res))
+      nil
+      (vec lyrics)))))
      ;; (last
       ;; (filterv
        ;; (fn [^cljs-karaoke.lyrics.LyricsFrame frame]
@@ -96,10 +103,12 @@
 (rf/reg-sub
  ::current-frame
  :<- [::playback-song]
+ ;; :<- [::song]
  :<- [::song-position-ms-adjusted]
- (fn-traced
-  [[song song-position] _]
-  (protocols/get-current-frame song song-position)))
+ (fn
+   [[song song-position] _]
+   (p/get-current-frame song song-position)))
+  ;; (protocols/get-current-frame song song-position)))
   ;; (let [lyrics frames]
   ;;  (when-not (empty? lyrics)
   ;;    (reduce
@@ -115,35 +124,37 @@
  ::previous-frame
  :<- [::lyrics]
  :<- [::current-frame]
- (fn-traced
-  [[lyrics frame] _]
-  (let [frs (take-while #(not= (:id frame) (:id %)) lyrics)]
-    (last frs))))
+ (fn
+   [[lyrics frame] _]
+   (let [frs (take-while #(not= (:id frame) (:id %)) lyrics)]
+     (last frs))))
 
 (rf/reg-sub
  ::next-frame
  :<- [::lyrics]
- :<- [::current-frame]
- (fn-traced
-  [[lyrics frame] _]
-  (let [frs (drop-while #(not= (:id frame) (:id %)) lyrics)]
-    (second frs))))
+ :<- [::song-position-ms-adjusted]
+ (fn
+   [[lyrics pos] _]
+   (let [frs (drop-while #(p/played? % pos) lyrics)]
+     (if (> (count frs) 1)
+       (second frs)
+       (first frs)))))
 
 (rf/reg-sub
  ::song-position-ms
  :<- [::song-position]
- (fn-traced
-  [position _]
-  (* 1000 position)))
+ (fn
+   [position _]
+   (* 1000 position)))
 
 (rf/reg-sub
  ::song-position-ms-adjusted
  :<- [::song-position-ms]
  :<- [::current-song-delay]
- (fn-traced
-  [[position delay] _]
-  (+ (* -1 delay)
-     position)))
+ (fn
+   [[position delay] _]
+   (+ (* -1 delay)
+      position)))
 
 
 ;; (rf/reg-sub
@@ -152,7 +163,7 @@
 ;;  :<- [::song-position]
 ;;  :<- [::current-song-delay]
 ;;  :<- [::next-frame]
-;;  (fn-traced
+;;  (fn
 ;;   [[{:keys [events offset] :as frame} position delay next-frame] _]
 ;;   (let [position-ms   (+ (* -1 delay)
 ;;                          (* 1000 position)
@@ -163,32 +174,38 @@
 ;;       next-in-frame
 ;;       (first (:events next-frame))))))
 
+
 (rf/reg-sub
  ::next-lyrics-event
  :<- [::current-frame]
  :<- [::song-position-ms-adjusted]
  :<- [::next-frame]
- (fn-traced
-  [[{:keys [events offset] :as frame} position next-frame] _]
-  (let [next-in-frame (first
-                       (filter #(> (+ offset (:offset %)) position) events))]
-    (if (some? next-in-frame)
-      next-in-frame
-      (first (:events next-frame))))))
+ (fn
+   [[{:keys [events offset] :as frame} position next-frame] _]
+   (if-not (p/played? frame position)
+     (p/get-next-event frame position)
+     (when-not (nil? next-frame)
+       (-> next-frame :events first)))))
+  ;; (let [next-in-frame (first
+                       ;; (filter #(> (+ offset (:offset %)) position) events))
+    ;; (if (some? next-in-frame)
+      ;; next-in-frame
+      ;; (first (:events next-frame))))))
 
 (rf/reg-sub
  ::current-frame-done?
  :<- [::current-frame]
  :<- [::next-lyrics-event]
  :<- [::song-position-ms-adjusted]
- (fn-traced
-  [[{:keys [events offset] :as frame} evt pos] _]
+ (fn
+   [[frame evt pos] _]
   ;; (not ((set events) evt))))
-  (protocols/played? frame pos)))
+   (p/played? frame pos)))
+
 (rf/reg-sub
  ::current-song
- (fn-traced [db _]
-            (:current-song db)))
+ (fn [db _]
+   (:current-song db)))
 
 (rf/reg-sub
  ::frame-to-display
@@ -197,13 +214,13 @@
  :<- [::current-frame-done?]
  :<- [::song-position-ms-adjusted]
  ;; :<- [::current-song-delay]
- (fn-traced
-  [[frame {:keys [offset] :as next-frame} done? position] _]
-  (cond
-    (not done?) frame
-    (>= 1500 (-  offset position)) next-frame
-    :else
-    nil)))
+ (fn
+   [[frame  next-frame done? position] _]
+   (cond
+     (not (p/played? frame position)) frame
+     (>= 1500 (- (p/get-offset next-frame) position)) next-frame
+     :else
+     frame)))
     ;; (if (some? frame) frame next-frame))))
 
 (rf/reg-sub
@@ -211,210 +228,206 @@
  :<- [::frame-to-display]
  :<- [::song-position-ms-adjusted]
  :<- [::next-lyrics-event]
- (fn-traced
-  [[frame position evt] _]
-  (-
-   (+ (protocols/get-offset frame) (protocols/get-offset evt))
+ (fn
+   [[frame position evt] _]
+   (-
+    (+ (p/get-offset frame) (p/get-offset evt))
    ;; (+ (:offset frame) (:offset evt))
-   position)))
+    position)))
 
 (rf/reg-sub
  ::highlight-status
- (fn-traced [db _]
-            (:highlight-status db)))
+ (fn [db _]
+   (:highlight-status db)))
 
 (rf/reg-sub
  ::lyrics-delay
- (fn-traced [db _]
-            (:lyrics-delay db)))
+ (fn [db _]
+   (:lyrics-delay db)))
 
 (rf/reg-sub
  ::available-songs
- (fn-traced [db _]
-            (:available-songs db)))
+ (fn [db _]
+   (:available-songs db)))
 
 (rf/reg-sub
  ::song-list
- (fn-traced [db _]
-            (:song-list db)))
+ (fn [db _]
+   (:song-list db)))
 
 (rf/reg-sub
  ::song-list-page-size
  :<- [::song-list]
- (fn-traced [song-list _]
-            (:page-size song-list)))
+ (fn [song-list _]
+   (:page-size song-list)))
 
 (rf/reg-sub
  ::song-list-current-page
  :<- [::song-list]
- (fn-traced [song-list _]
-            (:current-page song-list)))
+ (fn [song-list _]
+   (:current-page song-list)))
 
 (rf/reg-sub
  ::song-list-filter
  :<- [::song-list]
- (fn-traced [song-list _]
-            (:filter song-list)))
+ (fn [song-list _]
+   (:filter song-list)))
 
 (rf/reg-sub
  ::song-list-offset
  :<- [::song-list-current-page]
  :<- [::song-list-page-size]
- (fn-traced [[page size] _]
-            (* page size)))
+ (fn [[page size] _]
+   (* page size)))
 
 (rf/reg-sub
  ::song-list-visible?
  :<- [::song-list]
- (fn-traced [song-list _]
-            (:visible? song-list)))
+ (fn [song-list _]
+   (:visible? song-list)))
 
 (rf/reg-sub
  ::song-list-filter-verified?
  :<- [::song-list]
  :<- [::verified-songs]
- (fn-traced [[song-list verified] _]
-            (filter verified song-list)))
+ (fn [[song-list verified] _]
+   (filter verified song-list)))
 
 (rf/reg-sub
  ::song-position
- (fn-traced [db _]
-            (:player-current-time db)))
+ (fn [db _]
+   (:player-current-time db)))
 
 (rf/reg-sub
  ::song-paused?
- (fn-traced [db _]
-            (not (:playing? db))))
+ (fn [db _]
+   (not (:playing? db))))
 
 (rf/reg-sub
  ::song-duration
- (fn-traced [db _]
-            (:song-duration db)))
+ (fn [db _]
+   (:song-duration db)))
 
 (rf/reg-sub
  ::song-playing?
- (fn-traced [db _]
-            (:playing? db)))
+ (fn [db _]
+   (:playing? db)))
 
 (rf/reg-sub
  ::user-custom-song-delay-map
- (fn-traced
-  [db _]
-  (:user-custom-song-delay db)))
+ (fn
+   [db _]
+   (:user-custom-song-delay db)))
 
 (rf/reg-sub
  ::custom-song-delay-map
- (fn-traced
-  [db _]
-  (:custom-song-delay db)))
-
+ (fn
+   [db _]
+   (:custom-song-delay db)))
 
 (rf/reg-sub
  ::custom-song-delay
  :<- [::custom-song-delay-map]
  :<- [::user-custom-song-delay-map]
- (fn-traced
-  [[delay-map user-delay-map] [_ song-name]]
-  (let [final-delay-map (merge delay-map user-delay-map)]
-    (get-in final-delay-map [ song-name] 0))))
+ (fn
+   [[delay-map user-delay-map] [_ song-name]]
+   (let [final-delay-map (merge delay-map user-delay-map)]
+     (get-in final-delay-map [song-name] 0))))
 
 (rf/reg-sub
  ::user-song-delay-count
  :<- [::user-custom-song-delay-map]
- (fn-traced
-  [delays _]
-  (-> delays keys count)))
-
+ (fn
+   [delays _]
+   (-> delays keys count)))
 
 (rf/reg-sub
  ::verified-songs
- (fn-traced [db _]
-            (->> (keys (:custom-song-delay db))
-                 (into #{}))))
+ (fn [db _]
+   (->> (keys (:custom-song-delay db))
+        (into #{}))))
 
 (rf/reg-sub
  ::custom-song-delay-for-export
- (fn-traced [db _]
-            (-> db
-                :custom-song-delay
-                (pr-str))))
- 
+ (fn [db _]
+   (-> db
+       :custom-song-delay
+       (pr-str))))
+
 (rf/reg-sub
  ::modals
- (fn-traced [db _]
-            (:modals db)))
+ (fn [db _]
+   (:modals db)))
 
 (rf/reg-sub
  ::bg-style
- (fn-traced [db _]
-            (:bg-style db)))
+ (fn [db _]
+   (:bg-style db)))
 
 (rf/reg-sub
  ::can-play?
- (fn-traced [db _]
-            (:can-play? db)))
+ (fn [db _]
+   (:can-play? db)))
 
 (rf/reg-sub
  ::current-view
- (fn-traced [db _]
-            (:current-view db)))
+ (fn [db _]
+   (:current-view db)))
 
 (rf/reg-sub
  ::views
- (fn-traced [db _] (:views db)))
+ (fn [db _] (:views db)))
 
 (rf/reg-sub
  ::view-property
  :<- [::views]
- (fn-traced [views [_ view property]]
-            (get-in views [view property])))
+ (fn [views [_ view property]]
+   (get-in views [view property])))
 
-(rf/reg-sub ::player-current-time (fn-traced [db _] (:player-current-time db)))
-(rf/reg-sub ::audio-events (fn-traced [db _] (:audio-events db)))
-(rf/reg-sub ::loop? (fn-traced [db _] (:loop? db)))
-(rf/reg-sub ::app-name (fn-traced [db _] (:app-name db)))
+(rf/reg-sub ::player-current-time (fn [db _] (:player-current-time db)))
+(rf/reg-sub ::audio-events (fn [db _] (:audio-events db)))
+(rf/reg-sub ::loop? (fn [db _] (:loop? db)))
+(rf/reg-sub ::app-name (fn [db _] (:app-name db)))
 
 (rf/reg-sub
  ::playlist
- (fn-traced [db _]
-            (some-> db
-                    :playlist)))
+ (fn [db _]
+   (some-> db
+           :playlist)))
 (rf/reg-sub
  ::playlist-current
  :<- [::playlist]
- (fn-traced [playlist _]
-            (some-> playlist
-                    (protocols/current))))
+ (fn [playlist _]
+   (some-> playlist
+           (protocols/current))))
 (rf/reg-sub
  ::navbar-visible?
  :<- [::current-view]
- (fn-traced [view _]
-            (#{:playlist :home :editor} view)))
+ (fn [view _]
+   (#{:playlist :home :editor} view)))
 
 (rf/reg-sub
  ::backgrounds-loaded?
- (fn-traced
-  [db _]
-  (:song-backgrounds-loaded? db)))
+ (fn
+   [db _]
+   (:song-backgrounds-loaded? db)))
 
 (rf/reg-sub
  ::song-delays-loaded?
- (fn-traced
-  [db _]
-  (:song-delays-loaded db)))
+ (fn
+   [db _]
+   (:song-delays-loaded db)))
 
 (rf/reg-sub
  ::views-state-ready?
- (fn-traced
-  [db _]
-  (:views-state-ready? db)))
-
-
+ (fn
+   [db _]
+   (:views-state-ready? db)))
 
 (rf/reg-sub
  ::initialized?
- (fn-traced [db _]
-            (:initialized? db)))
+ (fn [db _]
+   (:initialized? db)))
 
 (rf/reg-sub
  ::app-ready?
@@ -422,42 +435,42 @@
  :<- [::backgrounds-loaded?]
  :<- [::song-delays-loaded?]
  :<- [::views-state-ready?]
- (fn-traced
-  [[initialized? bgloaded? delaysloaded? vsready?] _]
-  (and initialized? bgloaded? delaysloaded? vsready?)))
+ (fn
+   [[initialized? bgloaded? delaysloaded? vsready?] _]
+   (and initialized? bgloaded? delaysloaded? vsready?)))
 
 (rf/reg-sub
  ::pageloader-active?
- (fn-traced [db _]
-            (:pageloader-active? db)))
+ (fn [db _]
+   (:pageloader-active? db)))
 
 (rf/reg-sub
  ::pageloader-exiting?
- (fn-traced [db _]
-            (:pageloader-exiting? db)))
+ (fn [db _]
+   (:pageloader-exiting? db)))
 
 (rf/reg-sub
  ::toasty?
- (fn-traced [db _]
-            (:toasty? db)))
+ (fn [db _]
+   (:toasty? db)))
 
 (rf/reg-sub
  ::stop-channel
- (fn-traced [db _]
-            (:stop-channel db)))
+ (fn [db _]
+   (:stop-channel db)))
 
 (rf/reg-sub
  ::player-status-id
- (fn-traced [db _]
-            (:player-status-id db)))
+ (fn [db _]
+   (:player-status-id db)))
 
 (rf/reg-sub
  ::seek-buttons-visible?
- (fn-traced [db _] (:seek-buttons-visible? db)))
+ (fn [db _] (:seek-buttons-visible? db)))
 
 (rf/reg-sub
  ::display-home-button?
- (fn-traced [db _] (:display-home-button? db)))
+ (fn [db _] (:display-home-button? db)))
 
 ;; (rf/reg-sub
  ;; ::first-playback-position-updated?
@@ -465,13 +478,13 @@
 
 (rf/reg-sub
  ::notifications
- (fn-traced [db _]
-            (:notifications db)))
+ (fn [db _]
+   (:notifications db)))
 
 (rf/reg-sub
  ::navbar-menu-active?
- (fn-traced [db _]
-            (:navbar-menu-active? db)))
+ (fn [db _]
+   (:navbar-menu-active? db)))
 
 (rf/reg-sub
  ::song-frames-relative-positions
@@ -483,7 +496,7 @@
    (let [duration-ms (* duration 1000)]
      (map (comp (partial * (/ 1.0 duration-ms))
                 (partial + delay)
-                protocols/get-offset)
+                p/get-offset)
           frames))))
 
 (rf/reg-sub
@@ -493,7 +506,6 @@
 (rf/reg-sub
  ::song-backgrounds
  (fn [db _] (:song-backgrounds db)))
-
 
 (rf/reg-sub
  ::song-metadata
@@ -509,17 +521,17 @@
 
 (rf/reg-sub
  ::playback-song
- :<- [::current-song]
- :<- [::lyrics]
- (fn [[song-name frames] _]
-   (lyrics/create-song song-name frames)))
+ ;; :<- [::current-song]
+ ;; :<- [::lyrics]
+ (fn [db _]
+   (:song db)))
+   ;; (lyrics/create-song song-name frames)))
 
 (rf/reg-sub
  ::current-song-frame-count
  :<- [::playback-song]
  (fn [song _]
    (protocols/get-frame-count song)))
-
 
 (rf/reg-sub
  ::current-song-word-count
@@ -532,7 +544,6 @@
  :<- [::playback-song]
  (fn [song _]
    (protocols/get-avg-words-per-frame song)))
-
 
 (rf/reg-sub
  ::current-song-max-words-frame

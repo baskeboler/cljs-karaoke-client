@@ -13,7 +13,7 @@
 (defn modal-card-dialog [{:keys [title content footer]
                           :or {footer [footer-buttons]}}]
   [:div.modal.is-active
-   {:key (random-uuid)}
+   {:key (gensym)}
    [:div.modal-background]
    [:div.modal-card.slide-in-top
     [:header.modal-card-head
@@ -41,6 +41,12 @@
    (for [m @(rf/subscribe [::s/modals])]
      ^{:key (str "modal_" (hash m))}
      m)])
+
+(defn pop-modal []
+  (rf/dispatch [::modal-events/modal-pop]))
+
+(defn push-modal [arg]
+  (rf/dispatch [::modal-events/modal-push arg]))
 
 (defn footer-buttons
   ([]

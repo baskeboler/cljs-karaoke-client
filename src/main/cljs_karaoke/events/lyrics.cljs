@@ -7,7 +7,11 @@
             [cljs-karaoke.events.common :as common-events]
             [cljs.tools.reader.edn :as reader]
             [cljs-karaoke.lyrics :as l]
-            [cljs-karaoke.config :refer [config-map]]))
+            [cljs-karaoke.config :refer [config-map]]
+            [clj-karaoke.song-data :as sd]
+            [clj-karaoke.protocols :as kp]
+            [clj-karaoke.lyrics-frame]
+            [clj-karaoke.lyrics-event]))
 
 (def http-timeout (:http-timeout config-map))
 (defn load-lyrics-flow []
@@ -38,12 +42,14 @@
  ::handle-fetch-lyrics-success
  (fn-traced
   [{:keys [db]} [_ response]]
-  (let [lyrics (->> response
+  (let [song   (->> response
                     (reader/read-string)
-                    (map #(l/create-frame %)))
+                    (kp/map->))
+        lyrics (:frames song)
         new-db (-> db
+                   (assoc :song song)
                    (assoc :lyrics (vec lyrics))
-                   (assoc :song (l/create-song (:current-song db) (vec (->> response reader/read-string))))
+                   ;; (assoc :song (l/create-song (:current-song db) (vec (->> response reader/read-string))))
                    (assoc :lyrics-fetching? false)
                    (assoc :lyrics-loaded? true))]
      {:db new-db})))

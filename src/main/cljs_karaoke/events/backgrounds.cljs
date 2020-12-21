@@ -7,8 +7,8 @@
             [cljs-karaoke.events.common :as common-events]
             [ajax.core :as ajax]
             [shadow.loader :as loader :refer [loaded? load with-module]]))
-;; [cljs-karaoke.mongo :as mongo]))
-;; (defonce fetch-bg-from-web-enabled? true)
+            ;; [cljs-karaoke.mongo :as mongo]))
+(defonce fetch-bg-from-web-enabled? true)
 
 (defn rand-wallpaper []
   (->> wallpapers
@@ -54,7 +54,7 @@
   (when (and (not (zero? push-count))
              (zero? (mod push-count 5)))
     (println "[mongo backend] pushing backgrounds")
-    ;; (cljs-karaoke.mongo/save-backgrounds backgrounds)
+    (cljs-karaoke.mongo/save-backgrounds backgrounds)
     (println "[mongo backend] backgrounds pushed")))
 
 (rf/reg-event-db

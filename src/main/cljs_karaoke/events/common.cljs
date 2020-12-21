@@ -4,6 +4,7 @@
             [reagent.core :as reagent :refer [atom]]
             [pushy.core :as pushy]
             [cljs-karaoke.router.core :refer [router]]))
+
 (defn reg-set-attr [evt-name attr-name]
   (cond
     (keyword? attr-name)
@@ -53,13 +54,9 @@
 
 (defn set-location-hash [path]
   (pushy/set-token! router path))
-  ;; (. js/location (replace path)))
-  ;; (set! (.-pathname js/location) path))
 
 (rf/reg-event-fx
  ::save-to-localstorage
- ;; (rf/after
-  ;; (fn [_ [_ name obj cbevent]])
  (fn-traced
   [{:keys [db]} [_ name obj callback-event]]
   (. js/console (log "Saving to localstorage: " name " - " (clj->js obj)))
