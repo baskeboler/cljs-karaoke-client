@@ -265,11 +265,11 @@
  ::pageloader-exit-transition
  (fn-traced
   [{:keys [db]} _]
-  (when-not (:pageloader)){:dispatch [::set-pageloader-exiting? true]}
+  {:dispatch [::set-pageloader-exiting? true]
    :dispatch-later [{:ms 3000
                      :dispatch [::set-pageloader-active? false]}
                     {:ms 3000
-                     :dispatch [::set-pageloader-exiting? false]}]))
+                     :dispatch [::set-pageloader-exiting? false]}]}))
 (rf/reg-event-fx
  ::fetch-custom-delays
  (fn-traced
