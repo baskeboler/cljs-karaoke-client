@@ -66,6 +66,10 @@
   (let [r (rf/subscribe [::s/audio-playback-rate])]
     [icon-button "minus" "default" #(rf/dispatch [::song-events/set-audio-playback-rate (if (<= @r 0.1) 0.1 (- @r 0.1))])]))
 
+(defn increase-lyrics-delay-btn []
+  [icon-button "plus" "default" #(rf/dispatch [::song-events/inc-current-song-delay 250])])
+(defn decrease-lyrics-delay-btn []
+  [icon-button "minus" "default" #(rf/dispatch [::song-events/inc-current-song-delay -250])])
 (defn song-time-display [^double ms]
   (let [secs  (-> ms
                   (/ 1000.0)
@@ -136,8 +140,43 @@
                                          (rf/dispatch [::playlist-events/playlist-next]))]
    [icon-button "random" "warning" load-random-song]
    [icon-button "chart-bar" "info" stats/show-stats-dialog]
+   ;; [increase-playback-rate-btn]
+   ;; [decrease-playback-rate-btn]
+   [increase-lyrics-delay-btn]
+   [decrease-lyrics-delay-btn]
+   (when @(rf/subscribe [::s/current-song-metadata])
+     [icon-button "info" "info" show-song-metadata-modal])
+   [icon-button "share-alt" "success"
+    #(show-export-text-info-modal
+      {:title "Share Link"
+       :text (str (:app-url-prefix conf/config-map) "/songs/" (urlEncode @(rf/subscribe [::s/current-song])) ".html")})]])
+
+(defn editor-playback-controls []
+  [:div.playback-controls.field.has-addons
+   (stylefy/use-style shadow-style)
+   (when-not (= :playback @(rf/subscribe [::s/current-view]))
+     [icon-button "play" "primary" play])
+   (when @(rf/subscribe [::s/display-home-button?])
+     [:div.control>a.button.is-small.is-default
+      {:href (router/url-for :home)}
+      [:i.fas.fa-home.fa-fw]])
+   (when-not @(rf/subscribe [::s/song-paused?])
+     [icon-button "pause" "warning" pause])
+   (when-not @(rf/subscribe [::s/song-paused?])
+     [icon-button "stop" "danger" stop])
+   (when (and @(rf/subscribe [::audio-subs/audio-input-available?])
+              @(rf/subscribe [::audio-subs/recording-enabled?]))
+     [icon-button "circle" "info" #(rf/dispatch [::audio-events/test-recording])
+      (rf/subscribe [::audio-subs/recording-button-enabled?])])
+   [icon-button "step-forward" "info" #(do
+                                         (stop)
+                                         (rf/dispatch [::playlist-events/playlist-next]))]
+   [icon-button "random" "warning" load-random-song]
+   [icon-button "chart-bar" "info" stats/show-stats-dialog]
    [increase-playback-rate-btn]
    [decrease-playback-rate-btn]
+   ;; [increase-lyrics-delay-btn]
+   ;; [decrease-lyrics-delay-btn]
    (when @(rf/subscribe [::s/current-song-metadata])
      [icon-button "info" "info" show-song-metadata-modal])
    [icon-button "share-alt" "success"

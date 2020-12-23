@@ -340,7 +340,7 @@
         [:div.column.is-two-thirds
          [:div.columns>div.column.is-12
           [song-progress]
-          [playback/playback-controls]]
+          [playback/editor-playback-controls]]
          [editor-mode-title]
          [:div.box
           (condp = @(rf/subscribe [::editor-subs/current-state])

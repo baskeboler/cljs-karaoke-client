@@ -28,6 +28,7 @@
             [goog.events :as gevents]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.http.events :as http-events]
+            [tick.core :as tick]
             [shadow.loader :as loader :refer [loaded? with-module]])
   (:import goog.History))
 
@@ -185,8 +186,7 @@
  ::trigger-toasty
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::toggle-toasty?]
+  {:dispatch [::toggle-toasty?]
    :dispatch-later [{:ms 800 :dispatch [::toggle-toasty?]}]}))
 
 (rf/reg-event-fx
@@ -194,8 +194,7 @@
  (fn-traced
   [{:keys [db]} [_ err dispatch-n-vec]]
   (println "fetch failed" err)
-  {:db db
-   :dispatch-n dispatch-n-vec}))
+  {:dispatch-n dispatch-n-vec}))
 
 #_(rf/reg-event-fx
    ::fetch-song-list
@@ -213,8 +212,7 @@
  ::fetch-song-list
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::http-events/get
+  {:dispatch [::http-events/get
               {:url "/data/songs.edn"
                :response-format (ajax/text-response-format)
                :on-success ::handle-fetch-song-list-success
@@ -240,8 +238,7 @@
  ::fetch-new-song-list
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::http-events/get
+  {:dispatch [::http-events/get
               {:url "/data/newsongs.edn"
                :response-format (ajax/text-response-format)
                :on-success ::handle-fetch-new-song-list-success
@@ -268,18 +265,16 @@
  ::pageloader-exit-transition
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::set-pageloader-exiting? true]
+  (when-not (:pageloader)){:dispatch [::set-pageloader-exiting? true]}
    :dispatch-later [{:ms 3000
                      :dispatch [::set-pageloader-active? false]}
                     {:ms 3000
-                     :dispatch [::set-pageloader-exiting? false]}]}))
+                     :dispatch [::set-pageloader-exiting? false]}]))
 (rf/reg-event-fx
  ::fetch-custom-delays
  (fn-traced
   [{:keys [db]} _]
-  {:db         db
-   :http-xhrio {:method          :get
+  {:http-xhrio {:method          :get
                 :uri             "/data/delays.edn"
                 :timeout         8000
                 :response-format (ajax/text-response-format)
@@ -291,8 +286,7 @@
   [{:keys [db]} [_ delays-resp]]
   (let [r (-> delays-resp
               (reader/read-string))]
-    {:db db
-     :dispatch [::merge-remote-delays-with-local r]})))
+    {:dispatch [::merge-remote-delays-with-local r]})))
 (rf/reg-event-fx
  ::merge-remote-delays-with-local
  (fn-traced
@@ -311,8 +305,7 @@
  ::save-custom-song-delays-to-localstorage
  (fn-traced
   [{:keys [db]} _]
-  {:db       db
-   :dispatch [::common-events/save-to-localstorage
+  {:dispatch [::common-events/save-to-localstorage
               "custom-song-delays"
               (:custom-song-delay db)
               ::save-custom-delays-to-localstorage-complete]}))
@@ -326,8 +319,7 @@
 (rf/reg-event-fx
  ::handle-fetch-delays-complete
  (fn [{:keys [db]} _]
-   {:db db
-    :dispatch-n [[::song-delays-loaded]
+   {:dispatch-n [[::song-delays-loaded]
                  [::common-events/save-to-localstorage
                   "custom-song-delays"
                   (:custom-song-delay db {})]]}))
@@ -335,14 +327,12 @@
  ::handle-fetch-delays-failure
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::song-delays-loaded]}))
+  {:dispatch [::song-delays-loaded]}))
 (rf/reg-event-fx
  ::fetch-song-background-config
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :http-xhrio {:method :get
+  {:http-xhrio {:method :get
                 :uri (str "/data/backgrounds.edn")
                 :timeout 8000
                 :response-format (ajax/text-response-format)
@@ -362,8 +352,7 @@
  ::handle-fetch-background-config-failure
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::handle-fetch-background-config-complete]}))
+  {:dispatch [::handle-fetch-background-config-complete]}))
 
 (rf/reg-event-db
  ::handle-fetch-background-config-complete
@@ -445,7 +434,8 @@
   [db [_ active?]]
   (-> db
       (assoc :pageloader-active? active?
-             :pageloader-exiting? (not active?)))))
+             :pageloader-exiting? (not active?)
+             :pageloader-activation-time (tick/now)))))
 (rf/reg-event-db
  ::toggle-display-lyrics
  (fn-traced
@@ -470,8 +460,7 @@
  ::play
  (fn-traced
   [{:keys [db]} _]
-  {:db       db
-   :dispatch [::set-playing? true]}))
+  {:dispatch [::set-playing? true]}))
 
 (defn- custom-song-delay-changed? [db song-name delay]
   (true?
@@ -509,8 +498,7 @@
       (rf/dispatch [::set-audio-events audio-events]))))
  (fn-traced
   [{:keys [db]} _]
-  {:db       db
-   :dispatch [::initial-audio-setup-complete]}))
+  {:dispatch [::initial-audio-setup-complete]}))
 
 (rf/reg-event-db
  ::initial-audio-setup-complete

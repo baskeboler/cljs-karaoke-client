@@ -62,7 +62,7 @@
   (. js/console (log "Saving to localstorage: " name " - " (clj->js obj)))
   (save-to-localstorage name obj)
   (merge
-   {:db db}
+   {}
    (if-not (nil? callback-event)
      {:dispatch [callback-event]}
      {}))))
@@ -72,8 +72,7 @@
  (fn-traced
   [{:keys [db]} [_ name cb-event]]
   (let [obj (get-from-localstorage name)]
-    {:db       db
-     :dispatch [cb-event obj]})))
+    {:dispatch [cb-event obj]})))
 
 (defn set-page-title! [title]
   (set! (.-title js/document) title))

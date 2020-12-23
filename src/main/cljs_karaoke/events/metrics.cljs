@@ -7,8 +7,7 @@
  ::load-user-metrics-from-localstorage
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::common-events/load-from-localstorage "user-metrics" ::handle-load-metrics-from-localstorage]}))
+  {:dispatch [::common-events/load-from-localstorage "user-metrics" ::handle-load-metrics-from-localstorage]}))
 
 (rf/reg-event-fx
  ::handle-load-metrics-from-localstorage
@@ -28,8 +27,7 @@
  ::save-user-metrics-to-localstorage
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::common-events/save-to-localstorage "user-metrics" (:metrics db) ::save-user-metrics-to-localstorage-complete]}))
+  {:dispatch [::common-events/save-to-localstorage "user-metrics" (:metrics db) ::save-user-metrics-to-localstorage-complete]}))
 
 (common-events/reg-identity-event ::load-metrics-from-localstorage-complete)
 (common-events/reg-identity-event ::save-user-metrics-to-localstorage-complete)

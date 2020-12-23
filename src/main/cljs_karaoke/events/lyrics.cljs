@@ -67,4 +67,5 @@
  (fn-traced
   [{:keys [db]} _]
   (. js/console (log "Fetch lyrics flow complete"))
-  {:db db}))
+  {}))
+   ;; :db db}))

@@ -13,8 +13,7 @@
   (let [{:keys [url on-success on-error response-format]
          :or   {response-format (ajax/json-response-format)
                 on-error        ::generic-error-handler}} arg]
-    {:db         db
-     :http-xhrio {:method          :get
+    {:http-xhrio {:method          :get
                   :uri             url
                   :timeout         8000
                   :response-format response-format
@@ -34,4 +33,4 @@
  (fn-traced
   [{:keys [db]} [_ error]]
   (println "generic error handling: " error)
-  {:db db}))
+  {}))

@@ -138,7 +138,7 @@
                                   :id              frame-id})
                        (assoc-in [:editor-state :current-state] :segment-timing))
          :dispatch [::delete-frame frame-id]})
-      {:db db}))))
+      {}))))
 
 (rf/reg-event-fx
  ::copy-frame
