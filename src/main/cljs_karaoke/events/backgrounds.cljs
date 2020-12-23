@@ -235,3 +235,8 @@
 ;;   {:db db
 ;;    :async-flow (update-song-bg-flow song-name)}))
 
+(rf/reg-event-fx
+ ::toggle-backgrounds
+ (fn-traced
+  [{:keys [db]} _]
+  {:db (update db :background-enabled? not)}))

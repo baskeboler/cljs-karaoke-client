@@ -567,3 +567,8 @@
  :<- [::new-songs]
  (fn [songs [_ song]]
    (songs song)))
+
+(rf/reg-sub
+ ::background-enabled?
+ (fn [db _]
+   (:background-enabled? db)))

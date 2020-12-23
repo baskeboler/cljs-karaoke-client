@@ -127,7 +127,7 @@
                           :player-current-time        0
                           :song-duration              0
                           :custom-song-delay          {}
-                          :user-custom-song-delay {}
+                          :user-custom-song-delay     {}
                           :song-backgrounds           {}
                           :metrics                    {}
                           :stop-channel               (chan)
@@ -146,7 +146,8 @@
                           :modals                     []
                           :history                    (History.)
                           :notifications              []
-                          :google-search-count        0}
+                          :google-search-count        0
+                          :background-enabled?        true}
              ;; :dispatch-n [[::fetch-custom-delays]
              ;; [::fetch-song-background-config]}
              ;; [::init-song-bg-cache]]}))

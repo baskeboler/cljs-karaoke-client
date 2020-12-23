@@ -67,9 +67,9 @@
     [icon-button "minus" "default" #(rf/dispatch [::song-events/set-audio-playback-rate (if (<= @r 0.1) 0.1 (- @r 0.1))])]))
 
 (defn increase-lyrics-delay-btn []
-  [icon-button "plus" "default" #(rf/dispatch [::song-events/inc-current-song-delay 250])])
+  [icon-button "angle-double-right" "default" #(rf/dispatch [::song-events/inc-current-song-delay 250])])
 (defn decrease-lyrics-delay-btn []
-  [icon-button "minus" "default" #(rf/dispatch [::song-events/inc-current-song-delay -250])])
+  [icon-button "angle-double-left" "default" #(rf/dispatch [::song-events/inc-current-song-delay -250])])
 (defn song-time-display [^double ms]
   (let [secs  (-> ms
                   (/ 1000.0)
@@ -142,8 +142,8 @@
    [icon-button "chart-bar" "info" stats/show-stats-dialog]
    ;; [increase-playback-rate-btn]
    ;; [decrease-playback-rate-btn]
-   [increase-lyrics-delay-btn]
    [decrease-lyrics-delay-btn]
+   [increase-lyrics-delay-btn]
    (when @(rf/subscribe [::s/current-song-metadata])
      [icon-button "info" "info" show-song-metadata-modal])
    [icon-button "share-alt" "success"

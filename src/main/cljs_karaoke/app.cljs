@@ -177,7 +177,11 @@
    [notifications/notifications-container-component]
    [modals/modals-component]
    [page-loader/page-loader-component]
-   [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
+   [:div (if @(rf/subscribe [::s/background-enabled?])
+           (stylefy/use-style
+            (merge (parent-style) @bg-style)
+            {:class "app-bg"})
+           {:style {:background-color "#E5619C"}})]
    [pages @(rf/subscribe [::s/current-view])]])
 
 (defn ^:export load-song-global [s]
