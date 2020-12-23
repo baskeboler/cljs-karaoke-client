@@ -181,7 +181,12 @@
            (stylefy/use-style
             (merge (parent-style) @bg-style)
             {:class "app-bg"})
-           {:style {:background-color "#E5619C"}})]
+           {:style {:background-color "#E5619C"
+                    :position         :absolute
+                    :top              0
+                    :left             0
+                    :width            "100vw"
+                    :height           "100vh"}})]
    [pages @(rf/subscribe [::s/current-view])]])
 
 (defn ^:export load-song-global [s]
