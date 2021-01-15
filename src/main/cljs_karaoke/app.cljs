@@ -41,6 +41,7 @@
             [cljs-karaoke.editor.core]
             [clj-karaoke.protocols :as p]
             [clj-karaoke.song-data]
+            ;; [cljs-karaoke.ffmpeg :as ffmpeg]
             [mount.core :as mount]
             [cljs.core.async :as async]))
 (stylefy/init)

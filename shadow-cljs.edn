@@ -5,7 +5,7 @@
   "src/test"]
 
  :dependencies
- [[reagent "1.0.0-rc1"]
+ [[reagent "1.0.0"]
   [org.clojure/data.xml "0.0.8"]
   [clj-tagsoup/clj-tagsoup "0.3.0"]
   [keybind "2.2.0"]
@@ -30,7 +30,7 @@
   [bardo "0.1.2-SNAPSHOT"]
   [mount "0.1.16"]
   [baskeboler/chart-cljs "1.0.1"]
-  [baskeboler/clj-karaoke-lyrics "1.0.4-SNAPSHOT"]
+  [baskeboler/clj-karaoke-lyrics "1.0.7-SNAPSHOT"]
   ;; [org.mongodb/mongodb-driver-sync "3.12.3"]
   [com.novemberain/monger "3.5.0"]]
 
@@ -52,10 +52,13 @@
         :module-loader    true
         :modules          {:main  {:entries [cljs-karaoke.app]
                                    :init-fn cljs-karaoke.app/init!}
+                                   ;; :depends-on #{:ffmpeg}}
                            ;; :editor {:entries [cljs-karaoke.editor.core
                            ;; cljs-karaoke.editor.subs
                            ;; cljs-karaoke.editor.view
                            ;; :depends-on #{:main}}
+                           :ffmpeg {:entries [cljs-karaoke.ffmpeg]
+                                    :depends-on #{:main}}
                            :mongo {:entries    [cljs-karaoke.mongo]
                                    :depends-on #{:main}}}
         :asset-path       "/js"
