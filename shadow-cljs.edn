@@ -53,11 +53,11 @@
         :modules          {:main  {:init-fn cljs-karaoke.app/init!
                                    :entries [cljs-karaoke.app]}
                                    ;; :depends-on #{:ffmpeg}}
-                           :editor {:entries [cljs-karaoke.editor.core
-                                              cljs-karaoke.editor.subs
-                                              cljs-karaoke.editor.view
-                                              cljs-karaoke.editor.events]
-                                    :depends-on #{:main}}
+                           ;; :editor {:entries [cljs-karaoke.editor.core
+                                              ;; cljs-karaoke.editor.subs
+                                              ;; cljs-karaoke.editor.view
+                                              ;; cljs-karaoke.editor.events]
+                                    ;; :depends-on #{:main}}
                            :ffmpeg {:entries [cljs-karaoke.modules.ffmpeg]
                                     :depends-on #{:main}}
                            :mongo {:entries    [cljs-karaoke.mongo]
