@@ -1,7 +1,7 @@
 (ns cljs-karaoke.key-bindings
   (:require [re-frame.core :as rf]
             [keybind.core :as key]
-            [mount.core :as mount :refer [defstate]]
+            [mount.core :as mount :refer-macros [defstate]]
             [cljs-karaoke.songs :as songs]
             [cljs-karaoke.playback :as playback :refer [play stop pause]]
             [cljs-karaoke.views.playback :refer [seek]]
@@ -27,7 +27,7 @@
         (stop)))))
 
 (defn- init-keybindings! []
-  (println "setting up keybindings")
+  (js/console.log "%csetting up keybindings" #js["color: #00ff00" "font-weight: bolder"])
   (key/bind! "ctrl-space"
              ::ctrl-space-kb
              (fn []

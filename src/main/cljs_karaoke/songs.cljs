@@ -39,15 +39,18 @@
                                           false)}
           "Next"]]))))
 (defn song-filter-component []
-  (let [filt (rf/subscribe [::s/song-list-filter])]
-    [:div.field>div.control.has-icons-left
-     [:span.icon
-      [:i.fas.fa-search]]
-     [:input.input.is-primary
-      {:value     @filt
-       :name      "filter-input"
-       :on-change #(rf/dispatch [::song-list-events/set-song-filter
-                                 (-> % .-target .-value)])}]]))
+  (let [filt      (rf/subscribe [::s/song-list-filter])
+        change-fn (fn [evt]
+                    (rf/dispatch [::song-list-events/set-song-filter
+                                  (.. evt -target -value)]))]
+    (fn []
+       [:div.field>div.control.has-icons-left
+        [:span.icon
+         [:i.fas.fa-search]]
+        [:input.input.is-primary
+         {:value     @filt
+          :name      "filter-input"
+          :on-change change-fn}]])))
 
 (defn song-url [song-name]
   (if @(rf/subscribe [::s/has-delay? song-name])

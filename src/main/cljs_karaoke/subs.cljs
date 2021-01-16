@@ -8,7 +8,8 @@
             [clj-karaoke.lyrics-frame]
             [cljs-karaoke.protocols :as protocols]
             [cljs-karaoke.subs.common :refer [reg-attr-sub]]
-            [clj-karaoke.protocols :as p]))
+            [clj-karaoke.protocols :as p]
+            [clj-karaoke.ass]))
 (rf/reg-sub
  ::display-lyrics?
  (fn [db _]
@@ -572,3 +573,9 @@
  ::background-enabled?
  (fn [db _]
    (:background-enabled? db)))
+
+(rf/reg-sub
+ ::playback-song-ass-subtitles
+ :<- [::playback-song]
+ (fn [song _]
+   (p/->ass song)))

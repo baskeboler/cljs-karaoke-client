@@ -36,8 +36,8 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/brands.scss";
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/regular.scss";
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/solid.scss";
-@import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700%7CNunito:400,70&display=swap');
-
+/* @import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700%7CNunito:400,70&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap');
 html {
     overflow-y: auto;
     min-width: 240px;
@@ -155,7 +155,8 @@ html {
     opacity: 0.6;
 
     /* transition: all 0.5s ease-in-out; */
-    font-family: 'Chewy', cursive;
+    font-family: 'Raleway', cursive;
+    font-weight: 400;
     color: black;
 
     /* transform: scale(1) translate(0px,0px); */

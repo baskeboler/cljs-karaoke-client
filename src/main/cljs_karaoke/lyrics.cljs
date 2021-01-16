@@ -403,7 +403,7 @@
           data-frames (get-frames-chart-data song int-len)
           data-words  (get-words-chart-data song int-len)
           datasets    (for [[k v] {:frames data-frames
-                                   :words data-words}]
+                                   :words  data-words}]
                         {:data            v
                          :label           (apply str (rest (str k)))
                          :backgroundColor (:col (color/as-css (color/random-rgb)))})

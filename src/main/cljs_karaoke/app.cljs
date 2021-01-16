@@ -28,7 +28,7 @@
             [cljs-karaoke.views.lyrics :refer [frame-text]]
             [cljs-karaoke.views.playlist-mode :refer [playlist-view-component]]
             [cljs-karaoke.views.navbar :as navbar]
-            [cljs-karaoke.editor.view  :refer [editor-component]]
+            ;; [cljs-karaoke.editor.view  :refer [editor-component]]
             [cljs-karaoke.views.playback :refer [playback-controls lyrics-timing-progress song-progress seek song-time-display
                                                  show-song-metadata-modal]]
             [cljs-karaoke.views.toasty  :as toasty-views :refer [toasty trigger-toasty]]
@@ -37,8 +37,8 @@
             [cljs-karaoke.styles :as styles
              :refer [ centered screen-centered
                      top-left parent-style]]
-            [shadow.loader :as loader]
-            [cljs-karaoke.editor.core]
+            [shadow.loader :as loader :refer [with-module load loaded?]]
+            ;; [cljs-karaoke.editor.core]
             [clj-karaoke.protocols :as p]
             [clj-karaoke.song-data]
             ;; [cljs-karaoke.ffmpeg :as ffmpeg]
@@ -158,11 +158,23 @@
       [song-progress]])])
 
 
+(defn lazy-editor []
+  (let [p (reagent/atom false)]
+    (if (loaded? "editor")
+      (reset! p true)
+      (.. (load "editor")
+          (then (fn []
+                  (mount.core/start #'cljs-karaoke.editor.core/editor)))
+          (then #(reset! p  true))))
+    (fn []
+      (when @p
+        [cljs-karaoke.editor.view/editor-component]))))
+
 
 (defn pages [page-name]
   (case page-name
     :home     [default-view]
-    :editor   [editor-component]
+    :editor   [lazy-editor] 
     :playlist [playlist-view-component]
     :playback [playback-view]
     [default-view]))
