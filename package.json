@@ -10,7 +10,7 @@
         "cljs-watch": "shadow-cljs watch app",
         "compile": "shadow-cljs compile app ",
         "release": "shadow-cljs release app ",
-        "start": "npm run watch",
+        "start": "concurrently npm:cljs-watch npm:css-watch",
         "copy-webfonts": "cp -rf ./node_modules/@fortawesome/fontawesome-free/webfonts ./public/",
         "css-build": "node-sass --omit-source-map-url resources/sass/main.scss public/css/main.css",
         "css-watch": "npm run css-build -- --watch"
@@ -27,12 +27,12 @@
         "chart.js": "2.9.4",
         "create-react-class": "^15.7.0",
         "encoding": "^0.1.13",
-        "highlight.js": "9.18.1",
+        "highlight.js": "^11.6.0",
         "mongodb-stitch-browser-sdk": "^4.8.0",
         "path": "^0.12.7",
-        "react": "^17.0.1",
+        "react": "^18.2.0",
         "react-awesome-button": "^6.5.1",
-        "react-dom": "^17.0.1",
+        "react-dom": "^18.2.0",
         "react-flip-move": "^3.0.4",
         "react-highlight.js": "^1.0.7",
         "shake.js": "^1.2.2"
@@ -44,7 +44,7 @@
         "karma": "^5.2.3",
         "karma-chrome-launcher": "^3.1.0",
         "karma-cljs-test": "^0.1.0",
-        "node-sass": "^4.14.1",
-        "shadow-cljs": "^2.11.14"
+        "node-sass": "^7.0.3",
+        "shadow-cljs": "^2.20.7"
     }
 }

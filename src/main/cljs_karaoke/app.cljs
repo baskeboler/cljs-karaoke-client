@@ -233,7 +233,7 @@
  
 (defn mount-components! []
   (render [app] app-root))
-(defn init! []
+(defn ^:export init! []
   (println "init!")
   (router/app-routes)
   (rf/dispatch-sync [::events/init-db])
@@ -295,3 +295,4 @@
   (when-let [_ @(rf/subscribe [::s/loop?])]
     (rf/dispatch-sync [::playlist-events/playlist-next])))
 
+;; (init!)

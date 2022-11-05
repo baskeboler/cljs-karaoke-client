@@ -159,9 +159,9 @@
                           [::fetch-new-song-list]
                           [::editor-events/init]
                           [::fetch-song-background-config]
-                          [::initial-audio-setup]
                           [::audio-events/init-audio-data]
                           [::metadata-events/fetch-song-metadata]
+                          [::initial-audio-setup]
                           [::views-events/init-views-state]
                           ;; [::http-relay-events/init-http-relay-listener]
                           [::song-list-events/init-song-list-state]
@@ -490,13 +490,13 @@
     (let [audio        (. js/document (getElementById "main-audio"))
           effects-audio (. js/document (getElementById "effects-audio"))
           audio-events (aud/setup-audio-listeners audio)]
+      (rf/dispatch [::set-audio audio])
+      (rf/dispatch [::set-effects-audio effects-audio])
+      (rf/dispatch [::set-audio-events audio-events])
       (go-loop [e (<! audio-events)]
         (when-not (nil? e)
           (aud/process-audio-event e)
-          (recur (<! audio-events))))
-      (rf/dispatch [::set-audio audio])
-      (rf/dispatch [::set-effects-audio effects-audio])
-      (rf/dispatch [::set-audio-events audio-events]))))
+          (recur (<! audio-events)))))))
  (fn-traced
   [{:keys [db]} _]
   {:dispatch [::initial-audio-setup-complete]}))
