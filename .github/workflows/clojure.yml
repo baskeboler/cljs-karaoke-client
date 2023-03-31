@@ -25,9 +25,9 @@ jobs:
         # Publish directory
         publish-dir: public
         # Production branch
-        production-branch: master
+       # production-branch: master
         # Indicate wether to deploy production build
-        production-deploy: true 
+        #production-deploy: true 
       env:
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
