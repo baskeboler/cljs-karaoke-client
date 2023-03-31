@@ -2,7 +2,7 @@ name: Clojure CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
   pull_request:
     branches: [ "master" ]
 
@@ -17,3 +17,18 @@ jobs:
       run: npm i
     - name: release
       run: npm run release
+    - name: Netlify Actions
+      # You may pin to the exact commit or the version.
+      # uses: nwtgck/actions-netlify@5da65c9f74c7961c5501a3ba329b8d0912f39c03
+      uses: nwtgck/actions-netlify@v2.0.0
+      with:
+        # Publish directory
+        publish-dir: public
+        # Production branch
+        production-branch: master
+        # Indicate wether to deploy production build
+        production-deploy: true 
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      timeout-minutes: 1
