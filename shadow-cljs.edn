@@ -30,7 +30,7 @@
   [bardo "0.1.2-SNAPSHOT"]
   [mount "0.1.16"]
   [baskeboler/chart-cljs "1.0.1"]
-  [baskeboler/clj-karaoke-lyrics "1.0.10"]
+  [baskeboler/clj-karaoke-lyrics "1.0.12"]
   ;; [org.mongodb/mongodb-driver-sync "3.12.3"]
   [com.novemberain/monger "3.5.0"]]
 
