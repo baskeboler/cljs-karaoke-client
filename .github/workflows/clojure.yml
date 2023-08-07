@@ -20,6 +20,9 @@ jobs:
       uses: actions/upload-pages-artifact@v2
       with:
         path: ./public
+    - name: Deploy to gh pages
+      id: deployment
+      uses: actions/deploy-pages@v2
     # - name: Netlify Actions
     #   # You may pin to the exact commit or the version.
     #   # uses: nwtgck/actions-netlify@5da65c9f74c7961c5501a3ba329b8d0912f39c03
@@ -35,3 +38,4 @@ jobs:
     #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
     #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
     #   timeout-minutes: 1
+      
