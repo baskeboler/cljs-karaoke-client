@@ -25,7 +25,7 @@
        [:img.header-logo
         (stylefy/use-style
          logo-styles
-         {:title "header logo" :src "/images/sing.svg"})]]
+         {:title "header logo" :src "./images/sing.svg"})]]
       [:a
        {:role     :button
         :class    (concat

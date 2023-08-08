@@ -14,7 +14,7 @@
   (->> wallpapers
        (shuffle)
        (first)
-       (str "/images/")))
+       (str "./images/")))
 
 (defn update-song-bg-flow []
   {;; :first-dispatch [::update-bg-image song-name]

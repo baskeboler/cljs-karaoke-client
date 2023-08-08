@@ -21,12 +21,12 @@
               (if @toasty {:bottom  "0px"
                            :opacity 1})))
        [:audio {:id    "toasty-audio"
-                :src   "/media/toasty.mp3"
+                :src   "./media/toasty.mp3"
                 :style {:display :none}}]
-       [:img {:src "/images/toasty.png" :alt "toasty"}]])))
+       [:img {:src "./images/toasty.png" :alt "toasty"}]])))
 
 (defn ^:export trigger-toasty []
   (let [a (rf/subscribe [::s/effects-audio])]
-    (set! (.-src @a) "/media/toasty.mp3")
+    (set! (.-src @a) "./media/toasty.mp3")
     (.play @a)
     (rf/dispatch [::events/trigger-toasty])))

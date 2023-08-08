@@ -28,7 +28,7 @@
      :animation-duration        "1s"
      :animation-fill-mode       :both
      :animation-timing-function :ease-in-out}
-    {:src "/images/logo.svg"
+    {:src "./images/logo.svg"
      :width 200
      :height 200})])
 
