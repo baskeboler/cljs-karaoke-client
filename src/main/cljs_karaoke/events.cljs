@@ -214,7 +214,7 @@
  (fn-traced
   [{:keys [db]} _]
   {:dispatch [::http-events/get
-              {:url "/data/songs.edn"
+              {:url "./data/songs.edn"
                :response-format (ajax/text-response-format)
                :on-success ::handle-fetch-song-list-success
                :on-error ::fetch-song-list-complete}]}))
@@ -240,7 +240,7 @@
  (fn-traced
   [{:keys [db]} _]
   {:dispatch [::http-events/get
-              {:url "/data/newsongs.edn"
+              {:url "./data/newsongs.edn"
                :response-format (ajax/text-response-format)
                :on-success ::handle-fetch-new-song-list-success
                :on-error ::fetch-new-song-list-complete}]}))
@@ -276,7 +276,7 @@
  (fn-traced
   [{:keys [db]} _]
   {:http-xhrio {:method          :get
-                :uri             "/data/delays.edn"
+                :uri             "./data/delays.edn"
                 :timeout         8000
                 :response-format (ajax/text-response-format)
                 :on-success      [::handle-fetch-delays-success]
@@ -334,7 +334,7 @@
  (fn-traced
   [{:keys [db]} _]
   {:http-xhrio {:method :get
-                :uri (str "/data/backgrounds.edn")
+                :uri (str "./data/backgrounds.edn")
                 :timeout 8000
                 :response-format (ajax/text-response-format)
                 :on-success [::handle-fetch-background-config-success]
