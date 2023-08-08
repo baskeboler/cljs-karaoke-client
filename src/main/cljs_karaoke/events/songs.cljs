@@ -59,7 +59,7 @@
  (fn-traced
   [{:keys [db]} [_ song-name]]
   (let [offset (get-in db [:custom-song-delay song-name] (get db :lyrics-delay 0))]
-    {:dispatch-n [[::events/set-location-hash (str "/sing/" song-name "/offset/" offset)]
+    {:dispatch-n [[::events/set-location-hash (str "./sing/" song-name "/offset/" offset)]
                   [::events/set-lyrics-delay offset]]})))
 
 (rf/reg-event-db
