@@ -1,7 +1,7 @@
 (ns cljs-karaoke.key-bindings
   (:require [re-frame.core :as rf]
             [keybind.core :as key]
-            [mount.core :as mount :refer [defstate]]
+            [mount.core :as mount :refer-macros [defstate]]
             [cljs-karaoke.songs :as songs]
             [cljs-karaoke.playback :as playback :refer [play stop pause]]
             [cljs-karaoke.views.playback :refer [seek]]
@@ -27,7 +27,7 @@
         (stop)))))
 
 (defn- init-keybindings! []
-  (println "setting up keybindings")
+  (js/console.log "%csetting up keybindings" #js["color: #00ff00" "font-weight: bolder"])
   (key/bind! "ctrl-space"
              ::ctrl-space-kb
              (fn []
@@ -46,11 +46,11 @@
   (key/bind! "space" ::space-kb #(if @(rf/subscribe [::s/song-paused?]) (play) (pause)))
   (key/bind! "shift-right" ::shift-right #(do
                                             (stop)
-                                            (rf/dispatch-sync [::playlist-events/playlist-next])))
+                                            (rf/dispatch [::playlist-events/playlist-next])))
   (key/bind! "t t" ::double-t #(trigger-toasty))
   (key/bind! "alt-r" ::alt-r #(rf/dispatch [::song-events/trigger-load-random-song]))
-  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch-sync [::song-events/inc-current-song-delay -250]))
-  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch-sync [::song-events/inc-current-song-delay 250]))
+  (key/bind! "ctrl-shift-left" ::ctrl-shift-left #(rf/dispatch [::song-events/inc-current-song-delay -250]))
+  (key/bind! "ctrl-shift-right" ::ctrl-shift-right #(rf/dispatch [::song-events/inc-current-song-delay 250]))
   (key/bind! "alt-shift-h" ::help #(show-cheatsheet)))
 
 (defn disable-keybindings! []

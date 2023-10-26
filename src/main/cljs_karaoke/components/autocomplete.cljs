@@ -14,7 +14,7 @@
         [:div.dropdown-trigger
          [:input.input
           {:on-blur   #(reset! focused false)
-           :onFocus  #(reset! focused true)
+           :on-focus  #(reset! focused true)
            :value     @value
            :on-change (fn [evt]
                         (reset! value (-> evt .-target .-value))

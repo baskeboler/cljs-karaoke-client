@@ -28,6 +28,7 @@
             [goog.events :as gevents]
             [cljs-karaoke.audio :as aud]
             [cljs-karaoke.http.events :as http-events]
+            [tick.core :as tick]
             [shadow.loader :as loader :refer [loaded? with-module]])
   (:import goog.History))
 
@@ -79,7 +80,8 @@
                          ::views-events/views-state-ready
                          ::song-list-events/song-list-ready
                          ::metadata-events/fetch-song-metadata-complete
-                         ::fetch-song-list-complete]
+                         ::fetch-song-list-complete
+                         ::fetch-new-song-list-complete]
             :dispatch-n [[::pageloader-exit-transition]
                          ;; [::set-pageloader-active? false]
                          [::initialized]]
@@ -125,7 +127,7 @@
                           :player-current-time        0
                           :song-duration              0
                           :custom-song-delay          {}
-                          :user-custom-song-delay {}
+                          :user-custom-song-delay     {}
                           :song-backgrounds           {}
                           :metrics                    {}
                           :stop-channel               (chan)
@@ -144,7 +146,8 @@
                           :modals                     []
                           :history                    (History.)
                           :notifications              []
-                          :google-search-count        0}
+                          :google-search-count        0
+                          :background-enabled?        true}
              ;; :dispatch-n [[::fetch-custom-delays]
              ;; [::fetch-song-background-config]}
              ;; [::init-song-bg-cache]]}))
@@ -153,11 +156,12 @@
              :dispatch-n [[::fetch-custom-delays]
                           [::metrics-events/load-user-metrics-from-localstorage]
                           [::fetch-song-list]
+                          [::fetch-new-song-list]
                           [::editor-events/init]
                           [::fetch-song-background-config]
-                          [::initial-audio-setup]
                           [::audio-events/init-audio-data]
                           [::metadata-events/fetch-song-metadata]
+                          [::initial-audio-setup]
                           [::views-events/init-views-state]
                           ;; [::http-relay-events/init-http-relay-listener]
                           [::song-list-events/init-song-list-state]
@@ -183,8 +187,7 @@
  ::trigger-toasty
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::toggle-toasty?]
+  {:dispatch [::toggle-toasty?]
    :dispatch-later [{:ms 800 :dispatch [::toggle-toasty?]}]}))
 
 (rf/reg-event-fx
@@ -192,8 +195,7 @@
  (fn-traced
   [{:keys [db]} [_ err dispatch-n-vec]]
   (println "fetch failed" err)
-  {:db db
-   :dispatch-n dispatch-n-vec}))
+  {:dispatch-n dispatch-n-vec}))
 
 #_(rf/reg-event-fx
    ::fetch-song-list
@@ -211,9 +213,8 @@
  ::fetch-song-list
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::http-events/get
-              {:url "/data/songs.edn"
+  {:dispatch [::http-events/get
+              {:url "./data/songs.edn"
                :response-format (ajax/text-response-format)
                :on-success ::handle-fetch-song-list-success
                :on-error ::fetch-song-list-complete}]}))
@@ -232,12 +233,40 @@
   (println "fetch song list complete!")
   db))
 
+
+
+(rf/reg-event-fx
+ ::fetch-new-song-list
+ (fn-traced
+  [{:keys [db]} _]
+  {:dispatch [::http-events/get
+              {:url "./data/newsongs.edn"
+               :response-format (ajax/text-response-format)
+               :on-success ::handle-fetch-new-song-list-success
+               :on-error ::fetch-new-song-list-complete}]}))
+(rf/reg-event-fx
+ ::handle-fetch-new-song-list-success
+ (fn-traced
+  [{:keys [db]} [_ response]]
+  {:db (-> db
+           (assoc :new-songs (into #{} (reader/read-string response))))
+   :dispatch [::fetch-new-song-list-complete]}))
+
+(rf/reg-event-db
+ ::fetch-new-song-list-complete
+ (fn-traced
+  [db _]
+  (println "fetch NEW song list complete!")
+  db))
+
+
+
+
 (rf/reg-event-fx
  ::pageloader-exit-transition
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::set-pageloader-exiting? true]
+  {:dispatch [::set-pageloader-exiting? true]
    :dispatch-later [{:ms 3000
                      :dispatch [::set-pageloader-active? false]}
                     {:ms 3000
@@ -246,9 +275,8 @@
  ::fetch-custom-delays
  (fn-traced
   [{:keys [db]} _]
-  {:db         db
-   :http-xhrio {:method          :get
-                :uri             "/data/delays.edn"
+  {:http-xhrio {:method          :get
+                :uri             "./data/delays.edn"
                 :timeout         8000
                 :response-format (ajax/text-response-format)
                 :on-success      [::handle-fetch-delays-success]
@@ -259,8 +287,7 @@
   [{:keys [db]} [_ delays-resp]]
   (let [r (-> delays-resp
               (reader/read-string))]
-    {:db db
-     :dispatch [::merge-remote-delays-with-local r]})))
+    {:dispatch [::merge-remote-delays-with-local r]})))
 (rf/reg-event-fx
  ::merge-remote-delays-with-local
  (fn-traced
@@ -279,8 +306,7 @@
  ::save-custom-song-delays-to-localstorage
  (fn-traced
   [{:keys [db]} _]
-  {:db       db
-   :dispatch [::common-events/save-to-localstorage
+  {:dispatch [::common-events/save-to-localstorage
               "custom-song-delays"
               (:custom-song-delay db)
               ::save-custom-delays-to-localstorage-complete]}))
@@ -294,8 +320,7 @@
 (rf/reg-event-fx
  ::handle-fetch-delays-complete
  (fn [{:keys [db]} _]
-   {:db db
-    :dispatch-n [[::song-delays-loaded]
+   {:dispatch-n [[::song-delays-loaded]
                  [::common-events/save-to-localstorage
                   "custom-song-delays"
                   (:custom-song-delay db {})]]}))
@@ -303,15 +328,13 @@
  ::handle-fetch-delays-failure
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::song-delays-loaded]}))
+  {:dispatch [::song-delays-loaded]}))
 (rf/reg-event-fx
  ::fetch-song-background-config
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :http-xhrio {:method :get
-                :uri (str "/data/backgrounds.edn")
+  {:http-xhrio {:method :get
+                :uri (str "./data/backgrounds.edn")
                 :timeout 8000
                 :response-format (ajax/text-response-format)
                 :on-success [::handle-fetch-background-config-success]
@@ -330,8 +353,7 @@
  ::handle-fetch-background-config-failure
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::handle-fetch-background-config-complete]}))
+  {:dispatch [::handle-fetch-background-config-complete]}))
 
 (rf/reg-event-db
  ::handle-fetch-background-config-complete
@@ -413,7 +435,8 @@
   [db [_ active?]]
   (-> db
       (assoc :pageloader-active? active?
-             :pageloader-exiting? (not active?)))))
+             :pageloader-exiting? (not active?)
+             :pageloader-activation-time (tick/now)))))
 (rf/reg-event-db
  ::toggle-display-lyrics
  (fn-traced
@@ -438,8 +461,7 @@
  ::play
  (fn-traced
   [{:keys [db]} _]
-  {:db       db
-   :dispatch [::set-playing? true]}))
+  {:dispatch [::set-playing? true]}))
 
 (defn- custom-song-delay-changed? [db song-name delay]
   (true?
@@ -468,17 +490,16 @@
     (let [audio        (. js/document (getElementById "main-audio"))
           effects-audio (. js/document (getElementById "effects-audio"))
           audio-events (aud/setup-audio-listeners audio)]
+      (rf/dispatch [::set-audio audio])
+      (rf/dispatch [::set-effects-audio effects-audio])
+      (rf/dispatch [::set-audio-events audio-events])
       (go-loop [e (<! audio-events)]
         (when-not (nil? e)
           (aud/process-audio-event e)
-          (recur (<! audio-events))))
-      (rf/dispatch [::set-audio audio])
-      (rf/dispatch [::set-effects-audio effects-audio])
-      (rf/dispatch [::set-audio-events audio-events]))))
+          (recur (<! audio-events)))))))
  (fn-traced
   [{:keys [db]} _]
-  {:db       db
-   :dispatch [::initial-audio-setup-complete]}))
+  {:dispatch [::initial-audio-setup-complete]}))
 
 (rf/reg-event-db
  ::initial-audio-setup-complete

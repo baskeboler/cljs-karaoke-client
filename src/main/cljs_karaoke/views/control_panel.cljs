@@ -20,6 +20,7 @@
             [cljs-karaoke.components.delay-select :refer [delay-select-component]]
             [cljs-karaoke.components.song-info-panel :refer [song-info-table]]
             [cljs-karaoke.components.dropdown :as dropdown]
+            ;; [cljs-karaoke.components.song-selector :as song-selector]
             [cljs-karaoke.protocols :as protocols]))
 (defn lyrics-view [lyrics]
   [:div.tile.is-child.is-vertical
@@ -159,4 +160,5 @@
         [:div.column 
          (when-not @display-menu?
            [toggle-menu-btn])
+         ;; [song-selector/song-select #(println % " selected")]
          [song-table-component]])]]))

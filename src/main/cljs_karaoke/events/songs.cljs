@@ -59,8 +59,7 @@
  (fn-traced
   [{:keys [db]} [_ song-name]]
   (let [offset (get-in db [:custom-song-delay song-name] (get db :lyrics-delay 0))]
-    {:db db
-     :dispatch-n [[::events/set-location-hash (str "/sing/" song-name "/offset/" offset)]
+    {:dispatch-n [[::events/set-location-hash (str "./sing/" song-name "/offset/" offset)]
                   [::events/set-lyrics-delay offset]]})))
 
 (rf/reg-event-db
@@ -78,13 +77,12 @@
      (:initialized? db))
     (do
       (println "delaying song load, app not yet initialized.")
-      {:db             db
-       :dispatch-later [{:dispatch [::load-song-if-initialized song-name]
+      {:dispatch-later [{:dispatch [::load-song-if-initialized song-name]
                          :ms       500}]})
     (:loading-song? db)
     (do
       (println "song is loading, discarding")
-      {:db db})
+      {})
     :otherwise
     {:db         (-> db
                      (assoc :loading-song? true))
@@ -96,9 +94,9 @@
 
  (fn-traced
   [{:keys [db]} [_ song-name]]
-  {:db         db
-   :dispatch-n [;; [::events/set-pageloader-exiting? false]
-               ;; [::events/set-pageloader-active? true]
+  {:dispatch-n [
+                [::events/set-pageloader-exiting? false]
+                [::events/set-pageloader-active? true]
                 [::events/set-can-play? false]
                 [::events/set-playing? false]
                 [::metrics-events/load-user-metrics-from-localstorage]
@@ -116,8 +114,7 @@
  (fn-traced
   [{:keys [db]} _]
   (let [song-name (->> db :available-songs rand-nth)]
-    {:db       db
-     :dispatch [::navigate-to-song song-name]})))
+    {:dispatch [::navigate-to-song song-name]})))
 
 (defn setup-audio-flow [song-name]
   {:rules [{:when :seen-all-of?
@@ -133,8 +130,7 @@
         audio-path       (str base-storage-url "/mp3/" song-name ".mp3")
         audio            (.  js/document (getElementById "main-audio"))]
     (set! (.-src audio) audio-path)
-    {:db db
-     :async-flow (setup-audio-flow song-name)
+    {:async-flow (setup-audio-flow song-name)
      :dispatch [::events/set-player-current-time 0]})))
 
 (rf/reg-event-db
@@ -182,8 +178,7 @@
  ::navigate-to-song
  (fn-traced
   [{:keys [db]} [_ song-name]]
-  {:db db
-   :dispatch [::update-song-hash song-name]}))
+  {:dispatch [::update-song-hash song-name]}))
 
 (rf/reg-event-fx
  ::set-audio-playback-rate
@@ -192,7 +187,7 @@
     (set! (. (-> db :audio) -playbackRate) rate)))
  (fn-traced
   [{:keys [db]} [_ rate]]
-  {:db db}))
+  {}))
 
 (rf/reg-event-db
  ::update-audio-playback-rate

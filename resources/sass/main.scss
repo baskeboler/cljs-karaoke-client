@@ -36,8 +36,8 @@ $input-shadow: 2px 2px 15px 0px $beige-light;
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/brands.scss";
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/regular.scss";
 @import "../../node_modules/@fortawesome/fontawesome-free/scss/solid.scss";
-@import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700%7CNunito:400,70&display=swap');
-
+/* @import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700%7CNunito:400,70&display=swap'); */
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@700&display=swap');
 html {
     overflow-y: auto;
     min-width: 240px;
@@ -155,7 +155,8 @@ html {
     opacity: 0.6;
 
     /* transition: all 0.5s ease-in-out; */
-    font-family: 'Chewy', cursive;
+    font-family: 'Raleway', cursive;
+    font-weight: 400;
     color: black;
 
     /* transform: scale(1) translate(0px,0px); */
@@ -540,3 +541,91 @@ nav.navbar > div.navbar-brand > a.navbar-item > .header-logo {
 .shadow {
     box-shadow: 0px 5px 12px 4px #797878;
 }
+
+
+
+    /* from */
+    /* background-position-x: -100vw */
+    /*                        to */
+/*                        background-position-x: 0 */
+
+
+$bg-color1: #bc2f22;
+$bg-color2: #22b0bd;
+
+
+@mixin backgroundLanding() {
+    background-image:  linear-gradient(-60deg, transparentize($bg-color2, .3) 50%, transparent 50%);
+    background-repeat: no-repeat;
+    background-size: 200vw auto;
+}
+
+@keyframes aniSlideLanding {
+    0% {
+        background-position-x: -100vw;
+    }
+    100% {
+        background-position-x: 0;
+    }
+}
+
+.animated-bg {
+    /* position:relative; */
+    /* z-index: 100; */
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    animation-name: aniSlideLanding;
+    animation-duration: 3s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    @include backgroundLanding();
+    background-color: $bg-color1;
+    &::before,&::after {
+        display: block;
+        content: '';
+        position: absolute;
+        z-index: -1;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        @include backgroundLanding();
+        animation-name: aniSlideLanding;
+        animation-duration: 4s;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+        animation-direction: alternate-reverse;
+    }
+    &::after {
+        z-index: -2;
+        animation-duration: 5s;
+        animation-direction: alternate;
+    }
+}
+
+/* &__background */
+/* position: relative */
+/*                   background-color: $color-blue */
+/*                   &::before, &::after */
+/*                                   display: block */
+/*                                                                                                      content: '' */
+/*                    i                                                                                                position: absolute */
+/*                                                                                                                             z-index: -1 */
+/*                                                                                                                                       top: 0 */
+/*                                                                                                                                            left: 0 */
+/*                                                                                                                                                  right: 0 */
+/*                                                                                                                                                         bottom: 0 */
+/*                                                                                                                                                                 @include backgroundLanding() */
+/*                                                                                                                                                                 animation: */
+/*     name: aniSlideLanding */
+/*           duration: 4s */
+/*                     timing-function: ease-in-out */
+/*                                      iteration-count: infinite */
+/*                                                       direction: alternate-reverse */
+/*                                                                  &::after */
+/*                                                                     z-index: -2 */
+/*                                                                              animation: */
+/*     duration: 5s */
+/*               direction: alternate``` qr */

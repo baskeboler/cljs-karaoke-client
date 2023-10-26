@@ -39,15 +39,22 @@
                      top-left parent-style]]
             [shadow.loader :as loader]
             [cljs-karaoke.editor.core]
-
+            [clj-karaoke.protocols :as p]
+            [clj-karaoke.song-data]
             [mount.core :as mount]
             [cljs.core.async :as async]))
+
 
 (stylefy/init)
 
 
 (def bg-style (rf/subscribe [::s/bg-style]))
 
+;; (loader/init)
+
+;; (loader/load "editor" #(println "editor loaded"))
+
+;; (require 'cljs-karaoke.editor.core 'cljs-karaoke.editor.view)
 
 (declare save-song fetch-all)
 (defn save-current []
@@ -63,13 +70,15 @@
             (println "error fetching" err)))))
 
 (defn current-frame-display []
-  (let [frame (rf/subscribe [::s/frame-to-display])]
-    (when (and
-           @(rf/subscribe [::s/song-playing?])
-           (some? @frame)
-           (not (str/blank? (frame-text-string @frame))))
+  (let [frame (rf/subscribe [::s/current-frame])
+        playing? (rf/subscribe [::s/song-playing?])]
+   (fn [] 
+     (when (and
+            @playing?
+            ((comp not nil?) @frame)
+            (not (str/blank? (p/get-text @frame))))
       [:div.current-frame
-       [frame-text @frame]])))
+       [frame-text]]))))
 
 
 (defn playback-debug-panel []
@@ -100,8 +109,8 @@
    ^{:class "edge-stop-btn"}
    [playback-controls]
    [current-frame-display]
-   (comment)
-   #_[playback-debug-panel]
+   ;; (comment)
+   ;; [playback-debug-panel]
    [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
    [billboards-component]
    (when (and
@@ -155,11 +164,23 @@
       [song-progress]])])
 
 
+(defn lazy-editor []
+  (let [p (reagent/atom false)]
+    (if (loaded? "editor")
+      (reset! p true)
+      (.. (load "editor"
+                (fn []
+                  (mount.core/start #'cljs-karaoke.editor.core/editor)))
+          (then #(reset! p  true))))
+    (fn []
+      (when @p
+        [cljs-karaoke.editor.view/editor-component]))))
+
 
 (defn pages [page-name]
   (case page-name
     :home     [default-view]
-    :editor   [editor-component]
+    :editor   [editor-component] ;[lazy-editor] 
     :playlist [playlist-view-component]
     :playback [playback-view]
     [default-view]))
@@ -175,15 +196,24 @@
    [notifications/notifications-container-component]
    [modals/modals-component]
    [page-loader/page-loader-component]
-   [:div.app-bg (stylefy/use-style (merge (parent-style) @bg-style))]
-   (pages @(rf/subscribe [::s/current-view]))])
+   [:div (if @(rf/subscribe [::s/background-enabled?])
+           (stylefy/use-style
+            (merge (parent-style) @bg-style)
+            {:class "app-bg"})
+           {:style {:background-color "#E5619C"
+                    :position         :absolute
+                    :top              0
+                    :left             0
+                    :width            "100vw"
+                    :height           "100vh"}})]
+   [pages @(rf/subscribe [::s/current-view])]])
 
 (defn ^:export load-song-global [s]
   (async/go-loop [_ (async/<! (async/timeout 1000))]
     (if  @(rf/subscribe [::s/initialized?])
       (do
         (println "app ready, loading song " s)
-        (rf/dispatch-sync [::song-events/navigate-to-song s]))
+        (rf/dispatch [::song-events/navigate-to-song s]))
       (do
         (println "Not yet ready, waiting ...")
         (recur (async/<! (async/timeout 1000)))))))
@@ -203,7 +233,7 @@
  
 (defn mount-components! []
   (render [app] app-root))
-(defn init! []
+(defn ^:export init! []
   (println "init!")
   (router/app-routes)
   (rf/dispatch-sync [::events/init-db])
@@ -246,13 +276,13 @@
 (defmethod aud/process-audio-event :timeupdate
   [event]
   (when-let [a @(rf/subscribe [::s/audio])]
-    (rf/dispatch-sync [::events/set-player-current-time (.-currentTime a)])))
+    (rf/dispatch [::events/set-player-current-time (.-currentTime a)])))
 
 (defmethod aud/process-audio-event :playing
   [event]
   (println "playing event")
-  (rf/dispatch-sync [::events/set-song-duration (.-duration @(rf/subscribe [::s/audio]))])
-  (rf/dispatch-sync [::events/set-playing? true]))
+  (rf/dispatch [::events/set-song-duration (.-duration @(rf/subscribe [::s/audio]))])
+  (rf/dispatch [::events/set-playing? true]))
 
 (defmethod aud/process-audio-event :pause
   [event]
@@ -265,3 +295,4 @@
   (when-let [_ @(rf/subscribe [::s/loop?])]
     (rf/dispatch-sync [::playlist-events/playlist-next])))
 
+;; (init!)

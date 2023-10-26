@@ -1,0 +1,1 @@
+{:title "itdontmattertome", :date "2020-12-14T23:54:10.693Z", :type :song-data, :tempo-bpm 75.0, :division-type 0.0, :resolution 240, :frames ({:type :frame-event, :ticks 960, :events ({:type :lyrics-event, :offset 0.0, :ticks 0, :text "VERSE", :midi-type 1} {:type :lyrics-event, :offset 51200.0, :ticks 15360, :text "BRIDGE", :midi-type 1}), :offset 3200.0})}

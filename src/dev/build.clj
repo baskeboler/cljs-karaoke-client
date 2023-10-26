@@ -34,6 +34,7 @@
    "image/gif"  ".gif"
    "image/bmp"  ".bmp"})
 
+;; It's checking if the file has an extension. If it doesn't, it's adding one.
 (defn- normalize-filename [name input-str]
   (if-not (URLConnection/guessContentTypeFromName name)
     (str name (get content-type->extension-mapping
@@ -41,6 +42,8 @@
                    ""))
     name))
 
+;; It's downloading the images from the internet and saving them
+;; to the local file system.
 (defn download-file
   ([url filename]
    (with-open [in (input-stream url)]
@@ -75,6 +78,8 @@
   (and l
        (cstr/starts-with? l "http")))
 
+;; It's downloading the images from the internet and saving them
+;; to the local file system.
 (defn import-external-bg-images []
   (backup-background-images-file)
   (let [image-map (get-images)
@@ -105,9 +110,11 @@
 (defn get-songs []
   (reader/read-string (slurp songs-file)))
 
+;; It's reading the delays file.
 (defn get-delays []
   (reader/read-string (slurp delays-file)))
 
+;; Checking if the url is valid.
 (defn valid-url? [url]
   (print "checking url " url ": ")
   (if-not (external-location? url)
@@ -201,6 +208,7 @@
 (defn- append-home-url [urls]
   (conj urls site-url-prefix))
 
+;; Generating static html pages for each song.
 (defn prerender []
   (let  [songs  (get-songs)
          delays (get-delays)

@@ -165,7 +165,8 @@
 
     (println "Audio input init complete.")
     (add-notification (notification :success "Audio input initialized!"))
-    {:db db
+    {
+     ;; :db db
      :dispatch-n [[::set-audio-input audio-input]
                   [::set-dry-gain dry-gain1]
                   [::set-wet-gain wet-gain1]
@@ -218,7 +219,8 @@
  ;; (rf/after)
  (fn-traced
   [{:keys [db]}]
-  {:db db}))
+  {}))
+   ;; :db db}))
 
 (rf/reg-event-fx
  ::init-device-types
@@ -230,7 +232,8 @@
           (rf/dispatch [::set-device-types types]))))))
  (fn-traced
   [{:keys [db]} _]
-  {:db db}))
+  {}))
+   ;; :db db}))
 
 (reg-set-attr ::set-recording-enabled? [:audio-data :recording-enabled?])
 (reg-set-attr ::set-feedback-reduction? [:audio-data :feedback-reduction?])
@@ -265,7 +268,7 @@
                 (. js/console (log "Failed to create audio context, will try again later"))
                 nil))]
     (merge
-     {:db db}
+     {}
      (if-not (nil? ctx)
        {:dispatch [::set-audio-context ctx]}
        {})))))
@@ -273,8 +276,7 @@
  ::fetch-reverb-buffer
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :http-xhrio {:method :get
+  {:http-xhrio {:method :get
                 :uri  "/media/cardiod-rear-levelled.wav"
                 :timeout 5000
                 :response-format (-> (ajax/raw-response-format)
@@ -288,7 +290,7 @@
   (let [ctx (get-in db [:audio-data :audio-context])
         buf-promise (. ctx (decodeAudioData res))]
     (. buf-promise (then #(rf/dispatch [::set-reverb-buffer %])))
-    {:db db})))
+    {})))
 
 (rf/reg-event-db
  ::handle-fetch-reverb-buffer-failure
@@ -325,7 +327,7 @@
     (get-user-media args
                     #(rf/dispatch [::on-stream %])
                     #(println "Failed to setup audio input" %))
-    {:db db}))
+    {}))
 
 (rf/reg-event-fx
  ::setup-audio-input
@@ -358,15 +360,13 @@
   [{:keys [db]} _]
   (let [a (get-in db [:audio-data :reverb-analyser])
         data (get-freq-data a)]
-    {:db db
-     :dispatch [::set-freq-data data]})))
+    {:dispatch [::set-freq-data data]})))
 
 (rf/reg-event-fx
  ::start-audio-input-spectrograph
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :interval {:action :start
+  {:interval {:action :start
               :id :start-input-spectrograph
               :frequency 70
               :event [::refresh-audio-input-spectrograph]}}))
@@ -375,8 +375,7 @@
  ::init-audio-input
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch-n [[::init-audio-context]]
+  {:dispatch-n [[::init-audio-context]]
                 ;; [::fetch-reverb-buffer]]
    :async-flow (init-audio-input-flow)}))
 
@@ -466,8 +465,7 @@
  ::test-recording
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::start-recording]
+  {:dispatch [::start-recording]
    :dispatch-later [{:dispatch [::stop-recording]
                      :ms 10000}]}))
 
@@ -511,8 +509,7 @@
   [{:keys [db]} _]
   (reset-audio-input (-> db :audio-data :audio-input) (-> db :audio))
   (.close (-> db :audio-data :audio-context))
-  {:db db
-   :dispatch-n [[::set-audio-input nil]
+  {:dispatch-n [[::set-audio-input nil]
                 [::set-audio-context (-> db :audio-data :audio-context)]]}))
 
 (defn- get-audio-element []

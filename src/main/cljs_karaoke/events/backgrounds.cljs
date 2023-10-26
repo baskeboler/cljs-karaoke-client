@@ -7,14 +7,14 @@
             [cljs-karaoke.events.common :as common-events]
             [ajax.core :as ajax]
             [shadow.loader :as loader :refer [loaded? load with-module]]))
-;; [cljs-karaoke.mongo :as mongo]))
-;; (defonce fetch-bg-from-web-enabled? true)
+            ;; [cljs-karaoke.mongo :as mongo]))
+(defonce fetch-bg-from-web-enabled? true)
 
 (defn rand-wallpaper []
   (->> wallpapers
        (shuffle)
        (first)
-       (str "/images/")))
+       (str "./images/")))
 
 (defn update-song-bg-flow []
   {;; :first-dispatch [::update-bg-image song-name]
@@ -54,7 +54,7 @@
   (when (and (not (zero? push-count))
              (zero? (mod push-count 5)))
     (println "[mongo backend] pushing backgrounds")
-    ;; (cljs-karaoke.mongo/save-backgrounds backgrounds)
+    (cljs-karaoke.mongo/save-backgrounds backgrounds)
     (println "[mongo backend] backgrounds pushed")))
 
 (rf/reg-event-db
@@ -79,8 +79,7 @@
     (. js/console (log "Searching for bg images"))))
  (fn-traced
   [{:keys [db]} [_ q callback-event error-event]]
-  {:db db
-   :http-xhrio {:method :get
+  {:http-xhrio {:method :get
                 :timeout 8000
                 :uri (str search/base-url
                           "?cx="  search/ctx-id
@@ -100,8 +99,7 @@
   (let [cached             (get-in db [:song-backgrounds title] nil)
         search-bg-enabled? (get-in db [:fetch-bg-from-web-enabled?])]
     (merge
-     {:db         db
-      :async-flow (update-song-bg-flow)}
+     {:async-flow (update-song-bg-flow)}
      (cond
        (not (nil? cached)) {:dispatch [::set-cached-bg cached]}
        search-bg-enabled?  {:dispatch [::search-images title [::handle-fetch-bg-success title] [::handle-fetch-bg-failure]]}
@@ -115,16 +113,14 @@
 
  (fn-traced
   [{:keys [db]} [_ cached]]
-  {:db db
-   :dispatch-n [[::set-bg-image cached]
+  {:dispatch-n [[::set-bg-image cached]
                 [::generate-bg-css cached]]}))
 (rf/reg-event-fx
  ::set-random-bg-image
  (fn-traced
   [{:keys [db]} _]
   (let [url (rand-wallpaper)]
-    {:db db
-     :dispatch-n [[::set-bg-image url]
+    {:dispatch-n [[::set-bg-image url]
                   [::generate-bg-css url]]})))
 
 (rf/reg-event-db
@@ -138,8 +134,7 @@
  (fn-traced
   [{:keys [db]} [_ title res]]
   (let [candidate-image (search/extract-candidate-image res)]
-    {:db         db
-     :dispatch-n [(when-not (nil? candidate-image) [::set-bg-image (:url candidate-image)])
+    {:dispatch-n [(when-not (nil? candidate-image) [::set-bg-image (:url candidate-image)])
                   (when-not (nil? candidate-image) [::generate-bg-css (:url candidate-image)])
                   (when-not (nil? candidate-image) [::cache-song-bg-image title (:url candidate-image)])
                   (when (nil? candidate-image) [::set-random-bg-image])]})))
@@ -157,8 +152,7 @@
   [{:keys [db]} [_ err]]
   (println "Failed to fetch bg from web" err)
   (let [should-disable? (>= (:status err) 400)]
-    {:db         db
-     :dispatch-n [[::set-fetch-bg-from-web (= should-disable? false)]
+    {:dispatch-n [[::set-fetch-bg-from-web (= should-disable? false)]
                   [::set-random-bg-image]]})))
 
 (rf/reg-event-fx
@@ -183,8 +177,7 @@
  ::save-bg-cache-to-localstorage
  (fn-traced
   [{:keys [db] } [_ cb-event]]
-  {:db       db
-   :dispatch [::common-events/save-to-localstorage "song-bg-cache" (:song-backgrounds db) cb-event]}))
+  {:dispatch [::common-events/save-to-localstorage "song-bg-cache" (:song-backgrounds db) cb-event]}))
 
 (rf/reg-event-fx
  ::cache-song-bg-image
@@ -212,7 +205,7 @@
  (fn-traced
   [{:keys [db]} _]
   (. js/console (log "Cache bg image complete"))
-  {:db db}))
+  {}))
 
 (rf/reg-event-fx
  ::update-bg-image-complete
@@ -221,7 +214,7 @@
  (fn-traced
   [{:keys [db]} _]
   (. js/console (log "Update bg image complete"))
-  {:db db}))
+  {}))
 
 (rf/reg-event-fx
  ::update-bg-image-flow-complete
@@ -230,7 +223,7 @@
   (fn-traced
    [{:keys [db]} _]
    (. js/console (log "Update bg image flow complete"))
-   {:db db}))
+   {}))
 
 ;; (rf/reg-event-fx
 ;;  ::init-update-bg-image-flow
@@ -242,3 +235,16 @@
 ;;   {:db db
 ;;    :async-flow (update-song-bg-flow song-name)}))
 
+(rf/reg-event-fx
+ ::toggle-backgrounds
+ (fn-traced
+  [{:keys [db]} _]
+  {:db (update db :background-enabled? not)}))
+
+
+
+(rf/reg-event-fx
+ ::toggle-animated-backgrounds
+ (fn-traced
+  [{:keys [db]} _]
+  {:db (update db :animated-background-enabled? not)}))

@@ -2,12 +2,22 @@ name: Clojure CI
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
+
 
 jobs:
   build:
+
+    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
+    permissions:
+      pages: write      # to deploy to Pages
+      id-token: write   # to verify the deployment originates from an appropriate source
+
+    # Deploy to the github-pages environment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
 
     runs-on: ubuntu-latest
 
@@ -16,4 +26,27 @@ jobs:
     - name: Install dependencies
       run: npm i
     - name: release
-      run: shadow-cljs release app
+      run: npm run release
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: ./public
+    - name: Deploy to gh pages
+      id: deployment
+      uses: actions/deploy-pages@v2
+    # - name: Netlify Actions
+    #   # You may pin to the exact commit or the version.
+    #   # uses: nwtgck/actions-netlify@5da65c9f74c7961c5501a3ba329b8d0912f39c03
+    #   uses: nwtgck/actions-netlify@v2.0.0
+    #   with:
+    #     # Publish directory
+    #     publish-dir: public
+    #     # Production branch
+    #     production-branch: master
+    #     # Indicate wether to deploy production build
+    #     production-deploy: true 
+    #   env:
+    #     NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+    #     NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    #   timeout-minutes: 1
+      

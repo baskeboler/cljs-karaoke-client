@@ -28,8 +28,10 @@
      :animation-duration        "1s"
      :animation-fill-mode       :both
      :animation-timing-function :ease-in-out}
-    {:src "images/header-logo.svg"})])
-
+    {:src "./images/logo.svg"
+     :width 200
+     :height 200})])
+ 
 (def page-loader-logo-2-styles
   {:font-family               "'Frijole', cursive"
    :font-size                 "2em"
@@ -66,5 +68,5 @@
     (stylefy/use-style (merge
                         styles/screen-centered
                         {:z-index 1000}))
-    [page-loader-logo-2]]])
+    [page-loader-logo]]])
 

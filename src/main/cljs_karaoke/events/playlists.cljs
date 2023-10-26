@@ -10,16 +10,14 @@
  ::playlist-load
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   ;; :dispatch-later [{:ms 2000
+  {;; :dispatch-later [{:ms 2000
                      ;; :dispatch [::set-current-playlist-song]}))
    :dispatch [::build-verified-playlist]}))
 (rf/reg-event-fx
  ::set-current-playlist-song
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch (if-not (nil? (:playlist db))
+  {:dispatch (if-not (nil? (:playlist db))
                [:cljs-karaoke.events.songs/navigate-to-song  (protocols/current (:playlist db))]
                [::playlist-load])}))
 

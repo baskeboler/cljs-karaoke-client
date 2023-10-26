@@ -4,10 +4,13 @@
             [cljs-karaoke.audio-input]
             ;; [cljs-karaoke.remote-control :as remote-control]
             [cljs-karaoke.events :as events]
+            [cljs-karaoke.events.backgrounds :as bg-events]
             [cljs-karaoke.modals :as modals]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.playback :refer [play stop pause update-playback-rate]]
-            [cljs-karaoke.subs :as s]))
+            [cljs-karaoke.subs :as s]
+            [stylefy.core :as stylefy]))
+  
 
 ;; (def d! rf/dispatch)
 
@@ -37,6 +40,23 @@
   (menu-item [this]
     [:li>a {:on-click on-click}
      label]))
+
+
+(def checkbox-style
+  {:margin "0 1em"})
+
+(defrecord CheckboxMenuItem [label subs-key toggle-event]
+  PMenuItem
+  (menu-item [this]
+    [:li
+     [:label.checkbox
+      [:input
+       (stylefy/use-style
+        checkbox-style
+        {:type      :checkbox
+         :checked   @(rf/subscribe subs-key)
+         :on-change #(rf/dispatch toggle-event)})]
+      label]]))
 
 (def playback-items
   [(map->FnMenuItem {:label "current song information"
@@ -75,7 +95,11 @@
 (def audio-items
   [(map->EventMenuItem {:label "Enable Audio Input"
                         :event [:cljs-karaoke.events.modals/modal-push
-                                [cljs-karaoke.audio-input/enable-audio-input-confirm-dialog]]})]) 
+                                [cljs-karaoke.audio-input/enable-audio-input-confirm-dialog]]})])
+
+(def misc-settings
+  [(->CheckboxMenuItem "Enable Background" [::s/background-enabled?] [::bg-events/toggle-backgrounds])])
+
 (defn menu-component []
   [:aside.menu.swing-in-top-fwd
    [:p.menu-label "Playback"]
@@ -101,6 +125,12 @@
     (doall
      (for [item lyrics-items]
        ^{:key (str "lyrics-item-" (:label item))}
+       [menu-item item]))]
+   [:p.menu-label "Misc Settings"]
+   [:ul.menu-list
+    (doall
+     (for [item misc-settings]
+       ^{:key (hash item)}
        [menu-item item]))]])
 
 (def menu-items

@@ -78,8 +78,7 @@
       (rf/dispatch [::set-seek-buttons-visible false]))))
  (fn-traced
   [{:keys [db]} _]
-  {:db db
-   :dispatch [::set-seek-buttons-visible true]}))
+  {:dispatch [::set-seek-buttons-visible true]}))
 
 (rf/reg-event-db
  ::set-display-home-button
@@ -95,5 +94,4 @@
   [{:keys [db]} [_ action]]
   (let [current (:current-view db)
         next-view (get (transition current) action :error)]
-    {:db db
-     :dispatch [::set-current-view next-view]})))
+    {:dispatch [::set-current-view next-view]})))

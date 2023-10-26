@@ -16,9 +16,9 @@
 (defn ^:export parent-style []
   ;; {:transition       "background-image 1s ease-out"
   {:background-size  "auto"
-   :background-image (str "url(\"/images/" (first wallpapers) "\")")
-   :animation        (str (random-kenburn)
-                          " 5s ease-in-out both")})
+   :background-image (str "url(\"./images/" (first wallpapers) "\")")})
+   ;; :animation        (str (random-kenburn)
+                          ;; " 5s ease-in-out both")})
 
 (def ^:export centered
   {:position  :fixed
