@@ -17,34 +17,35 @@
 
 (defn setup-audio-listeners [audio]
   (let [out-chan (chan)]
-    (.. audio
-        (addEventListener
-         "canplay"
-         (fn [evt] (go (>! out-chan (canplay evt))))))
-    (.. audio
-        (addEventListener
-         "canplaythrough"
-         (fn [evt] (go (>! out-chan (canplaythrough evt))))))
-    (.. audio
-        (addEventListener
-         "ended"
-         (fn [evt] (go (>! out-chan (ended evt))))))
-    (.. audio
-        (addEventListener
-         "play"
-         (fn [evt] (go (>! out-chan (play evt))))))
-    (.. audio
-        (addEventListener
-         "pause"
-         (fn [evt] (go (>! out-chan (pause evt))))))
-    (.. audio
-        (addEventListener
-         "timeupdate"
-         (fn [evt] (go (>! out-chan (timeupdate evt))))))
-    (.. audio
-        (addEventListener
-         "playing"
-         (fn [evt] (go (>! out-chan (playing evt))))))
+    (when audio
+      (.. audio
+          (addEventListener
+           "canplay"
+           (fn [evt] (go (>! out-chan (canplay evt))))))
+      (.. audio
+          (addEventListener
+           "canplaythrough"
+           (fn [evt] (go (>! out-chan (canplaythrough evt))))))
+      (.. audio
+          (addEventListener
+           "ended"
+           (fn [evt] (go (>! out-chan (ended evt))))))
+      (.. audio
+          (addEventListener
+           "play"
+           (fn [evt] (go (>! out-chan (play evt))))))
+      (.. audio
+          (addEventListener
+           "pause"
+           (fn [evt] (go (>! out-chan (pause evt))))))
+      (.. audio
+          (addEventListener
+           "timeupdate"
+           (fn [evt] (go (>! out-chan (timeupdate evt))))))
+      (.. audio
+          (addEventListener
+           "playing"
+           (fn [evt] (go (>! out-chan (playing evt)))))))
     out-chan))
 
 
