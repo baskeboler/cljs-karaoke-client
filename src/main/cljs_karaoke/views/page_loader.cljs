@@ -31,7 +31,7 @@
     {:src "./images/logo.svg"
      :width 200
      :height 200})])
-
+ 
 (def page-loader-logo-2-styles
   {:font-family               "'Frijole', cursive"
    :font-size                 "2em"
