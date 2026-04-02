@@ -10,8 +10,9 @@
 
 (defn enable-audio-input-confirmation-modal-content []
   [:div.enable-audio-input-confirmation-content
-   [:h5.is-danger "Danger"]
-   [:p "Please make sure you have an external microphone connected to the mic jack, otherwise if you are using a laptop mic and the laptop speakers, the result will be unpleasant."]])
+   [:h5.is-danger "Mic setup tip"]
+   [:p "Use headphones or an external microphone if you can."]
+   [:p "If you rely on a laptop microphone and speakers at the same time, you may get feedback or echo."]])
 
 (defn enable-audio-input-confirm-dialog []
   (let [modal [modal-card-dialog {:title "Warning"
@@ -21,10 +22,10 @@
                                             {:on-click #(do
                                                           (rf/dispatch [::audio-events/init-audio-input])
                                                           (rf/dispatch [::modal-events/modal-pop]))}
-                                            "Fuck it, enable mic"]
+                                            "Enable mic anyway"]
                                            [:button.button.is-primary
                                             {:on-click #(rf/dispatch [::modal-events/modal-pop])}
-                                            "Get me outta here"]]}]]
+                                            "Cancel"]]}]]
     modal))
 
 (defn ^:export audio-viz []
@@ -48,10 +49,13 @@
 (defn ^:export enable-audio-input-button []
   [:button.button.is-danger
    (merge
-    {:on-click #(rf/dispatch [::modal-events/modal-push [enable-audio-input-confirm-dialog]])}
+    {:on-click #(rf/dispatch [::modal-events/modal-push [enable-audio-input-confirm-dialog]])
+     :title "Enable microphone input"
+     :aria-label "Enable microphone input"}
     (when @(rf/subscribe [::audio-subs/microphone-enabled?])
       {:disabled true}))
-   [:span.icon>i.fa.fa-microphone-alt]])
+   [:span.icon>i.fa.fa-microphone-alt]
+   [:span "Enable mic"]])
 
 (defn ^:export spectro-overlay []
   (when-let  [freq-data (rf/subscribe [::audio-subs/freq-data])]

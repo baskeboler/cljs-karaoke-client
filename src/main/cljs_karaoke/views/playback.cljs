@@ -40,18 +40,23 @@
   (let [dur (rf/subscribe [::s/song-duration])
         cur (rf/subscribe [::s/song-position])]
     (fn []
+      (let [safe-duration (if (and (number? @dur) (pos? @dur)) @dur 0)
+            safe-current  (if (number? @cur) @cur 0)
+            progress-pct  (if (pos? safe-duration)
+                            (int (* 100 (/ safe-current safe-duration)))
+                            0)]
       [progress-bar-component
-       :max-value (if (number? @dur) @dur 0)
-       :current-value (if  (number? @cur) @cur 0)
+       :max-value safe-duration
+       :current-value safe-current
        :color :blue
-       :label (format "%d%%" (int (* 100 (/ @cur @dur))))
+       :label (format "%d%%" progress-pct)
        :style {:position :absolute
                :display :block
                :left 0
                :bottom "0.1rem"
                :height "0.4rem"
                :margin "0 0.5rem"
-               :width "calc(100% - 1rem)"}])))
+               :width "calc(100% - 1rem)"}]))))
 
 (defn seek [offset]
   (let [audio            (rf/subscribe [::s/audio])
@@ -121,7 +126,9 @@
      [icon-button "play" "primary" play])
    (when @(rf/subscribe [::s/display-home-button?])
      [:div.control>a.button.is-small.is-default
-      {:href (router/url-for :home)}
+      {:href (router/url-for :home)
+       :title "Go to control center"
+       :aria-label "Go to control center"}
       [:i.fas.fa-home.fa-fw]])
    (when-not @(rf/subscribe [::s/song-paused?])
      [icon-button "pause" "warning" pause])

@@ -73,7 +73,8 @@
    :opacity    0.5})
 
 (def ^:export default-page-styles
-  {:background-color "rgba(255,255,255,0.7)"
+  {:background-color "var(--page-surface)"
+   :color            "var(--surface-text)"
    :padding          "2em 1em"
    :border-radius    "0.5em"})
 

@@ -18,7 +18,8 @@
 (defn navbar-component []
   (let [is-active? (rf/subscribe [::s/navbar-menu-active?])]
     [:nav.navbar.is-fixed-top.is-transparent
-     (stylefy/use-style shadow-style)
+     (stylefy/use-style shadow-style
+                        {:aria-label "Primary"})
      [:div.navbar-brand
       [:a.navbar-item
        {:href (router/url-for :home)} ;"#/"}
@@ -26,15 +27,19 @@
         (stylefy/use-style
          logo-styles
          {:title "header logo" :src "/images/sing.svg"})]]
-      [:a
-       {:role     :button
+      [:button.navbar-burger
+       {:type "button"
         :class    (concat
-                   ["navbar-burger" "burger"]
+                   ["burger"]
                    (if @is-active? ["is-active"] []))
+        :aria-label "Toggle navigation menu"
+        :aria-expanded (if @is-active? "true" "false")
+        :aria-controls "primary-navbar-menu"
         :on-click #(rf/dispatch [::events/set-navbar-menu-active? (not @is-active?)])}
        [:span] [:span] [:span]]]
      [:div
-      {:class (concat
+      {:id "primary-navbar-menu"
+       :class (concat
                ["navbar-menu"]
                (if @is-active? ["is-active"] []))}
       [:div.navbar-start
@@ -48,4 +53,3 @@
        (when @(rf/subscribe [::user-subs/user-ready?])
          [:div.navbar-item
           (:name @(rf/subscribe [::user-subs/user]))])]]]))
-

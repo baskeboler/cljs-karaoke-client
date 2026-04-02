@@ -4,6 +4,7 @@
             [cljs-karaoke.events :as events]
             [cljs-karaoke.events.songs :as song-events]
             [cljs-karaoke.events.playlists :as playlist-events]
+            [cljs-karaoke.songs :as songs]
             [cljs-karaoke.subs :as subs]
             [cljs-karaoke.events.views :as view-events]
             [cljs-karaoke.views.navbar :refer [navbar-component]]
@@ -18,37 +19,57 @@
 (defn playlist-controls [i song]
   [:div.playlist-controls.field.has-addons])
 
+(defn playlist-action-button
+  [{:keys [label icon button-classes attrs]}]
+  [:button.button.is-small
+   (merge
+    {:class      button-classes
+     :title      label
+     :aria-label label}
+    attrs)
+   [:span.icon>i.fas.fa-fw {:class icon}]
+   [:span label]])
 
 (defn load-song-btn [pos]
-  [:button.button
-   {:on-click #(rf/dispatch [::playlist-events/jump-to-playlist-position pos])}
-   [:span.icon>i.fas.fa-fw.fa-folder-open]])
+  [playlist-action-button
+   {:label "Queue"
+    :icon "fa-folder-open"
+    :button-classes "is-light"
+    :attrs {:on-click #(rf/dispatch [::playlist-events/jump-to-playlist-position pos])}}])
 
 (defn play-song-btn [pos]
-  [:a.button
+  [:a.button.is-small.is-primary
    {:href (router/url-for :song :song-name (-> @(rf/subscribe [::subs/playlist]) :songs (nth pos) gstr/urlEncode))
+    :title "Play this song now"
+    :aria-label "Play this song now"
     :on-click #(do
                  (rf/dispatch [::playlist-events/jump-to-playlist-position pos]))}
                  ;; (rf/dispatch [::view-events/view-action-transition :go-to-playback]))}
-                               
-   [:span.icon>i.fas.fa-fw.fa-play]])
+   [:span.icon>i.fas.fa-fw.fa-play]
+   [:span "Play now"]])
 
 (defn move-song-up-btn [pos]
-  [:button.button
-   {:on-click #(rf/dispatch [::playlist-events/move-song-up pos])}
-   [:span.icon>i.fas.fa-fw.fa-arrow-up]])
+  [playlist-action-button
+   {:label "Move up"
+    :icon "fa-arrow-up"
+    :button-classes "is-white"
+    :attrs {:on-click #(rf/dispatch [::playlist-events/move-song-up pos])}}])
 
 
 (defn move-song-down-btn [pos]
-  [:button.button
-   {:on-click #(rf/dispatch [::playlist-events/move-song-down pos])}
-   [:span.icon>i.fas.fa-fw.fa-arrow-down]])
+  [playlist-action-button
+   {:label "Move down"
+    :icon "fa-arrow-down"
+    :button-classes "is-white"
+    :attrs {:on-click #(rf/dispatch [::playlist-events/move-song-down pos])}}])
 
 
 (defn forget-delay-btn [ song-name]
-  [:button.button.is-danger
-   {:on-click #(rf/dispatch [::song-events/forget-custom-song-delay song-name])}
-   [:span.icon>i.fas.fa-fw.fa-trash]])
+  [playlist-action-button
+   {:label "Forget delay"
+    :icon "fa-trash"
+    :button-classes "is-danger is-light"
+    :attrs {:on-click #(rf/dispatch [::song-events/forget-custom-song-delay song-name])}}])
 
 (defn playlist-component []
   (let [pl (rf/subscribe  [::subs/playlist])
@@ -56,29 +77,29 @@
     ;; (when-not (number? (protocols/current @pl))
       ;; (rf/dispatch-sync [::playlist-events/set-current-playlist-song])
     (if @pl
-      [:div.table-container>table.table.is-narrow.is-fullwidth.is-hoverable
-       [:thead>tr
-        [:th "#"] [:th "Song"] [:th "Action"]]
-       [:tbody
-        (doall
-         (for [[i s] (mapv vector (map inc (range)) (protocols/songs @pl))]
-           ^{:key (str "playlist-row-" i)}
-           [:tr
-            {:class (if (= @current s) "is-selected" "")}
-            [:td i]
-            [:td s]
-            [:td
-             [:div.playlist-controls.field.has-addons
-              [:div.control
-               [load-song-btn (dec i)]]
-              [:div.control
-               [move-song-up-btn (dec i)]]
-              [:div.control
-               [move-song-down-btn (dec i)]]
-              [:div.control
-               [play-song-btn (dec i)]]
-              [:div.control
-               [forget-delay-btn s]]]]]))]]
+      [:div.playlist-list
+       (doall
+        (for [[i s] (mapv vector (map inc (range)) (protocols/songs @pl))
+              :let [{:keys [title artist]} (songs/song-display-data s)]]
+          ^{:key (str "playlist-row-" i)}
+           [:article.playlist-item
+            {:class (if (= @current s) "is-current" "")}
+            [:div.playlist-item-main
+            [:div.playlist-item-order (gstr/format "%02d" i)]
+            [:div.playlist-item-copy
+             [:div.playlist-item-heading
+              [:p.playlist-item-title title]
+              (when (= @current s)
+                [:span.tag.is-primary.is-light "Current"])]
+             (when artist
+               [:p.playlist-item-artist artist])
+             [:p.playlist-item-raw s]]]
+           [:div.playlist-item-actions
+            [load-song-btn (dec i)]
+            [move-song-up-btn (dec i)]
+            [move-song-down-btn (dec i)]
+            [play-song-btn (dec i)]
+            [forget-delay-btn s]]]))]
       [:div.playlist-unavailable.is-fullwidth
        [:h3 "Playlist is unavailable"]])))
 
@@ -87,4 +108,5 @@
    (stylefy/use-style default-page-styles)
    [:div.column
     [:p.title "Playlist Mode"]
+    [:p.playlist-view-intro "Organize the queue, promote the next singer, and jump straight into playback."]
     [playlist-component]]])
