@@ -10,16 +10,17 @@
         "cljs-watch": "shadow-cljs watch app",
         "compile": "shadow-cljs compile app ",
         "release": "shadow-cljs release app ",
-        "start": "npm run watch",
+        "start": "concurrently 'npm:cljs-watch' 'npm:css-watch'",
         "copy-webfonts": "cp -rf ./node_modules/@fortawesome/fontawesome-free/webfonts ./public/",
-        "css-build": "node-sass --omit-source-map-url resources/sass/main.scss public/css/main.css",
-        "css-watch": "npm run css-build -- --watch"
+        "css-build": "sass --no-source-map --quiet-deps --load-path=node_modules resources/sass/main.scss public/css/main.css",
+        "css-watch": "sass --watch --quiet-deps --load-path=node_modules resources/sass/main.scss:public/css/main.css"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "dependencies": {
         "bulma-tooltip": "^2.0.2",
+        "chart.js": "2.9.4",
         "create-react-class": "^15.7.0",
         "highlight.js": "10.4.1",
         "mongodb-stitch-browser-sdk": "^4.8.0",
@@ -32,10 +33,10 @@
         "shake.js": "^1.2.2"
     },
     "devDependencies": {
-        "@fortawesome/fontawesome-free": "^5.15.1",
-        "bulma": "^0.8.2",
+        "@fortawesome/fontawesome-free": "^7.2.0",
+        "bulma": "^1.0.4",
         "concurrently": "^5.3.0",
-        "node-sass": "^4.14.1",
+        "sass": "^1.93.2",
         "shadow-cljs": "^2.11.8"
     }
 }

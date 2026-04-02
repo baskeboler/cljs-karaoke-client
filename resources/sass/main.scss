@@ -1,5 +1,5 @@
 @charset "utf-8";
-@import "./animista.scss";
+@use "./animista";
 
 // Import a Google Font
 // @import url('https://fonts.googleapis.com/css?family=Nunito:400,700');
@@ -31,11 +31,23 @@ $input-border-color: transparent;
 $input-shadow: 2px 2px 15px 0px $beige-light;
 
 
-@import "../../node_modules/bulma/bulma.sass";
-@import "../../node_modules/@fortawesome/fontawesome-free/scss/fontawesome.scss";
-@import "../../node_modules/@fortawesome/fontawesome-free/scss/brands.scss";
-@import "../../node_modules/@fortawesome/fontawesome-free/scss/regular.scss";
-@import "../../node_modules/@fortawesome/fontawesome-free/scss/solid.scss";
+@use "bulma/sass" with (
+  $family-sans-serif: $family-sans-serif,
+  $grey-dark: $grey-dark,
+  $grey-light: $grey-light,
+  $primary: $primary,
+  $link: $link,
+  $widescreen-enabled: $widescreen-enabled,
+  $fullhd-enabled: $fullhd-enabled,
+  $body-background-color: $body-background-color,
+  $control-border-width: $control-border-width,
+  $input-border-color: $input-border-color,
+  $input-shadow: $input-shadow
+);
+@use "@fortawesome/fontawesome-free/scss/fontawesome";
+@use "@fortawesome/fontawesome-free/scss/brands";
+@use "@fortawesome/fontawesome-free/scss/regular";
+@use "@fortawesome/fontawesome-free/scss/solid";
 @import url('https://fonts.googleapis.com/css?family=Chewy%7CFrijole%7CPlayfair+Display:400,700%7CNunito:400,70&display=swap');
 
 html {
