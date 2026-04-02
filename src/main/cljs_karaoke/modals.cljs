@@ -10,7 +10,14 @@
 
 (declare footer-buttons)
 
-(defn modal-card-dialog [{:keys [title content footer]
+(defn close-modal!
+  ([] (rf/dispatch [::modal-events/modal-pop]))
+  ([close-event]
+   (rf/dispatch [::modal-events/modal-pop])
+   (when-not (nil? close-event)
+     (rf/dispatch close-event))))
+
+(defn modal-card-dialog [{:keys [title content footer close-event]
                           :or {footer [footer-buttons]}}]
   [:div.modal.is-active
    {:key (random-uuid)}
@@ -20,7 +27,7 @@
      [:p.modal-card-title title]
      [:button.delete
       {:aria-label "close"
-       :on-click #(rf/dispatch [::modal-events/modal-pop])}]]
+       :on-click #(close-modal! close-event)}]]
     [:section.modal-card-body
      (if (fn? content)
        [content]
@@ -35,6 +42,18 @@
 (defn show-modal-card-dialog [arg]
   (rf/dispatch [::modal-events/modal-push
                 [modal-card-dialog arg]]))
+
+(defn initial-audio-welcome-modal []
+  [modal-card-dialog
+   {:title       "Welcome"
+    :close-event [:cljs-karaoke.events/retry-initial-audio-setup]
+    :content     [:div.initial-audio-welcome-modal-content
+                  [:p "The page needs one interaction before the audio element can finish setting up."]
+                  [:p "Dismiss this message and Karaoke Party will retry audio initialization."]]
+    :footer      [:div.footer-container
+                  [:button.button.is-primary
+                   {:on-click #(close-modal! [:cljs-karaoke.events/retry-initial-audio-setup])}
+                   "Continue"]]}])
 
 (defn modals-component []
   [:div.modals

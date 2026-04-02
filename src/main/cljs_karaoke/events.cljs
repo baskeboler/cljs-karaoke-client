@@ -18,6 +18,7 @@
             [cljs-karaoke.events.playlists :as playlist-events]
             [cljs-karaoke.events.song-list :as song-list-events]
             [cljs-karaoke.events.notifications]
+            [cljs-karaoke.events.modals :as modal-events]
             [cljs-karaoke.events.audio :as audio-events]
             [cljs-karaoke.events.song-info :as metadata-events]
             [cljs-karaoke.events.user :as user-events]
@@ -27,6 +28,7 @@
             ;; [cljs-karaoke.events.http-relay :as http-relay-events]
             [goog.events :as gevents]
             [cljs-karaoke.audio :as aud]
+            [cljs-karaoke.modals :as modals]
             [cljs-karaoke.http.events :as http-events]
             [shadow.loader :as loader :refer [loaded? with-module]])
   (:import goog.History))
@@ -125,7 +127,7 @@
                           :player-current-time        0
                           :song-duration              0
                           :custom-song-delay          {}
-                          :user-custom-song-delay {}
+                          :user-custom-song-delay     {}
                           :song-backgrounds           {}
                           :metrics                    {}
                           :stop-channel               (chan)
@@ -144,7 +146,8 @@
                           :modals                     []
                           :history                    (History.)
                           :notifications              []
-                          :google-search-count        0}
+                          :google-search-count        0
+                          :initial-audio-modal-open?  false}
              ;; :dispatch-n [[::fetch-custom-delays]
              ;; [::fetch-song-background-config]}
              ;; [::init-song-bg-cache]]}))
@@ -461,31 +464,62 @@
                 [::save-custom-song-delays-to-localstorage]]}))
 
 (rf/reg-event-fx
+ ::show-initial-audio-welcome-modal
+ (fn-traced
+  [{:keys [db]} _]
+  (if (:initial-audio-modal-open? db)
+    {:db db}
+    {:db (assoc db :initial-audio-modal-open? true)
+     :dispatch [::modal-events/modal-push (modals/initial-audio-welcome-modal)]})))
+
+(rf/reg-event-fx
+ ::retry-initial-audio-setup
+ (fn-traced
+  [{:keys [db]} _]
+  {:db (assoc db :initial-audio-modal-open? false)
+   :dispatch [::initial-audio-setup]}))
+
+(rf/reg-event-fx
+ ::handle-missing-initial-audio
+ (fn-traced
+  [{:keys [db]} _]
+  (.warn js/console "Initial audio setup could not find #main-audio. Waiting for user interaction before retrying.")
+  (if (:initial-audio-modal-open? db)
+    {:db db}
+    {:db db
+     :dispatch [::show-initial-audio-welcome-modal]})))
+
+(rf/reg-event-fx
  ::initial-audio-setup
  (rf/after
   (fn [db _]
     (. js/console (log "Initial Audio Setup"))
-    (let [audio        (. js/document (getElementById "main-audio"))
-          effects-audio (. js/document (getElementById "effects-audio"))
-          audio-events (aud/setup-audio-listeners audio)]
-      (go-loop [e (<! audio-events)]
-        (when-not (nil? e)
-          (aud/process-audio-event e)
-          (recur (<! audio-events))))
-      (rf/dispatch [::set-audio audio])
-      (rf/dispatch [::set-effects-audio effects-audio])
-      (rf/dispatch [::set-audio-events audio-events]))))
+    (when-not (:initial-audio-setup-complete? db)
+      (let [audio (. js/document (getElementById "main-audio"))]
+        (if (nil? audio)
+          (rf/dispatch [::handle-missing-initial-audio])
+          (let [effects-audio (. js/document (getElementById "effects-audio"))
+                audio-events (aud/setup-audio-listeners audio)]
+            (go-loop [e (<! audio-events)]
+              (when-not (nil? e)
+                (aud/process-audio-event e)
+                (recur (<! audio-events))))
+            (rf/dispatch [::set-audio audio])
+            (rf/dispatch [::set-effects-audio effects-audio])
+            (rf/dispatch [::set-audio-events audio-events])
+            (rf/dispatch [::initial-audio-setup-complete])))))))
  (fn-traced
   [{:keys [db]} _]
-  {:db       db
-   :dispatch [::initial-audio-setup-complete]}))
+  {:db db}))
 
 (rf/reg-event-db
  ::initial-audio-setup-complete
  (fn-traced
   [db _]
   (. js/console (log "Initial Audio Setup Complete!"))
-  (-> db (assoc :initial-audio-setup-complete? true))))
+  (-> db
+      (assoc :initial-audio-setup-complete? true
+             :initial-audio-modal-open? false))))
 
 (rf/reg-event-db
  ::push-delays-to-mongo
