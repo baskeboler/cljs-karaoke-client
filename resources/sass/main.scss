@@ -110,7 +110,7 @@ body {
   background-color: var(--app-body-bg);
   color: var(--surface-text);
 }
- 
+
 .button, .navbar-item {
   text-transform: capitalize;
 }
@@ -298,7 +298,6 @@ body {
 
     /* transition: all 0.5s ease-in-out; */
     font-family: 'Chewy', cursive;
-    color: black;
 
     /* transform: scale(1) translate(0px,0px); */
     /* transition: all 2s ease-out; */
@@ -318,7 +317,7 @@ body {
       /* animation: bounce-top 0.5s ease both; */
 
       .icon {
-        color: black;
+//        color: black;
       }
     }
   }
@@ -1008,7 +1007,7 @@ nav.navbar > div.navbar-brand > a.navbar-item > .header-logo {
   position: relative;
   top: unset;
   right: unset;
-  
+
 }
 
 .app {
