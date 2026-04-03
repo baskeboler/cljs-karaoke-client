@@ -6,6 +6,7 @@
             [cljs-karaoke.styles :refer [wallpapers]]
             [cljs-karaoke.events.common :as common-events]
             [ajax.core :as ajax]
+            [goog.string :as gstr]
             [shadow.loader :as loader :refer [loaded? load with-module]]))
 ;; [cljs-karaoke.mongo :as mongo]))
 ;; (defonce fetch-bg-from-web-enabled? true)
@@ -19,8 +20,7 @@
 (defn update-song-bg-flow []
   {;; :first-dispatch [::update-bg-image song-name]
    ;; :id    (gensym ::update-song-bg-flow)
-   :rules [
-           ;; {:when     :seen-all-of?
+   :rules [           ;; {:when     :seen-all-of?
            ;; :events   [::search-images
            ;; ::handle-fetch-bg-success
            ;; ::cache-song-bg-complete
@@ -28,8 +28,7 @@
            ;; ::generate-bg-css-complete
            ;; :dispatch [::update-bg-image-complete]
            {:when     :seen-all-of?
-            :events   [
-                       ::set-bg-image
+            :events   [::set-bg-image
                        ::generate-bg-css-complete]
             :dispatch [::update-bg-image-complete]
             :halt?    false}
@@ -82,15 +81,12 @@
   {:db db
    :http-xhrio {:method :get
                 :timeout 8000
-                :uri (str search/base-url
-                          "?cx="  search/ctx-id
-                          "&key=" search/api-key
-                          "&q=" q)
-                :response-format (ajax/json-response-format {:keywords? true})
+                :uri (search/query-url q)
+
+                :response-format (ajax/text-response-format)
                 :on-success callback-event
                 :on-failure error-event}
    :dispatch [::inc-google-search-count]}))
-
 
 (rf/reg-event-fx
  ::init-update-bg-image-flow
@@ -139,9 +135,9 @@
   [{:keys [db]} [_ title res]]
   (let [candidate-image (search/extract-candidate-image res)]
     {:db         db
-     :dispatch-n [(when-not (nil? candidate-image) [::set-bg-image (:url candidate-image)])
-                  (when-not (nil? candidate-image) [::generate-bg-css (:url candidate-image)])
-                  (when-not (nil? candidate-image) [::cache-song-bg-image title (:url candidate-image)])
+     :dispatch-n [(when-not (nil? candidate-image) [::set-bg-image candidate-image])
+                  (when-not (nil? candidate-image) [::generate-bg-css candidate-image])
+                  (when-not (nil? candidate-image) [::cache-song-bg-image title candidate-image])
                   (when (nil? candidate-image) [::set-random-bg-image])]})))
 
 (rf/reg-event-db
@@ -178,11 +174,10 @@
   (. js/console (log "Generate bg css complete"))
   db))
 
-
 (rf/reg-event-fx
  ::save-bg-cache-to-localstorage
  (fn-traced
-  [{:keys [db] } [_ cb-event]]
+  [{:keys [db]} [_ cb-event]]
   {:db       db
    :dispatch [::common-events/save-to-localstorage "song-bg-cache" (:song-backgrounds db) cb-event]}))
 
@@ -227,10 +222,10 @@
  ::update-bg-image-flow-complete
  ;; (rf/after
   ;; (fn [db _])
-  (fn-traced
-   [{:keys [db]} _]
-   (. js/console (log "Update bg image flow complete"))
-   {:db db}))
+ (fn-traced
+  [{:keys [db]} _]
+  (. js/console (log "Update bg image flow complete"))
+  {:db db}))
 
 ;; (rf/reg-event-fx
 ;;  ::init-update-bg-image-flow
@@ -241,4 +236,3 @@
 ;;   [{:keys [db]} [_ song-name]]
 ;;   {:db db
 ;;    :async-flow (update-song-bg-flow song-name)}))
-

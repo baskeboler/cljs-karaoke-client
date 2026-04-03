@@ -172,7 +172,7 @@
    #_[playback-debug-panel]
    (when @(rf/subscribe [::s/current-song])
      [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))])
-   [billboards-component]
+   #_[billboards-component]
    [seek-buttons/seek-component #(seek 10000) #(seek -10000)]
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.edge-progress-bar
