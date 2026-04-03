@@ -11,7 +11,7 @@
              (merge
               {:position   :fixed
                :bottom     "-474px"
-               :left       "0"
+               :right       "0"
                :opacity    0
                :z-index    2
                :display    :block

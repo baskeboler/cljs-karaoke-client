@@ -17,8 +17,8 @@
             [cljs-karaoke.key-bindings]
             [cljs-karaoke.subs :as s]
             [cljs-karaoke.modals :as modals]
-            [cljs-karaoke.lyrics :as l :refer [ frame-text-string]]
-            [cljs-karaoke.audio-input :refer [ spectro-overlay]]
+            [cljs-karaoke.lyrics :as l :refer [frame-text-string]]
+            [cljs-karaoke.audio-input :refer [spectro-overlay]]
             [cljs-karaoke.playback :as playback :refer [play stop]]
             [cljs-karaoke.views.dispatcher]
             [cljs-karaoke.views.billboards :refer [billboards-component]]
@@ -35,7 +35,7 @@
             [cljs-karaoke.notifications :as notifications]
             [cljs-karaoke.router.core :as router]
             [cljs-karaoke.styles :as styles
-             :refer [ centered screen-centered
+             :refer [centered screen-centered
                      top-left parent-style]]
             [shadow.loader :as loader]
             [cljs-karaoke.editor.core]
@@ -45,9 +45,7 @@
 
 (stylefy/init)
 
-
 (def bg-style (rf/subscribe [::s/bg-style]))
-
 
 (declare save-song fetch-all)
 (defn save-current []
@@ -59,8 +57,8 @@
   (.. (fetch-all)
       (then #(js->clj % :keywordize-keys true))
       (catch
-          (fn [err]
-            (println "error fetching" err)))))
+       (fn [err]
+         (println "error fetching" err)))))
 
 (defn current-frame-display []
   (let [frame (rf/subscribe [::s/frame-to-display])]
@@ -105,7 +103,7 @@
                   (not @can-play?)
                   {:headline "Preparing this track"
                    :detail   "Loading audio, lyrics, and background assets. Retry if the song stalls."
-                   :actions  [[:button.button.is-primary.is-light
+                   :actions  [[:button.button.is-primary
                                {:on-click #(songs/load-song @current-song)}
                                "Retry loading"]]}
 
@@ -118,7 +116,7 @@
                                        {:on-click play}
                                        "Play"]]
                                @(rf/subscribe [::s/current-song-metadata])
-                               (conj [:button.button.is-info.is-light
+                               (conj [:button.button.is-info
                                       {:on-click show-song-metadata-modal}
                                       "Song info"]))}
 
@@ -140,7 +138,6 @@
                ^{:key (str "playback-panel-action-" idx)}
                action)])]]))))
 
-
 (defn playback-debug-panel []
   [:div.debug-view
    {:style {:background :white
@@ -155,11 +152,11 @@
      [:p (str "previous frame: "
               (protocols/get-text n))])
    (when-let [n @(rf/subscribe [::s/current-frame])]
-     [:p (str "current frame: "(:offset n) " - " (protocols/get-text n))])
+     [:p (str "current frame: " (:offset n) " - " (protocols/get-text n))])
    (when-let [n @(rf/subscribe [::s/frame-to-display])]
-     [:p (str "displayed frame: "(:offset n) " - " (protocols/get-text n))])
+     [:p (str "displayed frame: " (:offset n) " - " (protocols/get-text n))])
    (when-let [n @(rf/subscribe [::s/next-frame])]
-     [:p (str "next frame: "(:offset n) " - " (protocols/get-text n))])
+     [:p (str "next frame: " (:offset n) " - " (protocols/get-text n))])
    (let [n @(rf/subscribe [::s/current-frame-done?])]
      [:p (if n "done" "not done")])])
 
@@ -196,8 +193,6 @@
      [:div.edge-progress-bar {:style {:position :relative}}
       [song-progress]])])
 
-
-
 (defn pages [page-name]
   (case page-name
     :home     [default-view]
@@ -205,7 +200,6 @@
     :playlist [playlist-view-component]
     :playback [playback-view]
     [default-view]))
-
 
 (defn app
   "main app component"
@@ -239,10 +233,8 @@
      (str protocol "//" host "/songs/" song ".html")
      (js/encodeURI))))
 
-
-
 (defonce app-root (. js/document (getElementById "root")))
- 
+
 (defn mount-components! []
   (render [app] app-root))
 (defn init! []
@@ -252,7 +244,6 @@
   (mount-components!)
   (mount/in-cljc-mode)
   (mount/start))
-
 
 (defn ^:dev/after-load start-app []
   (println "start app, mounting components")
@@ -283,7 +274,6 @@
   (* 1000 secs))
 (defn ->secs [ms]
   (/ (double ms) 1000.0))
-
 
 (defmethod aud/process-audio-event :timeupdate
   [event]

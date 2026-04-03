@@ -1,15 +1,15 @@
 {
     "name": "cljs-karaoke-client",
     "repository": "https://github.com/baskeboler/cljs-karaoke-client",
-    "version": "1.2.0",
+    "version": "1.5.0",
     "description": "",
     "main": "index.js",
     "scripts": {
         "build": "npm run release",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "cljs-watch": "shadow-cljs watch app",
-        "compile": "shadow-cljs compile app ",
-        "release": "shadow-cljs release app ",
+        "cljs-watch": "shadow-cljs watch app lambda-images",
+        "compile": "shadow-cljs compile app lambda-images",
+        "release": "shadow-cljs release app lambda-images",
         "start": "concurrently 'npm:cljs-watch' 'npm:css-watch'",
         "copy-webfonts": "cp -rf ./node_modules/@fortawesome/fontawesome-free/webfonts ./public/",
         "css-build": "sass --no-source-map --quiet-deps --load-path=node_modules resources/sass/main.scss public/css/main.css",
@@ -36,6 +36,8 @@
         "@fortawesome/fontawesome-free": "^7.2.0",
         "bulma": "^1.0.4",
         "concurrently": "^5.3.0",
+        "netlify-cli": "^24.9.0",
+        "netlify-lambda": "^2.0.16",
         "sass": "^1.93.2",
         "shadow-cljs": "^2.11.8"
     }

@@ -31,12 +31,19 @@
   [mount "0.1.16"]
   [baskeboler/chart-cljs "1.0.1"]
   ;; [org.mongodb/mongodb-driver-sync "3.12.3"]
+  [org.clojure/core.async "1.9.865"]
   [com.novemberain/monger "3.5.0"]]
 
  :nrepl {:port 9999}
 
  :builds
- {:app {:target           :browser
+ {:lambda-images {:target :node-library
+                  :output-to "functions/images.js"
+                  :exports {:handler cljs-karaoke.functions.images/handler}
+                  :js-options {:js-provider :shadow
+                               :keep-native-requires true}
+                  :devtools {:enabled false}}
+  :app {:target           :browser
         :build-hooks      [(build/setup-target-dir)
                            (build/generate-seo-pages)]
         :output-dir       "public/js"
@@ -58,10 +65,9 @@
                            :mongo {:entries    [cljs-karaoke.mongo]
                                    :depends-on #{:main}}}
         :asset-path       "/js"
-        
+
         :dev-http {8089 "public/"}
-        :devtools {
-                   :http-port      8089
+        :devtools {:http-port      8089
                    :http-handler   shadow.http.push-state/handle
                    :http-root      "public"
                    :watch-dir      "resources"
@@ -72,7 +78,7 @@
         :dev      {:compiler-options
                    {:optimization :none
                     :closure-defines
-                    {re_frame.trace.trace_enabled?                true 
+                    {re_frame.trace.trace_enabled?                true
                      "re_frame.trace.trace_enabled_QMARK_"        true
                      "day8.re_frame.tracing.trace_enabled_QMARK_" true
                      "goog.DEBUG"                                 true}}}}}}

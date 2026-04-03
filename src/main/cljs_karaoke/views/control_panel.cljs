@@ -85,24 +85,24 @@
     [:div.control-panel-button-bar
      [:button.button.is-primary
       {:on-click #(songs/load-song @current-song)}
-       [:span.icon
-        [:i.fas.fa-folder-open]]
-       [:span "Load"]]
+      [:span.icon
+       [:i.fas.fa-folder-open]]
+      [:span "Load"]]
      [:button.button.is-info
       (if @can-play?
         {:on-click     play
          :title "Play current song"
          :aria-label "Play current song"}
         {:disabled true})
-       [:span.icon
-        [:i.fas.fa-play]]
+      [:span.icon
+       [:i.fas.fa-play]]
       [:span "Play"]]
      [:button.button.is-warning.stop-btn
       {:on-click     stop
        :title "Stop playback"
        :aria-label "Stop playback"}
-       [:span.icon
-        [:i.fas.fa-stop]]
+      [:span.icon
+       [:i.fas.fa-stop]]
       [:span "Stop"]]
      [export-sync-data-btn]
      (when @input-available?
@@ -117,7 +117,6 @@
     [control-panel-button-bar]
     [save-custom-delay-btn]]
    [audio-input/audio-viz]])
-
 
 (defn- toggle-menu-btn []
   [:button.button.is-small.is-outlined.is-primary.toggle-tools-btn
@@ -138,9 +137,9 @@
 (defn a-dropdown-menu []
   (protocols/render-component
    (dropdown/dropdown-menu-button
-     [:i.fa.fa-ellipsis-v]
-     [(dropdown/url-item "item 1" "#")
-      (dropdown/url-item "item 2" "#")])))
+    [:i.fa.fa-ellipsis-v]
+    [(dropdown/url-item "item 1" "#")
+     (dropdown/url-item "item 2" "#")])))
 
 (defn control-panel []
   (let [lyrics             (rf/subscribe [::s/lyrics])
@@ -178,11 +177,11 @@
               [:p.home-current-song-artist artist])])
          [:p.home-current-song-empty "No song selected yet."])
        [:div.home-status-pills
-        [:span.tag.is-light
+        [:span.tag
          (if @lyrics-loaded? "Lyrics ready" "Lyrics pending")]
-        [:span.tag.is-light
+        [:span.tag
          (if @can-play? "Audio ready" "Audio pending")]
-        [:span.tag.is-light
+        [:span.tag
          (if @song-paused? "Paused" "Playing")]]
        (when @current-song
          [:p.home-delay-copy
