@@ -39,5 +39,5 @@
                   nil
                   (clj->js
                    {:statusCode 200
-                    :headers {"context-type" "application/edn; charset=utf-8"}
+                    :headers {"content-type" "application/edn; charset=utf-8"}
                     :body (pr-str data)})))))))
