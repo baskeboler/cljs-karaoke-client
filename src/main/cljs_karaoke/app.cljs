@@ -71,6 +71,75 @@
       [:div.current-frame
        [frame-text @frame]])))
 
+(defn playback-stage-header []
+  (let [current-song (rf/subscribe [::s/current-song])
+        can-play?    (rf/subscribe [::s/can-play?])
+        song-paused? (rf/subscribe [::s/song-paused?])]
+    (when @current-song
+      (let [{:keys [title artist]} (songs/song-display-data @current-song)
+            status-label          (cond
+                                    (not @can-play?) "Preparing track"
+                                    @song-paused? "Ready"
+                                    :else "Live")]
+        [:div.playback-stage-header
+         [:span.playback-stage-status status-label]
+         [:div.playback-stage-copy
+          [:h2.playback-stage-title title]
+          (when-not (str/blank? artist)
+            [:p.playback-stage-artist artist])]]))))
+
+(defn playback-state-panel []
+  (let [current-song  (rf/subscribe [::s/current-song])
+        can-play?     (rf/subscribe [::s/can-play?])
+        song-paused?  (rf/subscribe [::s/song-paused?])
+        song-position (rf/subscribe [::s/song-position])
+        frame         (rf/subscribe [::s/frame-to-display])]
+    (let [state (cond
+                  (nil? @current-song)
+                  {:headline "No song selected"
+                   :detail   "Choose a song from Control or Playlist to start the karaoke screen."
+                   :actions  [[:a.button.is-primary
+                               {:href (router/url-for :home)}
+                               "Go to control"]]}
+
+                  (not @can-play?)
+                  {:headline "Preparing this track"
+                   :detail   "Loading audio, lyrics, and background assets. Retry if the song stalls."
+                   :actions  [[:button.button.is-primary.is-light
+                               {:on-click #(songs/load-song @current-song)}
+                               "Retry loading"]]}
+
+                  @song-paused?
+                  {:headline (if (zero? @song-position)
+                               "Ready to sing"
+                               "Playback paused")
+                   :detail   "Press play to continue. You can still jump back home or inspect song details from here."
+                   :actions  (cond-> [[:button.button.is-primary
+                                       {:on-click play}
+                                       "Play"]]
+                               @(rf/subscribe [::s/current-song-metadata])
+                               (conj [:button.button.is-info.is-light
+                                      {:on-click show-song-metadata-modal}
+                                      "Song info"]))}
+
+                  (nil? @frame)
+                  {:headline "Instrumental intro"
+                   :detail   "Lyrics will appear automatically when the first timed frame begins."
+                   :actions  []}
+
+                  :else nil)]
+      (when state
+        [:div.playback-state-panel
+         [:div.playback-state-surface
+          [:p.playback-state-eyebrow "Playback status"]
+          [:h3.playback-state-title (:headline state)]
+          [:p.playback-state-copy (:detail state)]
+          (when (seq (:actions state))
+            [:div.playback-state-actions
+             (for [[idx action] (map-indexed vector (:actions state))]
+               ^{:key (str "playback-panel-action-" idx)}
+               action)])]]))))
+
 
 (defn playback-debug-panel []
   [:div.debug-view
@@ -99,41 +168,14 @@
    [spectro-overlay]
    ^{:class "edge-stop-btn"}
    [playback-controls]
+   [playback-stage-header]
    [current-frame-display]
+   [playback-state-panel]
    (comment)
    #_[playback-debug-panel]
-   [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))]
+   (when @(rf/subscribe [::s/current-song])
+     [song-time-display (* 1000 @(rf/subscribe [::s/song-position]))])
    [billboards-component]
-   (when (and
-          @(rf/subscribe [::s/song-paused?])
-          @(rf/subscribe [::s/can-play?]))
-     [:div.screen-centered
-      (when @(rf/subscribe
-              [::s/view-property :playback :options-enabled?])
-        [:a.top-left
-          {:on-click #(rf/dispatch [::views-events/set-current-view :home])}
-         [:span.icon
-          [:i.fas.fa-cog.fa-3x]]])
-      [:div.field.is-grouped
-        (stylefy/use-style
-         {:z-index 500})
-        [:p.control>a.button.is-size-2.is-primary
-         {:on-click play}
-         [:span.icon>i.fas.fa-play.fa-fw
-           (stylefy/use-style {:text-shadow "0px 0px 9px white"})]]
-        (when @(rf/subscribe [::s/current-song-metadata])
-          [:p.control>a.button.is-size-2.is-info
-           {:on-click show-song-metadata-modal}
-           [:span.icon>i.fas.fa-info.fa-fw
-             (stylefy/use-style {:text-shadow "0px 0px 9px white"})]])]])
-   (when-not @(rf/subscribe [::s/can-play?])
-     [:a.centered
-       {:on-click
-        #(if-let [song @(rf/subscribe [::s/current-song])]
-           (songs/load-song song)
-           (songs/load-song))}
-      [:span.icon
-       [:i.fas.fa-sync.fa-5x]]])
    [seek-buttons/seek-component #(seek 10000) #(seek -10000)]
    (when-not @(rf/subscribe [::s/song-paused?])
      [:div.edge-progress-bar
@@ -264,4 +306,3 @@
   (rf/dispatch-sync [::events/set-playing? false])
   (when-let [_ @(rf/subscribe [::s/loop?])]
     (rf/dispatch-sync [::playlist-events/playlist-next])))
-

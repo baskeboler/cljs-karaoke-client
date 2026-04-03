@@ -1,38 +1,20 @@
-(ns cljs-karaoke.views.seek-buttons
-  (:require [reagent.core :as reagent :refer [atom]]
-            [re-frame.core :as rf]
-            [stylefy.core :as stylefy]
-            [cljs-karaoke.subs :as s]
-            [cljs-karaoke.events.views :as view-events]))
+(ns cljs-karaoke.views.seek-buttons)
 
-(declare right-seek-hotspot)
-
-
-
-(defn right-seek-hotspot []
-  [:a.right-seek-hotspot
-    {:on-click #(rf/dispatch [::view-events/show-seek-buttons])}
-   " "])
 (defn right-seek-component [seek-fn]
-  (let [visible (rf/subscribe [::s/seek-buttons-visible?])]
-    (if @visible
-      [:a.right-seek-btn
-       {:on-click seek-fn}
-       [:i.fas.fa-forward]]
-      [right-seek-hotspot])))
-
-(defn left-seek-hotspot []
-  [:a.left-seek-hotspot
-   {:on-click #(rf/dispatch [::view-events/show-seek-buttons])}
-   " "])
+  [:a.right-seek-btn
+   {:on-click seek-fn
+    :title "Seek forward ten seconds"
+    :aria-label "Seek forward ten seconds"}
+   [:i.fas.fa-forward]
+   [:span.seek-btn-label "+10s"]])
 
 (defn left-seek-component [seek-fn]
-  (let [visible (rf/subscribe [::s/seek-buttons-visible?])]
-    (if @visible
-      [:a.left-seek-btn
-       {:on-click seek-fn}
-       [:i.fas.fa-backward]]
-      [left-seek-hotspot])))
+  [:a.left-seek-btn
+   {:on-click seek-fn
+    :title "Seek backward ten seconds"
+    :aria-label "Seek backward ten seconds"}
+   [:i.fas.fa-backward]
+   [:span.seek-btn-label "-10s"]])
 
 (defn seek-component [fw-fn bw-fn]
   [:div

@@ -17,9 +17,51 @@
             [pushy.core :as pushy]))
 (declare song-url)
 
-(defn song-title [name]
+(defn clean-song-name [name]
   (-> name
-      (str/replace #"_" " ")))
+      (str/replace #"_" " ")
+      (str/replace #"\s+" " ")
+      (str/trim)))
+
+(defn song-display-data [name]
+  (let [clean-name     (clean-song-name name)
+        [artist title] (str/split clean-name #"-" 2)]
+    (if (str/blank? title)
+      {:title clean-name
+       :artist nil}
+      {:title  (str/trim title)
+       :artist (str/trim artist)})))
+
+(defn song-title [name]
+  (:title (song-display-data name)))
+
+(defn filtered-song-names [available-songs filter-text]
+  (->> available-songs
+       (filter #(str/includes?
+                 (str/lower-case %)
+                 (str/lower-case filter-text)))
+       sort
+       vec))
+
+(defn song-results-summary []
+  (let [song-list    (rf/subscribe [::s/available-songs])
+        page-size    (rf/subscribe [::s/song-list-page-size])
+        filter-text  (rf/subscribe [::s/song-list-filter])
+        page-offset  (rf/subscribe [::s/song-list-offset])
+        current-page (rf/subscribe [::s/song-list-current-page])]
+    (fn []
+      (let [filtered-songs (filtered-song-names @song-list @filter-text)
+            total-count    (count filtered-songs)
+            start-index    (if (pos? total-count) (inc @page-offset) 0)
+            end-index      (min total-count (+ @page-offset @page-size))
+            page-count     (max 1 (int (js/Math.ceil (/ total-count @page-size))))]
+        [:div.song-results-summary
+         [:p
+          (if (pos? total-count)
+            (str "Showing " start-index "-" end-index " of " total-count " songs")
+            "No songs match this search yet.")]
+         [:p.song-results-summary-page
+          (str "Page " (inc @current-page) " of " page-count)]]))))
 
 (defn song-table-pagination []
   (let [song-list    (rf/subscribe [::s/available-songs])
@@ -30,7 +72,7 @@
         next-fn      #(rf/dispatch [::song-list-events/set-song-list-current-page (inc @current-page)])
         prev-fn      #(rf/dispatch [::song-list-events/set-song-list-current-page (dec @current-page)])]
     (fn []
-      (when-let [song-count (count @song-list)]
+      (let [song-count (count (filtered-song-names @song-list @filter-text))]
         [:nav.pagination {:role :navigation}
          [:a.pagination-previous {:on-click #(when (pos? @current-page) (prev-fn))
                                   :disabled (if-not (pos? @current-page) true false)}
@@ -46,11 +88,14 @@
 (defn song-filter-component []
   (let [filt (rf/subscribe [::s/song-list-filter])]
     [:div.field>div.control.has-icons-left
-     [:span.icon
+      [:span.icon
       [:i.fas.fa-search]]
      [:input.input.is-primary
       {:value     @filt
        :name      "filter-input"
+       :placeholder "Search by artist, title, or filename"
+       :aria-label "Search songs"
+       :autocomplete "off"
        :on-change #(rf/dispatch [::song-list-events/set-song-filter
                                  (-> % .-target .-value)])}]]))
 
@@ -66,31 +111,35 @@
         filter-text             (rf/subscribe [::s/song-list-filter])
         page-offset             (rf/subscribe [::s/song-list-offset])]
     [:div.card.song-table-component.flip-in-hor-bottom
-     [:div.card-header]
      [:div.card-content
       [song-filter-component]
+      [song-results-summary]
       [song-table-pagination]
-      [:table.table.is-narrow.is-fullwidth.song-table
-       [:thead
-        [:tr
-         [:th "Song"]
-         [:th]]]
-       [:tbody
-        (doall
-         (for [name (->> @(rf/subscribe [::s/available-songs])
-                         (filter #(clojure.string/includes?
-                                   (clojure.string/lower-case %)
-                                   (clojure.string/lower-case @filter-text)))
-                         (sort)
-                         (drop @page-offset)
-                         (take @page-size) ;(vec (sort (keys song-map)))
-                         (into []))
-               :let [title (song-title name)]]
-           [:tr {:key name}
-            [:td title]
-            [:td [:a
-                  {:href (song-url name)} ;(str "#/songs/" name)}
-                  [:i.fas.fa-play]]]]))]]
+      [:div.song-library-list
+       (doall
+        (for [name (->> (filtered-song-names @(rf/subscribe [::s/available-songs]) @filter-text)
+                        (drop @page-offset)
+                        (take @page-size)
+                        (into []))
+              :let [{:keys [title artist]} (song-display-data name)]]
+          ^{:key name}
+          [:article.song-library-item
+           [:div.song-library-item-copy
+            [:div.song-library-item-heading
+             [:div
+              [:p.song-library-item-title title]
+              (when-not (str/blank? artist)
+                [:p.song-library-item-artist artist])]
+             (when @(rf/subscribe [::s/has-delay? name])
+               [:span.tag.is-link.is-light.song-library-item-tag "Saved sync"])]]
+           [:div.song-library-item-actions
+            [:a.button.is-primary.is-light
+             {:href (song-url name)
+              :title (str "Play " title)
+              :aria-label (str "Play " title)}
+             [:span.icon
+              [:i.fas.fa-play]]
+             [:span "Play"]]]]))]
       [song-table-pagination]]]))
 
 (defn load-song
@@ -120,4 +169,3 @@
 ;; (defmethod handle-route :random-song
   ;; [_]
   ;; (let [random-song-name (rand-nth @(rf/subscribe [::s]))]))
-
