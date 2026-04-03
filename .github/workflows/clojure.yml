@@ -2,18 +2,16 @@ name: Clojure CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master" , "develop"]
   pull_request:
     branches: [ "master" ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
       run: npm i
     - name: release
-      run: shadow-cljs release app
+      run: npx shadow-cljs release app
