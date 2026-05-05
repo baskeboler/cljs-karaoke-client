@@ -162,7 +162,7 @@
              :rel :stylesheet}]
      (meta-tag "viewport" "width=device-width, initial-scale=1")
      (meta-tag
-      "twitter:image:src"
+      "twitter:image"
       image)
      (meta-tag "twitter:site" "@baskeboler")
      (meta-tag "twitter:card" "summary_large_image")
@@ -170,6 +170,7 @@
      (meta-tag :description  "Karaoke Party")
      (meta-tag "twitter:title" (str "Karaoke Party :: " song))
      (meta-tag "twitter:description" (str "Online Karaoke Player. Sing " song " online!"))
+     (meta-tag {:property "og:title" :content (str "Karaoke Party :: " song)})
      (meta-tag {:property "og:image"
                 :content image})
      (meta-tag {:property "og:site_name" :content "Karaoke Party"})
