@@ -137,15 +137,17 @@
 (defn watch []
   (shadow/watch :app))
 
-(defn- meta-tag [name content]
-  [:meta {:name name
-          :content content}])
+(defn- meta-tag 
+  ([name content] (meta-tag {:name name :content content}))
+  ([{:keys [name content property]}]
+    [:meta {:name     name
+            :property property
+            :content  content}]))
 
 (def default-seo-image
   "https://repository-images.githubusercontent.com/166899229/7b618b00-a7ff-11e9-8b17-1dfbdd27fe74")
 
-(def cmap
-  {\' "\\'"})
+(def cmap  {\' "\\'"})
 
 (defn- escape-song-name [n]
   (cstr/escape n cmap))
@@ -168,12 +170,12 @@
      (meta-tag :description  "Karaoke Party")
      (meta-tag "twitter:title" (str "Karaoke Party :: " song))
      (meta-tag "twitter:description" (str "Online Karaoke Player. Sing " song " online!"))
-     (meta-tag "og:image"
-               image)
-     (meta-tag "og:site_name" "Karaoke Party")
-     (meta-tag "og:type" "website")
-     (meta-tag "og:url" (str "https://karaoke-player.netlify.app/songs/" (url-encode song)))
-     (meta-tag "og:description" "Karaoke Party. Online Karaoke player.")
+     (meta-tag {:property "og:image"
+                :content image})
+     (meta-tag {:property "og:site_name" :content "Karaoke Party"})
+     (meta-tag {:property "og:type" :content "website"})
+     (meta-tag {:property "og:url" :content (str "https://karaoke-player.netlify.app/songs/" (url-encode song))})
+     (meta-tag {:property "og:description" :content "Karaoke Party. Online Karaoke player."})
      [:link {:rel :canonical :href (str "https://karaoke-player.netlify.app/sing/" (url-encode song))}]
      [:title (str "Karaoke Party :: "
                   song)]
